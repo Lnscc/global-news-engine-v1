@@ -129,6 +129,14 @@ public class SourceBatch {
         status = IngestionStatus.DOWNLOADED;
     }
 
+    public void markParsing() {
+        status = IngestionStatus.PARSING;
+    }
+
+    public void markParsed() {
+        status = IngestionStatus.PARSED;
+    }
+
     public void markFailed() {
         status = IngestionStatus.FAILED;
     }
