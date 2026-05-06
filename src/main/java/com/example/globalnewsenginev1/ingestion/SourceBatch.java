@@ -116,5 +116,20 @@ public class SourceBatch {
                 });
 
         file.update(url, sizeBytes, fileHash);
+        if (status == IngestionStatus.FAILED) {
+            status = IngestionStatus.DISCOVERED;
+        }
+    }
+
+    public void markDownloading() {
+        status = IngestionStatus.DOWNLOADING;
+    }
+
+    public void markDownloaded() {
+        status = IngestionStatus.DOWNLOADED;
+    }
+
+    public void markFailed() {
+        status = IngestionStatus.FAILED;
     }
 }

@@ -2,6 +2,8 @@ package com.example.globalnewsenginev1.ingestion;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
+
+import java.time.Instant;
 
 @Entity
 @Table(
@@ -40,6 +44,18 @@ public class RawSourceFile {
 
     @Column(length = 128)
     private String fileHash;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 32)
+    private IngestionStatus status = IngestionStatus.DISCOVERED;
+
+    @Column(length = 1000)
+    private String localPath;
+
+    private Instant downloadedAt;
+
+    @Column(length = 2000)
+    private String errorMessage;
 
     protected RawSourceFile() {
     }
@@ -73,9 +89,46 @@ public class RawSourceFile {
         return fileHash;
     }
 
+    public IngestionStatus getStatus() {
+        return status == null ? IngestionStatus.DISCOVERED : status;
+    }
+
+    public String getLocalPath() {
+        return localPath;
+    }
+
+    public Instant getDownloadedAt() {
+        return downloadedAt;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
     void update(String url, long sizeBytes, String fileHash) {
         this.url = url;
         this.sizeBytes = sizeBytes;
         this.fileHash = fileHash;
+        if (status == IngestionStatus.FAILED) {
+            status = IngestionStatus.DISCOVERED;
+            errorMessage = null;
+        }
+    }
+
+    public void markDownloading() {
+        status = IngestionStatus.DOWNLOADING;
+        errorMessage = null;
+    }
+
+    public void markDownloaded(String localPath) {
+        this.localPath = localPath;
+        downloadedAt = Instant.now();
+        status = IngestionStatus.DOWNLOADED;
+        errorMessage = null;
+    }
+
+    public void markFailed(String errorMessage) {
+        status = IngestionStatus.FAILED;
+        this.errorMessage = errorMessage;
     }
 }

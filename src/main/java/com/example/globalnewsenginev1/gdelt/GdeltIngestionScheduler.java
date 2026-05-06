@@ -15,9 +15,11 @@ public class GdeltIngestionScheduler {
     private static final Logger log = LoggerFactory.getLogger(GdeltIngestionScheduler.class);
 
     private final GdeltDiscoveryJob discoveryJob;
+    private final GdeltDownloadJob downloadJob;
 
-    public GdeltIngestionScheduler(GdeltDiscoveryJob discoveryJob) {
+    public GdeltIngestionScheduler(GdeltDiscoveryJob discoveryJob, GdeltDownloadJob downloadJob) {
         this.discoveryJob = discoveryJob;
+        this.downloadJob = downloadJob;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -36,11 +38,12 @@ public class GdeltIngestionScheduler {
     private void runDiscovery() {
         try {
             discoveryJob.run();
+            downloadJob.runNextBatch();
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
-            log.warn("GDELT manifest discovery was interrupted", ex);
+            log.warn("GDELT ingestion was interrupted", ex);
         } catch (Exception ex) {
-            log.warn("GDELT manifest discovery failed", ex);
+            log.warn("GDELT ingestion failed", ex);
         }
     }
 }
