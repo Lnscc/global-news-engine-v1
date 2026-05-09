@@ -137,6 +137,14 @@ public class SourceBatch {
         status = IngestionStatus.PARSED;
     }
 
+    public void markNormalizing() {
+        status = IngestionStatus.NORMALIZING;
+    }
+
+    public void markNormalized() {
+        status = IngestionStatus.NORMALIZED;
+    }
+
     public void markFailed() {
         status = IngestionStatus.FAILED;
     }

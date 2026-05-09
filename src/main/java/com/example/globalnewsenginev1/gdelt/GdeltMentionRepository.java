@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.gdelt;
 
+import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -11,6 +12,8 @@ import java.util.List;
 public interface GdeltMentionRepository extends JpaRepository<GdeltMention, Long> {
 
     boolean existsByStagingRow(StagingRow stagingRow);
+
+    long countBySourceBatch(SourceBatch sourceBatch);
 
     @Query("""
             select row

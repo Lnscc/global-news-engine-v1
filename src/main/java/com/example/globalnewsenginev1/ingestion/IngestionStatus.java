@@ -6,5 +6,7 @@ public enum IngestionStatus {
     DOWNLOADED,
     PARSING,
     PARSED,
+    NORMALIZING,
+    NORMALIZED,
     FAILED
 }
