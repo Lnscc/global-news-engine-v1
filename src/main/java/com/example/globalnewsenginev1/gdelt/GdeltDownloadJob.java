@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -38,13 +39,16 @@ public class GdeltDownloadJob {
     @Transactional
     public boolean runNextBatch() {
         Optional<SourceBatch> nextBatch = batchRepository
-                .findTop10BySourceAndStatusOrderByExternalBatchIdDesc(GdeltDiscoveryJob.SOURCE, IngestionStatus.DISCOVERED)
+                .findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
+                        GdeltDiscoveryJob.SOURCE,
+                        List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
+                )
                 .stream()
                 .filter(this::hasExpectedFiles)
                 .findFirst();
 
         if (nextBatch.isEmpty()) {
-            log.info("No discovered GDELT batch is ready for download");
+            log.info("No discovered or failed GDELT batch is ready for download");
             return false;
         }
 
@@ -58,10 +62,13 @@ public class GdeltDownloadJob {
             Path destination = storage.pathFor(batch, file);
 
             try {
-                file.markDownloading();
-                if (!Files.exists(destination)) {
-                    downloader.download(file.getUrl(), destination);
+                if (isReusableDownloadedFile(file, destination)) {
+                    file.markDownloaded(destination.toString());
+                    continue;
                 }
+
+                file.markDownloading();
+                downloader.download(file.getUrl(), destination);
                 file.markDownloaded(destination.toString());
             } catch (InterruptedException ex) {
                 Thread.currentThread().interrupt();
@@ -97,5 +104,12 @@ public class GdeltDownloadJob {
         return Arrays.stream(GdeltFileType.values())
                 .map(fileType -> batch.findFile(fileType.name()))
                 .allMatch(file -> file.map(RawSourceFile::getStatus).filter(IngestionStatus.DOWNLOADED::equals).isPresent());
+    }
+
+    private boolean isReusableDownloadedFile(RawSourceFile file, Path destination) {
+        return file.getStatus() == IngestionStatus.DOWNLOADED
+                && file.getLocalPath() != null
+                && Path.of(file.getLocalPath()).equals(destination)
+                && Files.exists(destination);
     }
 }

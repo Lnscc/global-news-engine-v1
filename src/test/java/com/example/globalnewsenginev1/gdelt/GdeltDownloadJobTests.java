@@ -19,6 +19,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -33,7 +34,10 @@ class GdeltDownloadJobTests {
         RawFileDownloader downloader = mock(RawFileDownloader.class);
         SourceBatch batch = completeBatch("20260506123000");
 
-        when(batchRepository.findTop10BySourceAndStatusOrderByExternalBatchIdDesc("GDELT", IngestionStatus.DISCOVERED))
+        when(batchRepository.findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
+                "GDELT",
+                List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
+        ))
                 .thenReturn(List.of(batch));
 
         GdeltDownloadJob job = new GdeltDownloadJob(
@@ -62,7 +66,10 @@ class GdeltDownloadJobTests {
         SourceBatch incompleteBatch = new SourceBatch("GDELT", "20260506123000");
         incompleteBatch.putFile("EVENTS", "http://example.test/events.zip", 1, "abc");
 
-        when(batchRepository.findTop10BySourceAndStatusOrderByExternalBatchIdDesc("GDELT", IngestionStatus.DISCOVERED))
+        when(batchRepository.findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
+                "GDELT",
+                List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
+        ))
                 .thenReturn(List.of(incompleteBatch));
 
         GdeltDownloadJob job = new GdeltDownloadJob(
@@ -83,7 +90,10 @@ class GdeltDownloadJobTests {
         RawFileDownloader downloader = mock(RawFileDownloader.class);
         SourceBatch batch = completeBatch("20260506123000");
 
-        when(batchRepository.findTop10BySourceAndStatusOrderByExternalBatchIdDesc("GDELT", IngestionStatus.DISCOVERED))
+        when(batchRepository.findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
+                "GDELT",
+                List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
+        ))
                 .thenReturn(List.of(batch));
         doThrow(new IOException("network unavailable"))
                 .when(downloader)
@@ -106,6 +116,42 @@ class GdeltDownloadJobTests {
                 .map(RawSourceFile::getErrorMessage)
                 .isEqualTo(Optional.of("network unavailable"));
         verify(batchRepository).save(batch);
+    }
+
+    @Test
+    void retriesFailedBatchAndReusesAlreadyDownloadedFiles() throws IOException, InterruptedException {
+        SourceBatchRepository batchRepository = mock(SourceBatchRepository.class);
+        RawFileDownloader downloader = mock(RawFileDownloader.class);
+        SourceBatch batch = completeBatch("20260506123000");
+        RawFileStorage storage = new RawFileStorage(tempDir);
+
+        Path eventsPath = storage.pathFor(batch, batch.findFile("EVENTS").orElseThrow());
+        java.nio.file.Files.createDirectories(eventsPath.getParent());
+        java.nio.file.Files.writeString(eventsPath, "already downloaded");
+        batch.findFile("EVENTS").orElseThrow().markDownloaded(eventsPath.toString());
+        batch.findFile("MENTIONS").orElseThrow().markFailed("temporary 404");
+        batch.findFile("GKG").orElseThrow().markFailed("temporary 404");
+        batch.markFailed();
+
+        when(batchRepository.findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
+                "GDELT",
+                List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
+        ))
+                .thenReturn(List.of(batch));
+
+        GdeltDownloadJob job = new GdeltDownloadJob(
+                batchRepository,
+                downloader,
+                storage
+        );
+
+        boolean downloaded = job.runNextBatch();
+
+        assertThat(downloaded).isTrue();
+        assertThat(batch.getStatus()).isEqualTo(IngestionStatus.DOWNLOADED);
+        verify(downloader, never()).download(eq("http://example.test/events.zip"), any(Path.class));
+        verify(downloader).download(eq("http://example.test/mentions.zip"), any(Path.class));
+        verify(downloader).download(eq("http://example.test/gkg.zip"), any(Path.class));
     }
 
     private SourceBatch completeBatch(String timestamp) {
