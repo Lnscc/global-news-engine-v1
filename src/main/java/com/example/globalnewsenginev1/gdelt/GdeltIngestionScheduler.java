@@ -17,15 +17,24 @@ public class GdeltIngestionScheduler {
     private final GdeltDiscoveryJob discoveryJob;
     private final GdeltDownloadJob downloadJob;
     private final GdeltParseJob parseJob;
+    private final GdeltEventNormalizationJob eventNormalizationJob;
+    private final GdeltMentionNormalizationJob mentionNormalizationJob;
+    private final GdeltGkgNormalizationJob gkgNormalizationJob;
 
     public GdeltIngestionScheduler(
             GdeltDiscoveryJob discoveryJob,
             GdeltDownloadJob downloadJob,
-            GdeltParseJob parseJob
+            GdeltParseJob parseJob,
+            GdeltEventNormalizationJob eventNormalizationJob,
+            GdeltMentionNormalizationJob mentionNormalizationJob,
+            GdeltGkgNormalizationJob gkgNormalizationJob
     ) {
         this.discoveryJob = discoveryJob;
         this.downloadJob = downloadJob;
         this.parseJob = parseJob;
+        this.eventNormalizationJob = eventNormalizationJob;
+        this.mentionNormalizationJob = mentionNormalizationJob;
+        this.gkgNormalizationJob = gkgNormalizationJob;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -46,6 +55,9 @@ public class GdeltIngestionScheduler {
             discoveryJob.run();
             downloadJob.runNextBatch();
             parseJob.runNextBatch();
+            eventNormalizationJob.run();
+            mentionNormalizationJob.run();
+            gkgNormalizationJob.run();
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             log.warn("GDELT ingestion was interrupted", ex);

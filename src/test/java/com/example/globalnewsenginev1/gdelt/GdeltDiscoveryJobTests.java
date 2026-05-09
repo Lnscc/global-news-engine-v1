@@ -7,6 +7,10 @@ import com.example.globalnewsenginev1.ingestion.SourceBatchRepository;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -35,7 +39,9 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                96
+                96,
+                Duration.ZERO,
+                Clock.systemUTC()
         );
 
         int discovered = job.run();
@@ -74,7 +80,9 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                96
+                96,
+                Duration.ZERO,
+                Clock.systemUTC()
         );
 
         int discovered = job.run();
@@ -100,7 +108,9 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                2
+                2,
+                Duration.ZERO,
+                Clock.systemUTC()
         );
 
         int discovered = job.run();
@@ -108,6 +118,32 @@ class GdeltDiscoveryJobTests {
         assertThat(discovered).isEqualTo(2);
         verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260506123000")));
         verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260506121500")));
+    }
+
+    @Test
+    void skipsBatchesNewerThanMinimumAge() throws IOException, InterruptedException {
+        GdeltManifestClient manifestClient = mock(GdeltManifestClient.class);
+        SourceBatchRepository batchRepository = mock(SourceBatchRepository.class);
+        when(manifestClient.fetchMasterFileList()).thenReturn("""
+                123 abc http://data.gdeltproject.org/gdeltv2/20260509133000.export.CSV.zip
+                456 def http://data.gdeltproject.org/gdeltv2/20260509134500.export.CSV.zip
+                """);
+        when(batchRepository.findBySourceAndExternalBatchId(anyString(), anyString())).thenReturn(Optional.empty());
+
+        Clock clock = Clock.fixed(Instant.parse("2026-05-09T13:46:00Z"), ZoneOffset.UTC);
+        GdeltDiscoveryJob job = new GdeltDiscoveryJob(
+                manifestClient,
+                new GdeltManifestParser(),
+                batchRepository,
+                2,
+                Duration.ofMinutes(10),
+                clock
+        );
+
+        int discovered = job.run();
+
+        assertThat(discovered).isEqualTo(1);
+        verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260509133000")));
     }
 
     private boolean hasFileEnding(SourceBatch batch, String fileType, String urlEnding) {
