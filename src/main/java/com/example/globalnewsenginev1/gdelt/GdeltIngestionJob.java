@@ -1,19 +1,17 @@
 package com.example.globalnewsenginev1.gdelt;
 
 import com.example.globalnewsenginev1.articles.ArticleProjectionJob;
+import com.example.globalnewsenginev1.ingestion.IngestionJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConditionalOnProperty(prefix = "gdelt.ingestion", name = "enabled", havingValue = "true", matchIfMissing = true)
-public class GdeltIngestionScheduler {
+public class GdeltIngestionJob implements IngestionJob {
 
-    private static final Logger log = LoggerFactory.getLogger(GdeltIngestionScheduler.class);
+    private static final Logger log = LoggerFactory.getLogger(GdeltIngestionJob.class);
 
     private final GdeltDiscoveryJob discoveryJob;
     private final GdeltDownloadJob downloadJob;
@@ -24,7 +22,7 @@ public class GdeltIngestionScheduler {
     private final GdeltBatchNormalizationStatusJob batchNormalizationStatusJob;
     private final ArticleProjectionJob articleProjectionJob;
 
-    public GdeltIngestionScheduler(
+    public GdeltIngestionJob(
             GdeltDiscoveryJob discoveryJob,
             GdeltDownloadJob downloadJob,
             GdeltParseJob parseJob,
@@ -44,19 +42,8 @@ public class GdeltIngestionScheduler {
         this.articleProjectionJob = articleProjectionJob;
     }
 
-    @EventListener(ApplicationReadyEvent.class)
-    public void discoverBatchesOnStartup() {
-        runDiscovery();
-    }
-
-    @Scheduled(
-            fixedDelayString = "${gdelt.ingestion.fixed-delay:PT15M}"
-    )
-    public void discoverBatches() {
-        runDiscovery();
-    }
-
-    private void runDiscovery() {
+    @Override
+    public void runIngestion() {
         try {
             discoveryJob.run();
             runBatches("download", downloadJob::runNextBatch);

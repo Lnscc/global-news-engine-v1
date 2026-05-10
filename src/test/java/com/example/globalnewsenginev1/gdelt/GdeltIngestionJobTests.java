@@ -10,7 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class GdeltIngestionSchedulerTests {
+class GdeltIngestionJobTests {
 
     @Test
     void downloadsAndParsesAvailableBatches() throws IOException, InterruptedException {
@@ -26,7 +26,7 @@ class GdeltIngestionSchedulerTests {
         when(downloadJob.runNextBatch()).thenReturn(true, true, true, false);
         when(parseJob.runNextBatch()).thenReturn(true, true, false);
 
-        GdeltIngestionScheduler scheduler = new GdeltIngestionScheduler(
+        GdeltIngestionJob job = new GdeltIngestionJob(
                 discoveryJob,
                 downloadJob,
                 parseJob,
@@ -37,7 +37,7 @@ class GdeltIngestionSchedulerTests {
                 articleProjectionJob
         );
 
-        scheduler.discoverBatches();
+        job.runIngestion();
 
         verify(discoveryJob).run();
         verify(downloadJob, times(4)).runNextBatch();
