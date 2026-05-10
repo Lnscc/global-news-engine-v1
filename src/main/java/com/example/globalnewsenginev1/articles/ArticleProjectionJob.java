@@ -4,8 +4,6 @@ import com.example.globalnewsenginev1.gdelt.GdeltGkg;
 import com.example.globalnewsenginev1.gdelt.GdeltGkgRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,21 +16,18 @@ public class ArticleProjectionJob {
 
     private final GdeltGkgRepository gkgRepository;
     private final ArticleRepository articleRepository;
-    private final int maxRowsPerRun;
 
     public ArticleProjectionJob(
             GdeltGkgRepository gkgRepository,
-            ArticleRepository articleRepository,
-            @Value("${articles.project.max-rows-per-run:1000}") int maxRowsPerRun
+            ArticleRepository articleRepository
     ) {
         this.gkgRepository = gkgRepository;
         this.articleRepository = articleRepository;
-        this.maxRowsPerRun = maxRowsPerRun;
     }
 
     @Transactional
     public int run() {
-        List<GdeltGkg> rows = gkgRepository.findUnprojectedArticleRows(PageRequest.of(0, maxRowsPerRun));
+        List<GdeltGkg> rows = gkgRepository.findUnprojectedArticleRows();
         if (rows.isEmpty()) {
             log.info("No normalized GDELT GKG rows are ready for article projection");
             return 0;

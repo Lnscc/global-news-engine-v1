@@ -39,7 +39,6 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                96,
                 Duration.ZERO,
                 Clock.systemUTC()
         );
@@ -80,7 +79,6 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                96,
                 Duration.ZERO,
                 Clock.systemUTC()
         );
@@ -94,7 +92,7 @@ class GdeltDiscoveryJobTests {
     }
 
     @Test
-    void limitsDiscoveryToNewestBatches() throws IOException, InterruptedException {
+    void discoversAllOldEnoughBatches() throws IOException, InterruptedException {
         GdeltManifestClient manifestClient = mock(GdeltManifestClient.class);
         SourceBatchRepository batchRepository = mock(SourceBatchRepository.class);
         when(manifestClient.fetchMasterFileList()).thenReturn("""
@@ -108,16 +106,16 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                2,
                 Duration.ZERO,
                 Clock.systemUTC()
         );
 
         int discovered = job.run();
 
-        assertThat(discovered).isEqualTo(2);
+        assertThat(discovered).isEqualTo(3);
         verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260506123000")));
         verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260506121500")));
+        verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260506120000")));
     }
 
     @Test
@@ -135,7 +133,6 @@ class GdeltDiscoveryJobTests {
                 manifestClient,
                 new GdeltManifestParser(),
                 batchRepository,
-                2,
                 Duration.ofMinutes(10),
                 clock
         );

@@ -4,14 +4,12 @@ import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -27,14 +25,13 @@ class GdeltEventNormalizationJobTests {
         RawSourceFile file = batch.findFile("EVENTS").orElseThrow();
         StagingRow row = new StagingRow(batch, file, 1, GdeltEventParserTests.eventLine());
 
-        when(eventRepository.findUnnormalizedRows(eq("EVENTS"), any(Pageable.class))).thenReturn(List.of(row));
+        when(eventRepository.findUnnormalizedRows("EVENTS")).thenReturn(List.of(row));
         when(eventRepository.findByGlobalEventId(123456789L)).thenReturn(Optional.empty());
         when(eventRepository.save(any(GdeltEvent.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         GdeltEventNormalizationJob job = new GdeltEventNormalizationJob(
                 eventRepository,
-                new GdeltEventParser(),
-                1000
+                new GdeltEventParser()
         );
 
         int normalized = job.run();
@@ -53,12 +50,11 @@ class GdeltEventNormalizationJobTests {
         RawSourceFile file = batch.findFile("EVENTS").orElseThrow();
         StagingRow row = new StagingRow(batch, file, 1, "invalid");
 
-        when(eventRepository.findUnnormalizedRows(eq("EVENTS"), any(Pageable.class))).thenReturn(List.of(row));
+        when(eventRepository.findUnnormalizedRows("EVENTS")).thenReturn(List.of(row));
 
         GdeltEventNormalizationJob job = new GdeltEventNormalizationJob(
                 eventRepository,
-                new GdeltEventParser(),
-                1000
+                new GdeltEventParser()
         );
 
         int normalized = job.run();
@@ -77,13 +73,12 @@ class GdeltEventNormalizationJobTests {
         RawSourceFile file = batch.findFile("EVENTS").orElseThrow();
         StagingRow row = new StagingRow(batch, file, 1, GdeltEventParserTests.eventLine());
 
-        when(eventRepository.findUnnormalizedRows(eq("EVENTS"), any(Pageable.class))).thenReturn(List.of(row));
+        when(eventRepository.findUnnormalizedRows("EVENTS")).thenReturn(List.of(row));
         when(eventRepository.existsByStagingRow(row)).thenReturn(true);
 
         GdeltEventNormalizationJob job = new GdeltEventNormalizationJob(
                 eventRepository,
-                new GdeltEventParser(),
-                1000
+                new GdeltEventParser()
         );
 
         int normalized = job.run();

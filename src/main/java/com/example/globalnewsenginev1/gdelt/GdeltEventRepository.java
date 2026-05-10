@@ -2,7 +2,6 @@ package com.example.globalnewsenginev1.gdelt;
 
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,5 +25,5 @@ public interface GdeltEventRepository extends JpaRepository<GdeltEvent, Long> {
               and row.normalizationSkippedAt is null
             order by row.id
             """)
-    List<StagingRow> findUnnormalizedRows(@Param("fileType") String fileType, Pageable pageable);
+    List<StagingRow> findUnnormalizedRows(@Param("fileType") String fileType);
 }

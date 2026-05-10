@@ -13,7 +13,7 @@ import static org.mockito.Mockito.when;
 class GdeltIngestionSchedulerTests {
 
     @Test
-    void downloadsAndParsesMultipleBatchesPerRun() throws IOException, InterruptedException {
+    void downloadsAndParsesAvailableBatches() throws IOException, InterruptedException {
         GdeltDiscoveryJob discoveryJob = mock(GdeltDiscoveryJob.class);
         GdeltDownloadJob downloadJob = mock(GdeltDownloadJob.class);
         GdeltParseJob parseJob = mock(GdeltParseJob.class);
@@ -23,7 +23,7 @@ class GdeltIngestionSchedulerTests {
         GdeltBatchNormalizationStatusJob batchNormalizationStatusJob = mock(GdeltBatchNormalizationStatusJob.class);
         ArticleProjectionJob articleProjectionJob = mock(ArticleProjectionJob.class);
 
-        when(downloadJob.runNextBatch()).thenReturn(true, true, true);
+        when(downloadJob.runNextBatch()).thenReturn(true, true, true, false);
         when(parseJob.runNextBatch()).thenReturn(true, true, false);
 
         GdeltIngestionScheduler scheduler = new GdeltIngestionScheduler(
@@ -34,18 +34,17 @@ class GdeltIngestionSchedulerTests {
                 mentionNormalizationJob,
                 gkgNormalizationJob,
                 batchNormalizationStatusJob,
-                articleProjectionJob,
-                3
+                articleProjectionJob
         );
 
         scheduler.discoverBatches();
 
         verify(discoveryJob).run();
-        verify(downloadJob, times(3)).runNextBatch();
+        verify(downloadJob, times(4)).runNextBatch();
         verify(parseJob, times(3)).runNextBatch();
-        verify(eventNormalizationJob, times(3)).run();
-        verify(mentionNormalizationJob, times(3)).run();
-        verify(gkgNormalizationJob, times(3)).run();
+        verify(eventNormalizationJob).run();
+        verify(mentionNormalizationJob).run();
+        verify(gkgNormalizationJob).run();
         verify(articleProjectionJob).run();
         verify(batchNormalizationStatusJob).run();
     }

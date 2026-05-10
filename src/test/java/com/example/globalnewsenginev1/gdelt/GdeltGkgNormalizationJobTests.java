@@ -4,14 +4,12 @@ import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -24,14 +22,13 @@ class GdeltGkgNormalizationJobTests {
         GdeltGkgRepository gkgRepository = mock(GdeltGkgRepository.class);
         StagingRow row = stagingRow(GdeltGkgParserTests.gkgLine());
 
-        when(gkgRepository.findUnnormalizedRows(eq("GKG"), any(Pageable.class))).thenReturn(List.of(row));
+        when(gkgRepository.findUnnormalizedRows("GKG")).thenReturn(List.of(row));
         when(gkgRepository.findByGkgRecordId("20260509133000-1")).thenReturn(Optional.empty());
         when(gkgRepository.save(any(GdeltGkg.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         GdeltGkgNormalizationJob job = new GdeltGkgNormalizationJob(
                 gkgRepository,
-                new GdeltGkgParser(),
-                1000
+                new GdeltGkgParser()
         );
 
         int normalized = job.run();
@@ -47,12 +44,11 @@ class GdeltGkgNormalizationJobTests {
         GdeltGkgRepository gkgRepository = mock(GdeltGkgRepository.class);
         StagingRow row = stagingRow("invalid");
 
-        when(gkgRepository.findUnnormalizedRows(eq("GKG"), any(Pageable.class))).thenReturn(List.of(row));
+        when(gkgRepository.findUnnormalizedRows("GKG")).thenReturn(List.of(row));
 
         GdeltGkgNormalizationJob job = new GdeltGkgNormalizationJob(
                 gkgRepository,
-                new GdeltGkgParser(),
-                1000
+                new GdeltGkgParser()
         );
 
         int normalized = job.run();
@@ -68,13 +64,12 @@ class GdeltGkgNormalizationJobTests {
         GdeltGkgRepository gkgRepository = mock(GdeltGkgRepository.class);
         StagingRow row = stagingRow(GdeltGkgParserTests.gkgLine());
 
-        when(gkgRepository.findUnnormalizedRows(eq("GKG"), any(Pageable.class))).thenReturn(List.of(row));
+        when(gkgRepository.findUnnormalizedRows("GKG")).thenReturn(List.of(row));
         when(gkgRepository.existsByStagingRow(row)).thenReturn(true);
 
         GdeltGkgNormalizationJob job = new GdeltGkgNormalizationJob(
                 gkgRepository,
-                new GdeltGkgParser(),
-                1000
+                new GdeltGkgParser()
         );
 
         int normalized = job.run();

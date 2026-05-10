@@ -7,7 +7,6 @@ import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import org.junit.jupiter.api.Test;
-import org.springframework.data.domain.Pageable;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -29,11 +28,11 @@ class ArticleProjectionJobTests {
         ArticleRepository articleRepository = mock(ArticleRepository.class);
         GdeltGkg gkg = gkg("20260509133000-1", "https://Example.test/news/#section", LocalDateTime.of(2026, 5, 9, 13, 30));
 
-        when(gkgRepository.findUnprojectedArticleRows(any(Pageable.class))).thenReturn(List.of(gkg));
+        when(gkgRepository.findUnprojectedArticleRows()).thenReturn(List.of(gkg));
         when(articleRepository.findByCanonicalUrl("https://example.test/news")).thenReturn(Optional.empty());
         when(articleRepository.save(any(Article.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ArticleProjectionJob job = new ArticleProjectionJob(gkgRepository, articleRepository, 1000);
+        ArticleProjectionJob job = new ArticleProjectionJob(gkgRepository, articleRepository);
 
         int projected = job.run();
 
@@ -50,10 +49,10 @@ class ArticleProjectionJobTests {
         GdeltGkg laterGkg = gkg("20260509134500-1", "https://EXAMPLE.test/news/", LocalDateTime.of(2026, 5, 9, 13, 45));
         Article existing = new Article("https://example.test/news", firstGkg);
 
-        when(gkgRepository.findUnprojectedArticleRows(any(Pageable.class))).thenReturn(List.of(laterGkg));
+        when(gkgRepository.findUnprojectedArticleRows()).thenReturn(List.of(laterGkg));
         when(articleRepository.findByCanonicalUrl("https://example.test/news")).thenReturn(Optional.of(existing));
 
-        ArticleProjectionJob job = new ArticleProjectionJob(gkgRepository, articleRepository, 1000);
+        ArticleProjectionJob job = new ArticleProjectionJob(gkgRepository, articleRepository);
 
         int projected = job.run();
 
@@ -70,9 +69,9 @@ class ArticleProjectionJobTests {
         ArticleRepository articleRepository = mock(ArticleRepository.class);
         GdeltGkg gkg = gkg("20260509133000-1", "not-a-url", LocalDateTime.of(2026, 5, 9, 13, 30));
 
-        when(gkgRepository.findUnprojectedArticleRows(any(Pageable.class))).thenReturn(List.of(gkg));
+        when(gkgRepository.findUnprojectedArticleRows()).thenReturn(List.of(gkg));
 
-        ArticleProjectionJob job = new ArticleProjectionJob(gkgRepository, articleRepository, 1000);
+        ArticleProjectionJob job = new ArticleProjectionJob(gkgRepository, articleRepository);
 
         int projected = job.run();
 

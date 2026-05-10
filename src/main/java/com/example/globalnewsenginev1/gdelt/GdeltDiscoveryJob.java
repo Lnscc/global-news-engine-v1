@@ -33,7 +33,6 @@ public class GdeltDiscoveryJob {
     private final GdeltManifestClient manifestClient;
     private final GdeltManifestParser manifestParser;
     private final SourceBatchRepository batchRepository;
-    private final int maxBatchesPerRun;
     private final Duration minimumBatchAge;
     private final Clock clock;
 
@@ -42,24 +41,21 @@ public class GdeltDiscoveryJob {
             GdeltManifestClient manifestClient,
             GdeltManifestParser manifestParser,
             SourceBatchRepository batchRepository,
-            @Value("${gdelt.ingestion.max-batches-per-run:1}") int maxBatchesPerRun,
             @Value("${gdelt.discovery.minimum-batch-age:PT10M}") Duration minimumBatchAge
     ) {
-        this(manifestClient, manifestParser, batchRepository, maxBatchesPerRun, minimumBatchAge, Clock.systemUTC());
+        this(manifestClient, manifestParser, batchRepository, minimumBatchAge, Clock.systemUTC());
     }
 
     GdeltDiscoveryJob(
             GdeltManifestClient manifestClient,
             GdeltManifestParser manifestParser,
             SourceBatchRepository batchRepository,
-            int maxBatchesPerRun,
             Duration minimumBatchAge,
             Clock clock
     ) {
         this.manifestClient = manifestClient;
         this.manifestParser = manifestParser;
         this.batchRepository = batchRepository;
-        this.maxBatchesPerRun = maxBatchesPerRun;
         this.minimumBatchAge = minimumBatchAge;
         this.clock = clock;
     }
@@ -77,7 +73,6 @@ public class GdeltDiscoveryJob {
         List<Map.Entry<String, List<GdeltManifestEntry>>> newestBatchEntries = entriesByTimestamp.entrySet().stream()
                 .filter(entry -> isOldEnough(entry.getKey(), newestAllowedBatchTime))
                 .sorted(Map.Entry.<String, List<GdeltManifestEntry>>comparingByKey().reversed())
-                .limit(maxBatchesPerRun)
                 .toList();
 
         int savedCount = 0;

@@ -4,7 +4,6 @@ import com.example.globalnewsenginev1.articles.ArticleProjectionJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,7 +23,6 @@ public class GdeltIngestionScheduler {
     private final GdeltGkgNormalizationJob gkgNormalizationJob;
     private final GdeltBatchNormalizationStatusJob batchNormalizationStatusJob;
     private final ArticleProjectionJob articleProjectionJob;
-    private final int maxBatchesPerRun;
 
     public GdeltIngestionScheduler(
             GdeltDiscoveryJob discoveryJob,
@@ -34,8 +32,7 @@ public class GdeltIngestionScheduler {
             GdeltMentionNormalizationJob mentionNormalizationJob,
             GdeltGkgNormalizationJob gkgNormalizationJob,
             GdeltBatchNormalizationStatusJob batchNormalizationStatusJob,
-            ArticleProjectionJob articleProjectionJob,
-            @Value("${gdelt.ingestion.max-batches-per-run:1}") int maxBatchesPerRun
+            ArticleProjectionJob articleProjectionJob
     ) {
         this.discoveryJob = discoveryJob;
         this.downloadJob = downloadJob;
@@ -45,7 +42,6 @@ public class GdeltIngestionScheduler {
         this.gkgNormalizationJob = gkgNormalizationJob;
         this.batchNormalizationStatusJob = batchNormalizationStatusJob;
         this.articleProjectionJob = articleProjectionJob;
-        this.maxBatchesPerRun = maxBatchesPerRun;
     }
 
     @EventListener(ApplicationReadyEvent.class)
@@ -80,27 +76,18 @@ public class GdeltIngestionScheduler {
 
     private void runBatches(String stage, BatchStep step) {
         int completed = 0;
-        for (int index = 0; index < maxBatchesPerRun; index++) {
-            if (!step.runNextBatch()) {
-                break;
-            }
+        while (step.runNextBatch()) {
             completed++;
         }
         log.info("Completed {} GDELT {} batch(es)", completed, stage);
     }
 
     private void runNormalizationRounds() {
-        int eventRows = 0;
-        int mentionRows = 0;
-        int gkgRows = 0;
-        for (int index = 0; index < maxBatchesPerRun; index++) {
-            eventRows += eventNormalizationJob.run();
-            mentionRows += mentionNormalizationJob.run();
-            gkgRows += gkgNormalizationJob.run();
-        }
+        int eventRows = eventNormalizationJob.run();
+        int mentionRows = mentionNormalizationJob.run();
+        int gkgRows = gkgNormalizationJob.run();
         log.info(
-                "Completed {} GDELT normalization round(s): {} events, {} mentions, {} GKG records",
-                maxBatchesPerRun,
+                "Completed GDELT normalization: {} events, {} mentions, {} GKG records",
                 eventRows,
                 mentionRows,
                 gkgRows

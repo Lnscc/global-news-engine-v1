@@ -3,8 +3,6 @@ package com.example.globalnewsenginev1.gdelt;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,24 +15,18 @@ public class GdeltEventNormalizationJob {
 
     private final GdeltEventRepository eventRepository;
     private final GdeltEventParser eventParser;
-    private final int maxRowsPerRun;
 
     public GdeltEventNormalizationJob(
             GdeltEventRepository eventRepository,
-            GdeltEventParser eventParser,
-            @Value("${gdelt.normalize.events.max-rows-per-run:1000}") int maxRowsPerRun
+            GdeltEventParser eventParser
     ) {
         this.eventRepository = eventRepository;
         this.eventParser = eventParser;
-        this.maxRowsPerRun = maxRowsPerRun;
     }
 
     @Transactional
     public int run() {
-        List<StagingRow> rows = eventRepository.findUnnormalizedRows(
-                GdeltFileType.EVENTS.name(),
-                PageRequest.of(0, maxRowsPerRun)
-        );
+        List<StagingRow> rows = eventRepository.findUnnormalizedRows(GdeltFileType.EVENTS.name());
         if (rows.isEmpty()) {
             log.info("No staged GDELT event rows are ready for normalization");
             return 0;
