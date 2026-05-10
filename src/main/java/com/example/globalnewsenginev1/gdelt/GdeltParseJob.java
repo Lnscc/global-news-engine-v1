@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
@@ -68,6 +69,7 @@ public class GdeltParseJob {
             }
 
             batch.markParsed();
+            deleteRawFiles(batch);
             batchRepository.save(batch);
             log.info("Parsed GDELT batch {} into {} staging rows", batch.getExternalBatchId(), totalRows);
             return true;
@@ -87,5 +89,34 @@ public class GdeltParseJob {
                         .filter(rawFile -> rawFile.getStatus() == IngestionStatus.DOWNLOADED)
                         .filter(rawFile -> rawFile.getLocalPath() != null && !rawFile.getLocalPath().isBlank())
                         .isPresent());
+    }
+
+    private void deleteRawFiles(SourceBatch batch) {
+        for (RawSourceFile file : batch.getFiles()) {
+            if (file.getLocalPath() == null || file.getLocalPath().isBlank()) {
+                continue;
+            }
+
+            Path path = Path.of(file.getLocalPath());
+            try {
+                Files.deleteIfExists(path);
+                deleteDirectoryIfEmpty(path.getParent());
+                deleteDirectoryIfEmpty(path.getParent() == null ? null : path.getParent().getParent());
+            } catch (Exception ex) {
+                log.warn("Failed to delete raw GDELT file {} for batch {}: {}", path, batch.getExternalBatchId(), ex.getMessage());
+                log.debug("Raw GDELT file cleanup failure detail", ex);
+            }
+        }
+    }
+
+    private void deleteDirectoryIfEmpty(Path directory) {
+        if (directory == null) {
+            return;
+        }
+        try {
+            Files.deleteIfExists(directory);
+        } catch (Exception ignored) {
+            // Directory is either non-empty or temporarily unavailable; leave it for a future cleanup.
+        }
     }
 }

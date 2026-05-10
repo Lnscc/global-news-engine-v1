@@ -51,6 +51,9 @@ class GdeltParseJobTests {
 
         assertThat(parsed).isTrue();
         assertThat(batch.getStatus()).isEqualTo(IngestionStatus.PARSED);
+        assertThat(batch.getFiles())
+                .extracting(RawSourceFile::getLocalPath)
+                .allSatisfy(localPath -> assertThat(Path.of(localPath)).doesNotExist());
         verify(stagingRowRepository, org.mockito.Mockito.times(9)).save(any(StagingRow.class));
         verify(batchRepository).save(batch);
     }
