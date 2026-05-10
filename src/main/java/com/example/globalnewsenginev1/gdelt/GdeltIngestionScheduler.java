@@ -50,8 +50,7 @@ public class GdeltIngestionScheduler {
     }
 
     @Scheduled(
-            fixedDelayString = "${gdelt.ingestion.fixed-delay:PT15M}",
-            initialDelayString = "${gdelt.ingestion.initial-delay:PT15M}"
+            fixedDelayString = "${gdelt.ingestion.fixed-delay:PT15M}"
     )
     public void discoverBatches() {
         runDiscovery();
