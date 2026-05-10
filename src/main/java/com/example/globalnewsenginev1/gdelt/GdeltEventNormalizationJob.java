@@ -43,16 +43,25 @@ public class GdeltEventNormalizationJob {
         int normalized = 0;
         int invalid = 0;
         for (StagingRow row : rows) {
+            if (eventRepository.existsByStagingRow(row)) {
+                row.markNormalized();
+                normalized++;
+                continue;
+            }
+
             GdeltEventRecord record = eventParser.parse(row.getRawLine()).orElse(null);
             if (record == null) {
+                row.markNormalizationSkipped("Invalid GDELT event row");
                 invalid++;
                 continue;
             }
             if (eventRepository.findByGlobalEventId(record.globalEventId()).isPresent()) {
+                row.markNormalizationSkipped("Duplicate GDELT event id " + record.globalEventId());
                 continue;
             }
 
             eventRepository.save(new GdeltEvent(row, record));
+            row.markNormalized();
             normalized++;
         }
 

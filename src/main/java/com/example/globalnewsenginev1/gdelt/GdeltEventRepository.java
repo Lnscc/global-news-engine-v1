@@ -22,11 +22,8 @@ public interface GdeltEventRepository extends JpaRepository<GdeltEvent, Long> {
             select row
             from StagingRow row
             where row.fileType = :fileType
-              and not exists (
-                  select event.id
-                  from GdeltEvent event
-                  where event.stagingRow = row
-              )
+              and row.normalizedAt is null
+              and row.normalizationSkippedAt is null
             order by row.id
             """)
     List<StagingRow> findUnnormalizedRows(@Param("fileType") String fileType, Pageable pageable);

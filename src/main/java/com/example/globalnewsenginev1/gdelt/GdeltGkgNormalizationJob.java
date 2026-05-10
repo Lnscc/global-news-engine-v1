@@ -43,16 +43,25 @@ public class GdeltGkgNormalizationJob {
         int normalized = 0;
         int invalid = 0;
         for (StagingRow row : rows) {
+            if (gkgRepository.existsByStagingRow(row)) {
+                row.markNormalized();
+                normalized++;
+                continue;
+            }
+
             GdeltGkgRecord record = gkgParser.parse(row.getRawLine()).orElse(null);
             if (record == null) {
+                row.markNormalizationSkipped("Invalid GDELT GKG row");
                 invalid++;
                 continue;
             }
             if (gkgRepository.findByGkgRecordId(record.gkgRecordId()).isPresent()) {
+                row.markNormalizationSkipped("Duplicate GDELT GKG record id " + record.gkgRecordId());
                 continue;
             }
 
             gkgRepository.save(new GdeltGkg(row, record));
+            row.markNormalized();
             normalized++;
         }
 

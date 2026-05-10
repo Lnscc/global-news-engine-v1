@@ -22,11 +22,8 @@ public interface GdeltGkgRepository extends JpaRepository<GdeltGkg, Long> {
             select row
             from StagingRow row
             where row.fileType = :fileType
-              and not exists (
-                  select gkg.id
-                  from GdeltGkg gkg
-                  where gkg.stagingRow = row
-              )
+              and row.normalizedAt is null
+              and row.normalizationSkippedAt is null
             order by row.id
             """)
     List<StagingRow> findUnnormalizedRows(@Param("fileType") String fileType, Pageable pageable);

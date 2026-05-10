@@ -19,11 +19,8 @@ public interface GdeltMentionRepository extends JpaRepository<GdeltMention, Long
             select row
             from StagingRow row
             where row.fileType = :fileType
-              and not exists (
-                  select mention.id
-                  from GdeltMention mention
-                  where mention.stagingRow = row
-              )
+              and row.normalizedAt is null
+              and row.normalizationSkippedAt is null
             order by row.id
             """)
     List<StagingRow> findUnnormalizedRows(@Param("fileType") String fileType, Pageable pageable);

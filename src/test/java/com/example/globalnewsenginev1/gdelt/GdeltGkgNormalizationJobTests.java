@@ -37,6 +37,8 @@ class GdeltGkgNormalizationJobTests {
         int normalized = job.run();
 
         assertThat(normalized).isEqualTo(1);
+        assertThat(row.getNormalizedAt()).isNotNull();
+        assertThat(row.getNormalizationSkippedAt()).isNull();
         verify(gkgRepository).save(any(GdeltGkg.class));
     }
 
@@ -56,6 +58,30 @@ class GdeltGkgNormalizationJobTests {
         int normalized = job.run();
 
         assertThat(normalized).isZero();
+        assertThat(row.getNormalizedAt()).isNull();
+        assertThat(row.getNormalizationSkippedAt()).isNotNull();
+        verify(gkgRepository, never()).save(any(GdeltGkg.class));
+    }
+
+    @Test
+    void marksRowsWithExistingNormalizedGkgAsNormalized() {
+        GdeltGkgRepository gkgRepository = mock(GdeltGkgRepository.class);
+        StagingRow row = stagingRow(GdeltGkgParserTests.gkgLine());
+
+        when(gkgRepository.findUnnormalizedRows(eq("GKG"), any(Pageable.class))).thenReturn(List.of(row));
+        when(gkgRepository.existsByStagingRow(row)).thenReturn(true);
+
+        GdeltGkgNormalizationJob job = new GdeltGkgNormalizationJob(
+                gkgRepository,
+                new GdeltGkgParser(),
+                1000
+        );
+
+        int normalized = job.run();
+
+        assertThat(normalized).isEqualTo(1);
+        assertThat(row.getNormalizedAt()).isNotNull();
+        assertThat(row.getNormalizationSkippedAt()).isNull();
         verify(gkgRepository, never()).save(any(GdeltGkg.class));
     }
 

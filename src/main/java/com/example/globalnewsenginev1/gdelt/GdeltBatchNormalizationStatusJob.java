@@ -64,12 +64,12 @@ public class GdeltBatchNormalizationStatusJob {
 
     private boolean isFullyNormalized(SourceBatch batch) {
         return stagingRowRepository.countBySourceBatch(batch) > 0
-                && stagingCount(batch, GdeltFileType.EVENTS) == eventRepository.countBySourceBatch(batch)
-                && stagingCount(batch, GdeltFileType.MENTIONS) == mentionRepository.countBySourceBatch(batch)
-                && stagingCount(batch, GdeltFileType.GKG) == gkgRepository.countBySourceBatch(batch);
+                && unhandledCount(batch, GdeltFileType.EVENTS) == 0
+                && unhandledCount(batch, GdeltFileType.MENTIONS) == 0
+                && unhandledCount(batch, GdeltFileType.GKG) == 0;
     }
 
-    private long stagingCount(SourceBatch batch, GdeltFileType fileType) {
-        return stagingRowRepository.countBySourceBatchAndFileType(batch, fileType.name());
+    private long unhandledCount(SourceBatch batch, GdeltFileType fileType) {
+        return stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, fileType.name());
     }
 }

@@ -97,7 +97,7 @@ class GdeltDownloadJobTests {
                 .thenReturn(List.of(batch));
         doThrow(new IOException("network unavailable"))
                 .when(downloader)
-                .download(eq("http://example.test/events.zip"), any(Path.class));
+                .download(eq("http://example.test/20260506123000/events.zip"), any(Path.class));
 
         GdeltDownloadJob job = new GdeltDownloadJob(
                 batchRepository,
@@ -116,6 +116,37 @@ class GdeltDownloadJobTests {
                 .map(RawSourceFile::getErrorMessage)
                 .isEqualTo(Optional.of("network unavailable"));
         verify(batchRepository).save(batch);
+    }
+
+    @Test
+    void triesOlderCandidateWhenNewestDownloadFails() throws IOException, InterruptedException {
+        SourceBatchRepository batchRepository = mock(SourceBatchRepository.class);
+        RawFileDownloader downloader = mock(RawFileDownloader.class);
+        SourceBatch newestBatch = completeBatch("20260506124500");
+        SourceBatch olderBatch = completeBatch("20260506123000");
+
+        when(batchRepository.findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
+                "GDELT",
+                List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
+        ))
+                .thenReturn(List.of(newestBatch, olderBatch));
+        doThrow(new IOException("temporary 404"))
+                .when(downloader)
+                .download(eq("http://example.test/20260506124500/gkg.zip"), any(Path.class));
+
+        GdeltDownloadJob job = new GdeltDownloadJob(
+                batchRepository,
+                downloader,
+                new RawFileStorage(tempDir)
+        );
+
+        boolean downloaded = job.runNextBatch();
+
+        assertThat(downloaded).isTrue();
+        assertThat(newestBatch.getStatus()).isEqualTo(IngestionStatus.FAILED);
+        assertThat(olderBatch.getStatus()).isEqualTo(IngestionStatus.DOWNLOADED);
+        verify(batchRepository).save(newestBatch);
+        verify(batchRepository).save(olderBatch);
     }
 
     @Test
@@ -149,16 +180,16 @@ class GdeltDownloadJobTests {
 
         assertThat(downloaded).isTrue();
         assertThat(batch.getStatus()).isEqualTo(IngestionStatus.DOWNLOADED);
-        verify(downloader, never()).download(eq("http://example.test/events.zip"), any(Path.class));
-        verify(downloader).download(eq("http://example.test/mentions.zip"), any(Path.class));
-        verify(downloader).download(eq("http://example.test/gkg.zip"), any(Path.class));
+        verify(downloader, never()).download(eq("http://example.test/20260506123000/events.zip"), any(Path.class));
+        verify(downloader).download(eq("http://example.test/20260506123000/mentions.zip"), any(Path.class));
+        verify(downloader).download(eq("http://example.test/20260506123000/gkg.zip"), any(Path.class));
     }
 
     private SourceBatch completeBatch(String timestamp) {
         SourceBatch batch = new SourceBatch("GDELT", timestamp);
-        batch.putFile("EVENTS", "http://example.test/events.zip", 1, "abc");
-        batch.putFile("MENTIONS", "http://example.test/mentions.zip", 2, "def");
-        batch.putFile("GKG", "http://example.test/gkg.zip", 3, "ghi");
+        batch.putFile("EVENTS", "http://example.test/" + timestamp + "/events.zip", 1, "abc");
+        batch.putFile("MENTIONS", "http://example.test/" + timestamp + "/mentions.zip", 2, "def");
+        batch.putFile("GKG", "http://example.test/" + timestamp + "/gkg.zip", 3, "ghi");
         return batch;
     }
 }

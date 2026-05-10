@@ -38,21 +38,30 @@ public class GdeltDownloadJob {
 
     @Transactional
     public boolean runNextBatch() {
-        Optional<SourceBatch> nextBatch = batchRepository
+        List<SourceBatch> candidateBatches = batchRepository
                 .findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
                         GdeltDiscoveryJob.SOURCE,
                         List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
                 )
                 .stream()
                 .filter(this::hasExpectedFiles)
-                .findFirst();
+                .toList();
 
-        if (nextBatch.isEmpty()) {
+        if (candidateBatches.isEmpty()) {
             log.info("No discovered or failed GDELT batch is ready for download");
             return false;
         }
 
-        SourceBatch batch = nextBatch.get();
+        for (SourceBatch batch : candidateBatches) {
+            if (downloadBatch(batch)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean downloadBatch(SourceBatch batch) {
         log.info("Starting GDELT download for batch {}", batch.getExternalBatchId());
         batch.markDownloading();
 

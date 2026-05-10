@@ -54,6 +54,13 @@ public class StagingRow {
     @Column(nullable = false)
     private Instant parsedAt;
 
+    private Instant normalizedAt;
+
+    private Instant normalizationSkippedAt;
+
+    @Column(length = 2000)
+    private String normalizationError;
+
     protected StagingRow() {
     }
 
@@ -106,5 +113,32 @@ public class StagingRow {
 
     public Instant getParsedAt() {
         return parsedAt;
+    }
+
+    public Instant getNormalizedAt() {
+        return normalizedAt;
+    }
+
+    public Instant getNormalizationSkippedAt() {
+        return normalizationSkippedAt;
+    }
+
+    public String getNormalizationError() {
+        return normalizationError;
+    }
+
+    public boolean isNormalizationHandled() {
+        return normalizedAt != null || normalizationSkippedAt != null;
+    }
+
+    public void markNormalized() {
+        normalizedAt = Instant.now();
+        normalizationSkippedAt = null;
+        normalizationError = null;
+    }
+
+    public void markNormalizationSkipped(String error) {
+        normalizationSkippedAt = Instant.now();
+        normalizationError = error;
     }
 }

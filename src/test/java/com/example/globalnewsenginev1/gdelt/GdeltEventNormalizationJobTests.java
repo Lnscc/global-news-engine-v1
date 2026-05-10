@@ -40,6 +40,8 @@ class GdeltEventNormalizationJobTests {
         int normalized = job.run();
 
         assertThat(normalized).isEqualTo(1);
+        assertThat(row.getNormalizedAt()).isNotNull();
+        assertThat(row.getNormalizationSkippedAt()).isNull();
         verify(eventRepository).save(any(GdeltEvent.class));
     }
 
@@ -62,6 +64,33 @@ class GdeltEventNormalizationJobTests {
         int normalized = job.run();
 
         assertThat(normalized).isZero();
+        assertThat(row.getNormalizedAt()).isNull();
+        assertThat(row.getNormalizationSkippedAt()).isNotNull();
+        verify(eventRepository, never()).save(any(GdeltEvent.class));
+    }
+
+    @Test
+    void marksRowsWithExistingNormalizedEventAsNormalized() {
+        GdeltEventRepository eventRepository = mock(GdeltEventRepository.class);
+        SourceBatch batch = new SourceBatch("GDELT", "20260506123000");
+        batch.putFile("EVENTS", "http://example.test/events.zip", 1, "abc");
+        RawSourceFile file = batch.findFile("EVENTS").orElseThrow();
+        StagingRow row = new StagingRow(batch, file, 1, GdeltEventParserTests.eventLine());
+
+        when(eventRepository.findUnnormalizedRows(eq("EVENTS"), any(Pageable.class))).thenReturn(List.of(row));
+        when(eventRepository.existsByStagingRow(row)).thenReturn(true);
+
+        GdeltEventNormalizationJob job = new GdeltEventNormalizationJob(
+                eventRepository,
+                new GdeltEventParser(),
+                1000
+        );
+
+        int normalized = job.run();
+
+        assertThat(normalized).isEqualTo(1);
+        assertThat(row.getNormalizedAt()).isNotNull();
+        assertThat(row.getNormalizationSkippedAt()).isNull();
         verify(eventRepository, never()).save(any(GdeltEvent.class));
     }
 }

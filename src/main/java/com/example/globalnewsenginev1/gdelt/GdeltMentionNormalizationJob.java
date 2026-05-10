@@ -43,13 +43,21 @@ public class GdeltMentionNormalizationJob {
         int normalized = 0;
         int invalid = 0;
         for (StagingRow row : rows) {
+            if (mentionRepository.existsByStagingRow(row)) {
+                row.markNormalized();
+                normalized++;
+                continue;
+            }
+
             GdeltMentionRecord record = mentionParser.parse(row.getRawLine()).orElse(null);
             if (record == null) {
+                row.markNormalizationSkipped("Invalid GDELT mention row");
                 invalid++;
                 continue;
             }
 
             mentionRepository.save(new GdeltMention(row, record));
+            row.markNormalized();
             normalized++;
         }
 

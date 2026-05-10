@@ -35,6 +35,8 @@ class GdeltMentionNormalizationJobTests {
         int normalized = job.run();
 
         assertThat(normalized).isEqualTo(1);
+        assertThat(row.getNormalizedAt()).isNotNull();
+        assertThat(row.getNormalizationSkippedAt()).isNull();
         verify(mentionRepository).save(any(GdeltMention.class));
     }
 
@@ -54,6 +56,30 @@ class GdeltMentionNormalizationJobTests {
         int normalized = job.run();
 
         assertThat(normalized).isZero();
+        assertThat(row.getNormalizedAt()).isNull();
+        assertThat(row.getNormalizationSkippedAt()).isNotNull();
+        verify(mentionRepository, never()).save(any(GdeltMention.class));
+    }
+
+    @Test
+    void marksRowsWithExistingNormalizedMentionAsNormalized() {
+        GdeltMentionRepository mentionRepository = mock(GdeltMentionRepository.class);
+        StagingRow row = stagingRow(GdeltMentionParserTests.mentionLine());
+
+        when(mentionRepository.findUnnormalizedRows(eq("MENTIONS"), any(Pageable.class))).thenReturn(List.of(row));
+        when(mentionRepository.existsByStagingRow(row)).thenReturn(true);
+
+        GdeltMentionNormalizationJob job = new GdeltMentionNormalizationJob(
+                mentionRepository,
+                new GdeltMentionParser(),
+                1000
+        );
+
+        int normalized = job.run();
+
+        assertThat(normalized).isEqualTo(1);
+        assertThat(row.getNormalizedAt()).isNotNull();
+        assertThat(row.getNormalizationSkippedAt()).isNull();
         verify(mentionRepository, never()).save(any(GdeltMention.class));
     }
 

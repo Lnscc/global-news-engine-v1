@@ -29,12 +29,9 @@ class GdeltBatchNormalizationStatusJobTests {
                 List.of(IngestionStatus.PARSED, IngestionStatus.NORMALIZING)
         )).thenReturn(List.of(batch));
         when(stagingRowRepository.countBySourceBatch(batch)).thenReturn(6L);
-        when(stagingRowRepository.countBySourceBatchAndFileType(batch, "EVENTS")).thenReturn(2L);
-        when(stagingRowRepository.countBySourceBatchAndFileType(batch, "MENTIONS")).thenReturn(3L);
-        when(stagingRowRepository.countBySourceBatchAndFileType(batch, "GKG")).thenReturn(1L);
-        when(eventRepository.countBySourceBatch(batch)).thenReturn(2L);
-        when(mentionRepository.countBySourceBatch(batch)).thenReturn(3L);
-        when(gkgRepository.countBySourceBatch(batch)).thenReturn(1L);
+        when(stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, "EVENTS")).thenReturn(0L);
+        when(stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, "MENTIONS")).thenReturn(0L);
+        when(stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, "GKG")).thenReturn(0L);
 
         GdeltBatchNormalizationStatusJob job = new GdeltBatchNormalizationStatusJob(
                 batchRepository,
@@ -65,12 +62,9 @@ class GdeltBatchNormalizationStatusJobTests {
                 List.of(IngestionStatus.PARSED, IngestionStatus.NORMALIZING)
         )).thenReturn(List.of(batch));
         when(stagingRowRepository.countBySourceBatch(batch)).thenReturn(6L);
-        when(stagingRowRepository.countBySourceBatchAndFileType(batch, "EVENTS")).thenReturn(2L);
-        when(stagingRowRepository.countBySourceBatchAndFileType(batch, "MENTIONS")).thenReturn(3L);
-        when(stagingRowRepository.countBySourceBatchAndFileType(batch, "GKG")).thenReturn(1L);
-        when(eventRepository.countBySourceBatch(batch)).thenReturn(2L);
-        when(mentionRepository.countBySourceBatch(batch)).thenReturn(2L);
-        when(gkgRepository.countBySourceBatch(batch)).thenReturn(1L);
+        when(stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, "EVENTS")).thenReturn(0L);
+        when(stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, "MENTIONS")).thenReturn(1L);
+        when(stagingRowRepository.countUnhandledBySourceBatchAndFileType(batch, "GKG")).thenReturn(0L);
 
         GdeltBatchNormalizationStatusJob job = new GdeltBatchNormalizationStatusJob(
                 batchRepository,
