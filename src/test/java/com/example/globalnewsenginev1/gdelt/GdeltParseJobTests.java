@@ -44,15 +44,14 @@ class GdeltParseJobTests {
         GdeltParseJob job = new GdeltParseJob(
                 batchRepository,
                 stagingRowRepository,
-                new RawZipLineReader(),
-                2
+                new RawZipLineReader()
         );
 
         boolean parsed = job.runNextBatch();
 
         assertThat(parsed).isTrue();
         assertThat(batch.getStatus()).isEqualTo(IngestionStatus.PARSED);
-        verify(stagingRowRepository, org.mockito.Mockito.times(6)).save(any(StagingRow.class));
+        verify(stagingRowRepository, org.mockito.Mockito.times(9)).save(any(StagingRow.class));
         verify(batchRepository).save(batch);
     }
 
@@ -66,8 +65,7 @@ class GdeltParseJobTests {
         GdeltParseJob job = new GdeltParseJob(
                 batchRepository,
                 stagingRowRepository,
-                new RawZipLineReader(),
-                2
+                new RawZipLineReader()
         );
 
         boolean parsed = job.runNextBatch();
@@ -94,8 +92,7 @@ class GdeltParseJobTests {
         GdeltParseJob job = new GdeltParseJob(
                 batchRepository,
                 stagingRowRepository,
-                new RawZipLineReader(),
-                2
+                new RawZipLineReader()
         );
 
         boolean parsed = job.runNextBatch();

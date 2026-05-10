@@ -14,7 +14,7 @@ import java.util.zip.ZipInputStream;
 @Component
 public class RawZipLineReader {
 
-    public int readLines(Path zipPath, int maxRows, BiConsumer<Long, String> rowConsumer) throws IOException {
+    public int readLines(Path zipPath, BiConsumer<Long, String> rowConsumer) throws IOException {
         int rowsRead = 0;
 
         try (ZipInputStream zipInputStream = new ZipInputStream(java.nio.file.Files.newInputStream(zipPath), StandardCharsets.UTF_8)) {
@@ -26,7 +26,7 @@ public class RawZipLineReader {
             BufferedReader reader = new BufferedReader(new InputStreamReader(zipInputStream, StandardCharsets.UTF_8));
             String line;
             long lineNumber = 0;
-            while ((line = reader.readLine()) != null && rowsRead < maxRows) {
+            while ((line = reader.readLine()) != null) {
                 lineNumber++;
                 rowConsumer.accept(lineNumber, line);
                 rowsRead++;

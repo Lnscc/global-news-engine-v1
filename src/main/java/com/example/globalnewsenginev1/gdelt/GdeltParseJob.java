@@ -9,7 +9,6 @@ import com.example.globalnewsenginev1.ingestion.StagingRow;
 import com.example.globalnewsenginev1.ingestion.StagingRowRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,18 +24,15 @@ public class GdeltParseJob {
     private final SourceBatchRepository batchRepository;
     private final StagingRowRepository stagingRowRepository;
     private final RawZipLineReader zipLineReader;
-    private final int maxRowsPerFile;
 
     public GdeltParseJob(
             SourceBatchRepository batchRepository,
             StagingRowRepository stagingRowRepository,
-            RawZipLineReader zipLineReader,
-            @Value("${gdelt.parse.max-rows-per-file:1000}") int maxRowsPerFile
+            RawZipLineReader zipLineReader
     ) {
         this.batchRepository = batchRepository;
         this.stagingRowRepository = stagingRowRepository;
         this.zipLineReader = zipLineReader;
-        this.maxRowsPerFile = maxRowsPerFile;
     }
 
     @Transactional
@@ -62,7 +58,7 @@ public class GdeltParseJob {
                 RawSourceFile file = batch.findFile(fileType.name()).orElseThrow();
                 Path path = Path.of(file.getLocalPath());
 
-                int rows = zipLineReader.readLines(path, maxRowsPerFile, (lineNumber, rawLine) -> {
+                int rows = zipLineReader.readLines(path, (lineNumber, rawLine) -> {
                     if (!stagingRowRepository.existsByRawSourceFileAndLineNumber(file, lineNumber)) {
                         stagingRowRepository.save(new StagingRow(batch, file, lineNumber, rawLine));
                     }
