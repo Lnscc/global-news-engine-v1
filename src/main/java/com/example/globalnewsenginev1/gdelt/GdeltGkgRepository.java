@@ -27,4 +27,12 @@ public interface GdeltGkgRepository extends JpaRepository<GdeltGkg, Long> {
             order by row.id
             """)
     List<StagingRow> findUnnormalizedRows(@Param("fileType") String fileType, Pageable pageable);
+
+    @Query("""
+            select gkg
+            from GdeltGkg gkg
+            where gkg.articleProjectedAt is null
+            order by gkg.date desc, gkg.id desc
+            """)
+    List<GdeltGkg> findUnprojectedArticleRows(Pageable pageable);
 }

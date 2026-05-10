@@ -142,6 +142,8 @@ public class GdeltGkg {
     @Column(nullable = false)
     private Instant normalizedAt;
 
+    private Instant articleProjectedAt;
+
     protected GdeltGkg() {
     }
 
@@ -192,6 +194,10 @@ public class GdeltGkg {
         return id;
     }
 
+    public SourceBatch getSourceBatch() {
+        return sourceBatch;
+    }
+
     public String getGkgRecordId() {
         return gkgRecordId;
     }
@@ -212,6 +218,22 @@ public class GdeltGkg {
         return tone;
     }
 
+    public BigDecimal getPositiveScore() {
+        return positiveScore;
+    }
+
+    public BigDecimal getNegativeScore() {
+        return negativeScore;
+    }
+
+    public BigDecimal getPolarity() {
+        return polarity;
+    }
+
+    public BigDecimal getWordCount() {
+        return wordCount;
+    }
+
     public String getThemes() {
         return themes;
     }
@@ -222,5 +244,25 @@ public class GdeltGkg {
 
     public String getOrganizations() {
         return organizations;
+    }
+
+    public String getSharingImage() {
+        return sharingImage;
+    }
+
+    public String getRelatedImages() {
+        return relatedImages;
+    }
+
+    public String getExtras() {
+        return extras;
+    }
+
+    public Instant getArticleProjectedAt() {
+        return articleProjectedAt;
+    }
+
+    public void markArticleProjected() {
+        articleProjectedAt = Instant.now();
     }
 }

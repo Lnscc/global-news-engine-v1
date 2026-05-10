@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.gdelt;
 
+import com.example.globalnewsenginev1.articles.ArticleProjectionJob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -22,6 +23,7 @@ public class GdeltIngestionScheduler {
     private final GdeltMentionNormalizationJob mentionNormalizationJob;
     private final GdeltGkgNormalizationJob gkgNormalizationJob;
     private final GdeltBatchNormalizationStatusJob batchNormalizationStatusJob;
+    private final ArticleProjectionJob articleProjectionJob;
     private final int maxBatchesPerRun;
 
     public GdeltIngestionScheduler(
@@ -32,6 +34,7 @@ public class GdeltIngestionScheduler {
             GdeltMentionNormalizationJob mentionNormalizationJob,
             GdeltGkgNormalizationJob gkgNormalizationJob,
             GdeltBatchNormalizationStatusJob batchNormalizationStatusJob,
+            ArticleProjectionJob articleProjectionJob,
             @Value("${gdelt.ingestion.max-batches-per-run:1}") int maxBatchesPerRun
     ) {
         this.discoveryJob = discoveryJob;
@@ -41,6 +44,7 @@ public class GdeltIngestionScheduler {
         this.mentionNormalizationJob = mentionNormalizationJob;
         this.gkgNormalizationJob = gkgNormalizationJob;
         this.batchNormalizationStatusJob = batchNormalizationStatusJob;
+        this.articleProjectionJob = articleProjectionJob;
         this.maxBatchesPerRun = maxBatchesPerRun;
     }
 
@@ -63,6 +67,8 @@ public class GdeltIngestionScheduler {
             runBatches("download", downloadJob::runNextBatch);
             runBatches("parse", parseJob::runNextBatch);
             runNormalizationRounds();
+            int projectedArticles = articleProjectionJob.run();
+            log.info("Projected {} article row(s)", projectedArticles);
             batchNormalizationStatusJob.run();
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
