@@ -119,6 +119,32 @@ class GdeltDiscoveryJobTests {
     }
 
     @Test
+    void limitsDiscoveredBatchesToNewestConfiguredCount() throws IOException, InterruptedException {
+        GdeltManifestClient manifestClient = mock(GdeltManifestClient.class);
+        SourceBatchRepository batchRepository = mock(SourceBatchRepository.class);
+        when(manifestClient.fetchMasterFileList()).thenReturn("""
+                123 abc http://data.gdeltproject.org/gdeltv2/20260506120000.export.CSV.zip
+                456 def http://data.gdeltproject.org/gdeltv2/20260506121500.export.CSV.zip
+                789 ghi http://data.gdeltproject.org/gdeltv2/20260506123000.export.CSV.zip
+                """);
+        when(batchRepository.findBySourceAndExternalBatchId(anyString(), anyString())).thenReturn(Optional.empty());
+
+        GdeltDiscoveryJob job = new GdeltDiscoveryJob(
+                manifestClient,
+                new GdeltManifestParser(),
+                batchRepository,
+                Duration.ZERO,
+                1,
+                Clock.systemUTC()
+        );
+
+        int discovered = job.run();
+
+        assertThat(discovered).isEqualTo(1);
+        verify(batchRepository).save(argThat(batch -> batch.getExternalBatchId().equals("20260506123000")));
+    }
+
+    @Test
     void skipsBatchesNewerThanMinimumAge() throws IOException, InterruptedException {
         GdeltManifestClient manifestClient = mock(GdeltManifestClient.class);
         SourceBatchRepository batchRepository = mock(SourceBatchRepository.class);

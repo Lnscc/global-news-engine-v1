@@ -34,6 +34,7 @@ public class GdeltDiscoveryJob {
     private final GdeltManifestParser manifestParser;
     private final SourceBatchRepository batchRepository;
     private final Duration minimumBatchAge;
+    private final int maxBatches;
     private final Clock clock;
 
     @Autowired
@@ -41,9 +42,10 @@ public class GdeltDiscoveryJob {
             GdeltManifestClient manifestClient,
             GdeltManifestParser manifestParser,
             SourceBatchRepository batchRepository,
-            @Value("${gdelt.discovery.minimum-batch-age:PT10M}") Duration minimumBatchAge
+            @Value("${gdelt.discovery.minimum-batch-age:PT10M}") Duration minimumBatchAge,
+            @Value("${gdelt.discovery.max-batches:1}") int maxBatches
     ) {
-        this(manifestClient, manifestParser, batchRepository, minimumBatchAge, Clock.systemUTC());
+        this(manifestClient, manifestParser, batchRepository, minimumBatchAge, maxBatches, Clock.systemUTC());
     }
 
     GdeltDiscoveryJob(
@@ -53,10 +55,22 @@ public class GdeltDiscoveryJob {
             Duration minimumBatchAge,
             Clock clock
     ) {
+        this(manifestClient, manifestParser, batchRepository, minimumBatchAge, Integer.MAX_VALUE, clock);
+    }
+
+    GdeltDiscoveryJob(
+            GdeltManifestClient manifestClient,
+            GdeltManifestParser manifestParser,
+            SourceBatchRepository batchRepository,
+            Duration minimumBatchAge,
+            int maxBatches,
+            Clock clock
+    ) {
         this.manifestClient = manifestClient;
         this.manifestParser = manifestParser;
         this.batchRepository = batchRepository;
         this.minimumBatchAge = minimumBatchAge;
+        this.maxBatches = Math.max(1, maxBatches);
         this.clock = clock;
     }
 
@@ -73,6 +87,7 @@ public class GdeltDiscoveryJob {
         List<Map.Entry<String, List<GdeltManifestEntry>>> newestBatchEntries = entriesByTimestamp.entrySet().stream()
                 .filter(entry -> isOldEnough(entry.getKey(), newestAllowedBatchTime))
                 .sorted(Map.Entry.<String, List<GdeltManifestEntry>>comparingByKey().reversed())
+                .limit(maxBatches)
                 .toList();
 
         int savedCount = 0;
