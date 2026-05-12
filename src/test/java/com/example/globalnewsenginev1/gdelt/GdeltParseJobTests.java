@@ -1,5 +1,7 @@
 package com.example.globalnewsenginev1.gdelt;
 
+import com.example.globalnewsenginev1.gdelt.model.GdeltFileType;
+import com.example.globalnewsenginev1.gdelt.parser.GdeltParseJob;
 import com.example.globalnewsenginev1.ingestion.IngestionStatus;
 import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.RawZipLineReader;
@@ -7,9 +9,6 @@ import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.SourceBatchRepository;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import com.example.globalnewsenginev1.ingestion.StagingRowRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,7 +16,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

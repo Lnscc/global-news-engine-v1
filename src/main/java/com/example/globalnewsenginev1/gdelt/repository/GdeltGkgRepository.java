@@ -1,13 +1,13 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.repository;
 
+import com.example.globalnewsenginev1.gdelt.model.GdeltGkg;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface GdeltGkgRepository extends JpaRepository<GdeltGkg, Long> {
 

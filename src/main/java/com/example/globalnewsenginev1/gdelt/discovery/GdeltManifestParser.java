@@ -1,10 +1,10 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.discovery;
 
-import org.springframework.stereotype.Component;
-
+import com.example.globalnewsenginev1.gdelt.model.GdeltFileType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GdeltManifestParser {

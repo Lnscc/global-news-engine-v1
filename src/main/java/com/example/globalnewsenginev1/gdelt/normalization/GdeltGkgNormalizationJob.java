@@ -1,12 +1,16 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.normalization;
 
+import com.example.globalnewsenginev1.gdelt.model.GdeltFileType;
+import com.example.globalnewsenginev1.gdelt.model.GdeltGkg;
+import com.example.globalnewsenginev1.gdelt.parser.GdeltGkgParser;
+import com.example.globalnewsenginev1.gdelt.parser.GdeltGkgRecord;
+import com.example.globalnewsenginev1.gdelt.repository.GdeltGkgRepository;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Component
 public class GdeltGkgNormalizationJob {

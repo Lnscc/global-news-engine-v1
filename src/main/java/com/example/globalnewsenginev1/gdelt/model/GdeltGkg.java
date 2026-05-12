@@ -1,5 +1,6 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.model;
 
+import com.example.globalnewsenginev1.gdelt.parser.GdeltGkgRecord;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import jakarta.persistence.Column;
@@ -14,7 +15,6 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;

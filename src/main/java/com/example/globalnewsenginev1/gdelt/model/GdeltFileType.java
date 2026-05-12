@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.model;
 
 import java.util.Arrays;
 import java.util.Optional;

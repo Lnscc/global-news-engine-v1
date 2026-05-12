@@ -1,12 +1,14 @@
 package com.example.globalnewsenginev1.gdelt;
 
+import com.example.globalnewsenginev1.gdelt.model.GdeltMention;
+import com.example.globalnewsenginev1.gdelt.normalization.GdeltMentionNormalizationJob;
+import com.example.globalnewsenginev1.gdelt.parser.GdeltMentionParser;
+import com.example.globalnewsenginev1.gdelt.repository.GdeltMentionRepository;
 import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
-import org.junit.jupiter.api.Test;
-
 import java.util.List;
-
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;

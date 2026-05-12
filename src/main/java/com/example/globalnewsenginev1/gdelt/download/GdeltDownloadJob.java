@@ -1,21 +1,22 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.download;
 
+import com.example.globalnewsenginev1.gdelt.GdeltSource;
+import com.example.globalnewsenginev1.gdelt.model.GdeltFileType;
 import com.example.globalnewsenginev1.ingestion.IngestionStatus;
 import com.example.globalnewsenginev1.ingestion.RawFileDownloader;
 import com.example.globalnewsenginev1.ingestion.RawFileStorage;
 import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.SourceBatchRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class GdeltDownloadJob {
@@ -40,7 +41,7 @@ public class GdeltDownloadJob {
     public boolean runNextBatch() {
         List<SourceBatch> candidateBatches = batchRepository
                 .findTop10BySourceAndStatusInOrderByExternalBatchIdDesc(
-                        GdeltDiscoveryJob.SOURCE,
+                        GdeltSource.SOURCE,
                         List.of(IngestionStatus.DISCOVERED, IngestionStatus.FAILED)
                 )
                 .stream()

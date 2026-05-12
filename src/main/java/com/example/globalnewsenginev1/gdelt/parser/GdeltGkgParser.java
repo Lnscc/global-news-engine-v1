@@ -1,11 +1,10 @@
-package com.example.globalnewsenginev1.gdelt;
-
-import org.springframework.stereotype.Component;
+package com.example.globalnewsenginev1.gdelt.parser;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.Optional;
+import org.springframework.stereotype.Component;
 
 @Component
 public class GdeltGkgParser {

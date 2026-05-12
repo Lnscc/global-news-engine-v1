@@ -1,6 +1,5 @@
 package com.example.globalnewsenginev1.articles;
 
-import com.example.globalnewsenginev1.gdelt.GdeltGkg;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -14,7 +13,6 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -84,9 +82,8 @@ public class Article {
     @Column(columnDefinition = "text")
     private String extras;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "first_gkg_id", nullable = false)
-    private GdeltGkg firstGkg;
+    @Column(name = "first_gkg_id", nullable = false)
+    private Long firstGkgId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "first_seen_batch_id", nullable = false)
@@ -101,27 +98,27 @@ public class Article {
     protected Article() {
     }
 
-    public Article(String canonicalUrl, GdeltGkg gkg) {
+    public Article(String canonicalUrl, ArticleCandidate candidate) {
         this.canonicalUrl = canonicalUrl;
-        this.originalUrl = gkg.getDocumentIdentifier();
-        this.sourceName = gkg.getSourceCommonName();
-        this.sourceDomain = ArticleUrlNormalizer.domainOf(canonicalUrl).orElse(gkg.getSourceCommonName());
-        this.publishedAt = gkg.getDate();
-        this.firstSeenAt = gkg.getDate();
-        this.lastSeenAt = gkg.getDate();
-        this.themes = gkg.getThemes();
-        this.persons = gkg.getPersons();
-        this.organizations = gkg.getOrganizations();
-        this.tone = gkg.getTone();
-        this.positiveScore = gkg.getPositiveScore();
-        this.negativeScore = gkg.getNegativeScore();
-        this.polarity = gkg.getPolarity();
-        this.wordCount = gkg.getWordCount();
-        this.sharingImage = gkg.getSharingImage();
-        this.relatedImages = gkg.getRelatedImages();
-        this.extras = gkg.getExtras();
-        this.firstGkg = gkg;
-        this.firstSeenBatch = gkg.getSourceBatch();
+        this.originalUrl = candidate.documentIdentifier();
+        this.sourceName = candidate.sourceName();
+        this.sourceDomain = ArticleUrlNormalizer.domainOf(canonicalUrl).orElse(candidate.sourceName());
+        this.publishedAt = candidate.publishedAt();
+        this.firstSeenAt = candidate.publishedAt();
+        this.lastSeenAt = candidate.publishedAt();
+        this.themes = candidate.themes();
+        this.persons = candidate.persons();
+        this.organizations = candidate.organizations();
+        this.tone = candidate.tone();
+        this.positiveScore = candidate.positiveScore();
+        this.negativeScore = candidate.negativeScore();
+        this.polarity = candidate.polarity();
+        this.wordCount = candidate.wordCount();
+        this.sharingImage = candidate.sharingImage();
+        this.relatedImages = candidate.relatedImages();
+        this.extras = candidate.extras();
+        this.firstGkgId = candidate.sourceRecordId();
+        this.firstSeenBatch = candidate.sourceBatch();
     }
 
     @PrePersist
@@ -136,12 +133,12 @@ public class Article {
         updatedAt = Instant.now();
     }
 
-    public void recordSeen(GdeltGkg gkg) {
-        if (gkg.getDate().isBefore(firstSeenAt)) {
-            firstSeenAt = gkg.getDate();
+    public void recordSeen(ArticleCandidate candidate) {
+        if (candidate.publishedAt().isBefore(firstSeenAt)) {
+            firstSeenAt = candidate.publishedAt();
         }
-        if (gkg.getDate().isAfter(lastSeenAt)) {
-            lastSeenAt = gkg.getDate();
+        if (candidate.publishedAt().isAfter(lastSeenAt)) {
+            lastSeenAt = candidate.publishedAt();
         }
     }
 

@@ -1,7 +1,20 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.discovery;
 
+import com.example.globalnewsenginev1.gdelt.GdeltSource;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.SourceBatchRepository;
+import java.io.IOException;
+import java.time.Clock;
+import java.time.Duration;
+import java.time.format.DateTimeFormatter;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,23 +22,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.IOException;
-import java.time.Clock;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
-import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Component
 public class GdeltDiscoveryJob {
-
-    static final String SOURCE = "GDELT";
 
     private static final Logger log = LoggerFactory.getLogger(GdeltDiscoveryJob.class);
     private static final DateTimeFormatter BATCH_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
@@ -92,8 +90,8 @@ public class GdeltDiscoveryJob {
 
         int savedCount = 0;
         for (Map.Entry<String, List<GdeltManifestEntry>> batchEntries : newestBatchEntries) {
-            SourceBatch batch = batchRepository.findBySourceAndExternalBatchId(SOURCE, batchEntries.getKey())
-                    .orElseGet(() -> new SourceBatch(SOURCE, batchEntries.getKey()));
+            SourceBatch batch = batchRepository.findBySourceAndExternalBatchId(GdeltSource.SOURCE, batchEntries.getKey())
+                    .orElseGet(() -> new SourceBatch(GdeltSource.SOURCE, batchEntries.getKey()));
 
             batchEntries.getValue().stream()
                     .sorted(Comparator.comparing(GdeltManifestEntry::fileType))

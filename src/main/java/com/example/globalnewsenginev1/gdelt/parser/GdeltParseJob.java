@@ -1,5 +1,7 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.parser;
 
+import com.example.globalnewsenginev1.gdelt.GdeltSource;
+import com.example.globalnewsenginev1.gdelt.model.GdeltFileType;
 import com.example.globalnewsenginev1.ingestion.IngestionStatus;
 import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.RawZipLineReader;
@@ -7,15 +9,14 @@ import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.SourceBatchRepository;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
 import com.example.globalnewsenginev1.ingestion.StagingRowRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 @Component
 public class GdeltParseJob {
@@ -39,7 +40,7 @@ public class GdeltParseJob {
     @Transactional
     public boolean runNextBatch() {
         Optional<SourceBatch> nextBatch = batchRepository
-                .findTop10BySourceAndStatusOrderByExternalBatchIdDesc(GdeltDiscoveryJob.SOURCE, IngestionStatus.DOWNLOADED)
+                .findTop10BySourceAndStatusOrderByExternalBatchIdDesc(GdeltSource.SOURCE, IngestionStatus.DOWNLOADED)
                 .stream()
                 .filter(this::hasDownloadedExpectedFiles)
                 .findFirst();

@@ -1,19 +1,18 @@
 package com.example.globalnewsenginev1.gdelt;
 
+import com.example.globalnewsenginev1.gdelt.download.GdeltDownloadJob;
 import com.example.globalnewsenginev1.ingestion.IngestionStatus;
 import com.example.globalnewsenginev1.ingestion.RawFileDownloader;
 import com.example.globalnewsenginev1.ingestion.RawFileStorage;
 import com.example.globalnewsenginev1.ingestion.RawSourceFile;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.SourceBatchRepository;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
-
+import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

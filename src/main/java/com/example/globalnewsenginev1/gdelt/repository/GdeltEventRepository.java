@@ -1,14 +1,17 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.repository;
 
+import com.example.globalnewsenginev1.gdelt.model.GdeltEvent;
 import com.example.globalnewsenginev1.ingestion.SourceBatch;
 import com.example.globalnewsenginev1.ingestion.StagingRow;
+import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.util.List;
+public interface GdeltEventRepository extends JpaRepository<GdeltEvent, Long> {
 
-public interface GdeltMentionRepository extends JpaRepository<GdeltMention, Long> {
+    Optional<GdeltEvent> findByGlobalEventId(long globalEventId);
 
     boolean existsByStagingRow(StagingRow stagingRow);
 

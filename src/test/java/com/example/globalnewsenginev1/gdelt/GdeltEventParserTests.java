@@ -1,12 +1,13 @@
 package com.example.globalnewsenginev1.gdelt;
 
-import org.junit.jupiter.api.Test;
-
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import com.example.globalnewsenginev1.gdelt.parser.GdeltEventParser;
+import com.example.globalnewsenginev1.gdelt.parser.GdeltEventRecord;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GdeltEventParserTests {

@@ -1,9 +1,12 @@
 package com.example.globalnewsenginev1.gdelt;
 
-import org.junit.jupiter.api.Test;
+import com.example.globalnewsenginev1.gdelt.discovery.GdeltManifestEntry;
+import com.example.globalnewsenginev1.gdelt.discovery.GdeltManifestParser;
 
 import java.util.List;
 
+import com.example.globalnewsenginev1.gdelt.model.GdeltFileType;
+import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class GdeltManifestParserTests {

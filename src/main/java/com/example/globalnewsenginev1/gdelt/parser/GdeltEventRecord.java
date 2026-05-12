@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.gdelt;
+package com.example.globalnewsenginev1.gdelt.parser;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

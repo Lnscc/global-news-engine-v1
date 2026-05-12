@@ -1,10 +1,15 @@
 package com.example.globalnewsenginev1.gdelt;
 
-import com.example.globalnewsenginev1.articles.ArticleProjectionJob;
-import org.junit.jupiter.api.Test;
-
+import com.example.globalnewsenginev1.gdelt.discovery.GdeltDiscoveryJob;
+import com.example.globalnewsenginev1.gdelt.download.GdeltDownloadJob;
+import com.example.globalnewsenginev1.gdelt.normalization.GdeltBatchNormalizationStatusJob;
+import com.example.globalnewsenginev1.gdelt.normalization.GdeltEventNormalizationJob;
+import com.example.globalnewsenginev1.gdelt.normalization.GdeltGkgNormalizationJob;
+import com.example.globalnewsenginev1.gdelt.normalization.GdeltMentionNormalizationJob;
 import java.io.IOException;
 
+import com.example.globalnewsenginev1.gdelt.parser.GdeltParseJob;
+import org.junit.jupiter.api.Test;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -21,7 +26,6 @@ class GdeltIngestionJobTests {
         GdeltMentionNormalizationJob mentionNormalizationJob = mock(GdeltMentionNormalizationJob.class);
         GdeltGkgNormalizationJob gkgNormalizationJob = mock(GdeltGkgNormalizationJob.class);
         GdeltBatchNormalizationStatusJob batchNormalizationStatusJob = mock(GdeltBatchNormalizationStatusJob.class);
-        ArticleProjectionJob articleProjectionJob = mock(ArticleProjectionJob.class);
 
         when(downloadJob.runNextBatch()).thenReturn(true, true, true, false);
         when(parseJob.runNextBatch()).thenReturn(true, true, false);
@@ -33,8 +37,7 @@ class GdeltIngestionJobTests {
                 eventNormalizationJob,
                 mentionNormalizationJob,
                 gkgNormalizationJob,
-                batchNormalizationStatusJob,
-                articleProjectionJob
+                batchNormalizationStatusJob
         );
 
         job.runIngestion();
@@ -45,7 +48,6 @@ class GdeltIngestionJobTests {
         verify(eventNormalizationJob).run();
         verify(mentionNormalizationJob).run();
         verify(gkgNormalizationJob).run();
-        verify(articleProjectionJob).run();
         verify(batchNormalizationStatusJob).run();
     }
 }
