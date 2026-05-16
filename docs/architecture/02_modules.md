@@ -50,7 +50,7 @@ embeddings
 
 stories
 - ähnliche Artikel zu Stories clustern
-- Story-Lifecycle verwalten
+- Story-Zuordnung über Zeitfenster steuern
 - Story-Scores und Story-Signale berechnen
 
 topics

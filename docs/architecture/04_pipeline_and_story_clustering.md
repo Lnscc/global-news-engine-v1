@@ -7,6 +7,7 @@ GDELT (Events / Mentions / GKG)
 -> Raw Storage
 -> Normalisierung
 -> Artikel-Projektion
+-> Story-Signale
 -> Embedding-Erstellung
 -> Vector Search
 -> Story Clustering
@@ -17,6 +18,16 @@ GDELT (Events / Mentions / GKG)
 ```
 
 ## Verwendung von GDELT
+
+GDELT-Datensätze sind Rohsignale. Sie müssen nicht dauerhaft gespeichert werden, wenn die relevanten Informationen in `article` und `story_signal` verdichtet wurden.
+
+```text
+GDELT Raw/Normalized
+-> Article Projection
+-> Story Signals
+-> Aggregates
+-> Raw-Daten nach Retention löschen
+```
 
 ### Events
 
@@ -82,17 +93,21 @@ Zusätzliche Kriterien:
 - Mention-Volumen
 - Event- und GKG-Übereinstimmung
 
-## Story-Lifecycle
+## Zeitfenster statt Story-Status
+
+Für den MVP braucht die Story keinen gespeicherten Status wie `active`, `cooling` oder `archived`.
+
+Stattdessen wird beim Clustering mit einem einfachen Zeitfenster gearbeitet:
 
 ```text
-active
--> neue passende Artikel werden regelmäßig zugeordnet
-
-cooling
--> Story bekommt kaum neue Artikel, bleibt aber noch Kandidat für Zuordnung
-
-archived
--> Story wird nicht mehr automatisch erweitert, bleibt aber abfragbar
+Neue Artikel nur gegen Stories matchen,
+deren neuester Artikel im relevanten Zeitfenster liegt.
 ```
 
-Ohne Lifecycle wird es schwer zu entscheiden, ob ein neuer Artikel zu einer alten Story gehört oder eine neue Story starten soll.
+Beispiel:
+
+```text
+candidate stories = stories with latest article published_at >= now - 72h
+```
+
+`latest article published_at` wird aus `story_article` und `article` berechnet. Ein gespeichertes Statusmodell kann später ergänzt werden, wenn Performance oder Produktlogik es wirklich brauchen.

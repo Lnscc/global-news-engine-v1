@@ -4,23 +4,28 @@
 
 ```text
 source_batch
-staging_row
-gdelt_event_raw
-gdelt_mention_raw
-gdelt_gkg_raw
+staging_row              temporär
+raw_gdelt_file           temporär / optional
 ```
 
-Die Originaldaten von GDELT werden unverändert oder möglichst verlustfrei gespeichert. Dieser Layer dient als Audit- und Replay-Basis.
+Die Originaldaten von GDELT sind Arbeitsdaten, kein dauerhaftes Produktmodell. Sie werden nur so lange behalten, wie sie für Debugging, Replay oder Fehleranalyse nützlich sind.
+
+Empfohlene MVP-Regel:
+
+```text
+Raw ZIPs und Staging-Daten nach erfolgreicher Verarbeitung löschen
+oder maximal 7-30 Tage behalten.
+```
 
 ## Normalized GDELT Layer
 
 ```text
-gdelt_event
-gdelt_mention
-gdelt_gkg
+gdelt_event              optional / temporär
+gdelt_mention            optional / temporär
+gdelt_gkg                optional / temporär
 ```
 
-Dieser Layer enthält normalisierte, typisierte und abfragbare GDELT-Datensätze.
+Dieser Layer ist optional. Wenn normalisierte GDELT-Daten gespeichert werden, dann primär für Debugging und Wiederverarbeitung. Dauerhaft wichtig sind die daraus abgeleiteten Artikel, Story-Zuordnungen und kompakten Story-Signale.
 
 ## Article
 
@@ -37,8 +42,6 @@ article
 - text
 - language
 - published_at
-- first_seen_at
-- last_seen_at
 - country
 - themes
 - persons
@@ -89,20 +92,17 @@ story
 - id
 - title
 - summary
-- status                active / cooling / archived
-- first_seen_at
-- last_seen_at
 - primary_country
 - primary_location_name
 - primary_latitude
 - primary_longitude
 - centroid_embedding_id
 - confidence
-- article_count
-- source_count
 - created_at
 - updated_at
 ```
+
+Werte wie `first_seen_at`, `last_seen_at`, `article_count` und `source_count` werden im MVP nicht im Story-Kernmodell gespeichert. Sie können aus `story_article` und `article` berechnet werden.
 
 ## Story Article
 
@@ -123,11 +123,23 @@ story_signal
 - story_id
 - signal_type           event / mention / gkg / article
 - source_record_id
+- source_url
+- source_domain
+- country
+- latitude
+- longitude
+- actor_1
+- actor_2
+- event_code
+- themes
+- persons
+- organizations
+- tone
 - score
 - observed_at
 ```
 
-Story-Signale halten nachvollziehbar fest, warum eine Story existiert und welche GDELT-Daten sie stützen.
+Story-Signale halten verdichtet fest, warum eine Story existiert und welche GDELT-Daten sie stützen. Sie ersetzen für die Produktlogik die dauerhafte Speicherung großer GDELT-Rohdaten.
 
 ## Topic
 
@@ -138,9 +150,6 @@ topic
 - id
 - title
 - summary
-- first_seen_at
-- last_seen_at
-- story_count
 - confidence
 - created_at
 - updated_at
@@ -164,8 +173,6 @@ theme
 - title
 - summary
 - horizon              weekly / monthly / quarterly
-- first_seen_at
-- last_seen_at
 - confidence
 - created_at
 - updated_at
@@ -183,10 +190,7 @@ theme_topic
 
 ```text
 source_batch
-staging_row
-gdelt_event
-gdelt_mention
-gdelt_gkg
+staging_row              temporär
 article
 article_embedding
 story
@@ -196,4 +200,13 @@ topic
 topic_story
 theme
 theme_topic
+```
+
+Optionale oder temporäre Tabellen:
+
+```text
+raw_gdelt_file
+gdelt_event
+gdelt_mention
+gdelt_gkg
 ```

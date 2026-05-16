@@ -50,8 +50,10 @@ Story-Detailpanel
 GDELT-Manifeste lesen
 Dateien herunterladen
 Events / Mentions / GKG parsen
-Raw- und Normalized-Layer speichern
+Raw- und Staging-Daten temporär speichern
+relevante Signale extrahieren
 Jobs wiederholbar machen
+Retention für Raw-Daten definieren
 ```
 
 ### Phase 2: Article Projection
@@ -61,7 +63,7 @@ Artikel aus GKG/Mentions/Events ableiten
 URLs kanonisieren
 Artikel deduplizieren
 Artikel-Metadaten speichern
-GDELT-Signale mit Artikeln verknüpfen
+verdichtete GDELT-Signale mit Artikeln verknüpfen
 ```
 
 ### Phase 3: Embeddings
@@ -78,7 +80,7 @@ Similarity Search testen
 ```text
 Story-Datenmodell einführen
 Artikel zu Stories zuordnen
-Story-Lifecycle implementieren
+Zeitfenster für Candidate-Stories verwenden
 Story-Scores berechnen
 Story APIs bereitstellen
 ```
