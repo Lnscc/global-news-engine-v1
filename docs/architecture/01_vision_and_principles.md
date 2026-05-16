@@ -1,8 +1,6 @@
-# Globale Ereignis- und Analyseplattform - Architektur
+# Vision und Prinzipien
 
-Diese Datei ist der Einstiegspunkt fuer die Architekturplanung. Die Details sind in kleinere Dokumente aufgeteilt, damit die Planung uebersichtlich bleibt.
-
-## Zielbild
+## Projektvision
 
 Die Plattform soll globale Ereignisse analysieren, clustern und visuell darstellen.
 Im Mittelpunkt stehen nicht einzelne GDELT-Events, sondern die automatische Bildung von:
@@ -11,7 +9,18 @@ Im Mittelpunkt stehen nicht einzelne GDELT-Events, sondern die automatische Bild
 Artikel -> Stories -> Topics -> Themes
 ```
 
-Grundprinzip:
+Das Ziel ist eine skalierbare Intelligence- und Analyseplattform mit:
+
+- Echtzeit-Ereignissen
+- Story-Erkennung
+- thematischen Zusammenfassungen
+- geopolitischer Analyse
+- Globe-Visualisierung
+- langfristiger Trendanalyse
+
+## Kernprinzip
+
+GDELT ist eine Signalquelle. Das Produktmodell der Plattform beginnt bei Artikeln und Stories.
 
 ```text
 GDELT ist Input.
@@ -21,15 +30,24 @@ Topics sind Kontext.
 Themes sind strategische Analyse.
 ```
 
-## Architektur-Dokumente
+## Hierarchie
 
-- [01 Vision und Prinzipien](architecture/01_vision_and_principles.md)
-- [02 Module und Verantwortlichkeiten](architecture/02_modules.md)
-- [03 Datenmodell](architecture/03_data_model.md)
-- [04 Pipeline und Story Clustering](architecture/04_pipeline_and_story_clustering.md)
-- [05 API, Frontend und MVP-Roadmap](architecture/05_api_frontend_roadmap.md)
+```text
+Article
+-> gehört zu Stories
 
-## Wichtigste Architekturentscheidung
+Story
+-> besteht aus Artikeln
+-> wird durch GDELT-Signale gestützt
+
+Topic
+-> besteht aus Stories
+
+Theme
+-> besteht aus Topics
+```
+
+## Architekturentscheidung
 
 Nicht Event-first bauen.
 
