@@ -41,6 +41,7 @@ articles
 - Artikel-URLs normalisieren
 - Artikel aus GKG/Mentions/Events projizieren
 - Artikel-Metadaten pflegen
+- Article-Signale aus GKG/Event/Mention best-effort verdichten
 - spätere Volltext-Extraktion anbinden
 
 embeddings
@@ -51,7 +52,7 @@ embeddings
 stories
 - ähnliche Artikel zu Stories clustern
 - Story-Zuordnung über Zeitfenster steuern
-- Story-Scores und Story-Signale berechnen
+- Story-Scores aus Artikel-Signalen und Embedding-Ähnlichkeit berechnen
 
 topics
 - mehrere Stories zu Themen aggregieren

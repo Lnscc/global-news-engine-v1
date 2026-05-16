@@ -38,7 +38,7 @@ Article
 
 Story
 -> besteht aus Artikeln
--> wird durch GDELT-Signale gestützt
+-> wird durch Artikel und deren verdichtete Signale gestützt
 
 Topic
 -> besteht aus Stories

@@ -63,13 +63,14 @@ Artikel aus GKG/Mentions/Events ableiten
 URLs kanonisieren
 Artikel deduplizieren
 Artikel-Metadaten speichern
-verdichtete GDELT-Signale mit Artikeln verknüpfen
+Article-Signale aus GKG/Event/Mention best-effort erzeugen
 ```
 
 ### Phase 3: Embeddings
 
 ```text
 Embedding-Input aus Artikel-Metadaten bauen
+Article-Signale in Embedding-Input einbeziehen
 Embeddings erzeugen
 pgvector integrieren
 Similarity Search testen
@@ -81,7 +82,7 @@ Similarity Search testen
 Story-Datenmodell einführen
 Artikel zu Stories zuordnen
 Zeitfenster für Candidate-Stories verwenden
-Story-Scores berechnen
+Story-Scores aus Embedding-Ähnlichkeit und Article-Signalen berechnen
 Story APIs bereitstellen
 ```
 
@@ -89,7 +90,7 @@ Story APIs bereitstellen
 
 ```text
 Story-zentrierte Globe API
-Koordinaten aus Story-Signalen ableiten
+Koordinaten aus Article-Signalen der Story-Artikel ableiten
 aktive Stories auf dem Globe anzeigen
 Cluster und Detailansicht bereitstellen
 ```

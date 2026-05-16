@@ -25,7 +25,7 @@ gdelt_mention            optional / temporär
 gdelt_gkg                optional / temporär
 ```
 
-Dieser Layer ist optional. Wenn normalisierte GDELT-Daten gespeichert werden, dann primär für Debugging und Wiederverarbeitung. Dauerhaft wichtig sind die daraus abgeleiteten Artikel, Story-Zuordnungen und kompakten Story-Signale.
+Dieser Layer ist optional. Wenn normalisierte GDELT-Daten gespeichert werden, dann primär für Debugging und Wiederverarbeitung. Dauerhaft wichtig sind die daraus abgeleiteten Artikel, Article-Signale und Story-Zuordnungen.
 
 ## Article
 
@@ -68,6 +68,36 @@ published_at
 
 Volltext-Extraktion kann später ergänzt werden, sollte aber nicht die Story-Erkennung blockieren.
 
+## Article Signal
+
+`article_signal` ist die verdichtete Best-effort-Zusammenfassung der GDELT-Hinweise zu einem Artikel.
+
+GKG, Event und Mention passen nicht immer vollständig 1:1 zusammen. Deshalb darf jedes Feld optional sein. Die Zusammenführung läuft über URL/Dokumentkennung, Event-ID und Zeitnähe, aber fehlende Teile sind erlaubt.
+
+```text
+article_signal
+- id
+- article_id
+- source_url
+- source_domain
+- country
+- latitude
+- longitude
+- themes
+- persons
+- organizations
+- tone
+- event_codes
+- actors
+- mention_count
+- source_count
+- evidence_score
+- observed_at
+- created_at
+```
+
+`article_signal` ersetzt für die Produktlogik die dauerhafte Speicherung großer GDELT-Rohdaten. Aus `article` und `article_signal` entsteht der Embedding-Input.
+
 ## Article Embedding
 
 ```text
@@ -102,7 +132,7 @@ story
 - updated_at
 ```
 
-Werte wie `first_seen_at`, `last_seen_at`, `article_count` und `source_count` werden im MVP nicht im Story-Kernmodell gespeichert. Sie können aus `story_article` und `article` berechnet werden.
+Werte wie `first_seen_at`, `last_seen_at`, `article_count` und `source_count` werden im MVP nicht im Story-Kernmodell gespeichert. Sie können aus `story_article`, `article` und `article_signal` berechnet werden.
 
 ## Story Article
 
@@ -115,31 +145,7 @@ story_article
 - assigned_at
 ```
 
-## Story Signal
-
-```text
-story_signal
-- id
-- story_id
-- signal_type           event / mention / gkg / article
-- source_record_id
-- source_url
-- source_domain
-- country
-- latitude
-- longitude
-- actor_1
-- actor_2
-- event_code
-- themes
-- persons
-- organizations
-- tone
-- score
-- observed_at
-```
-
-Story-Signale halten verdichtet fest, warum eine Story existiert und welche GDELT-Daten sie stützen. Sie ersetzen für die Produktlogik die dauerhafte Speicherung großer GDELT-Rohdaten.
+`story_article` ist die Zuordnung zwischen Artikel und Story. Die Begründung für diese Zuordnung kommt aus Embedding-Ähnlichkeit und den verdichteten `article_signal`-Daten.
 
 ## Topic
 
@@ -192,10 +198,10 @@ theme_topic
 source_batch
 staging_row              temporär
 article
+article_signal
 article_embedding
 story
 story_article
-story_signal
 topic
 topic_story
 theme

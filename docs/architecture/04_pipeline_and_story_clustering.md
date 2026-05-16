@@ -7,7 +7,7 @@ GDELT (Events / Mentions / GKG)
 -> Raw Storage
 -> Normalisierung
 -> Artikel-Projektion
--> Story-Signale
+-> Article-Signale
 -> Embedding-Erstellung
 -> Vector Search
 -> Story Clustering
@@ -19,15 +19,19 @@ GDELT (Events / Mentions / GKG)
 
 ## Verwendung von GDELT
 
-GDELT-Datensätze sind Rohsignale. Sie müssen nicht dauerhaft gespeichert werden, wenn die relevanten Informationen in `article` und `story_signal` verdichtet wurden.
+GDELT-Datensätze sind Rohsignale. Sie müssen nicht dauerhaft gespeichert werden, wenn die relevanten Informationen in `article` und `article_signal` verdichtet wurden.
 
 ```text
 GDELT Raw/Normalized
 -> Article Projection
--> Story Signals
+-> Article Signals
+-> Article Embeddings
+-> Story Assignment
 -> Aggregates
 -> Raw-Daten nach Retention löschen
 ```
+
+GKG, Event und Mention werden best-effort zusammengeführt. Es ist keine harte Annahme, dass zu jedem Artikel alle drei Datenarten vollständig passen.
 
 ### Events
 
@@ -76,6 +80,7 @@ Die Anwendung sollte Vector Search über ein eigenes Modul kapseln, damit ein sp
 
 ```text
 Artikel
+-> Article Signal
 -> Embedding Input
 -> Embedding
 -> Similarity Search
@@ -92,6 +97,8 @@ Zusätzliche Kriterien:
 - gleiche oder verwandte Quellencluster
 - Mention-Volumen
 - Event- und GKG-Übereinstimmung
+
+Diese Kriterien kommen im MVP überwiegend aus `article_signal`. Die Story selbst speichert diese Rohhinweise nicht nochmal.
 
 ## Zeitfenster statt Story-Status
 
