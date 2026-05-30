@@ -21,14 +21,6 @@ Topics sind Kontext.
 Themes sind strategische Analyse.
 ```
 
-## Architektur-Dokumente
-
-- [01 Vision und Prinzipien](architecture/01_vision_and_principles.md)
-- [02 Module und Verantwortlichkeiten](architecture/02_modules.md)
-- [03 Datenmodell](architecture/03_data_model.md)
-- [04 Pipeline und Story Clustering](architecture/04_pipeline_and_story_clustering.md)
-- [05 API, Frontend und MVP-Roadmap](architecture/05_api_frontend_roadmap.md)
-
 ## Wichtigste Architekturentscheidung
 
 Nicht Event-first bauen.
