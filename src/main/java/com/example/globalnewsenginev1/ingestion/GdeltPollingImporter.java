@@ -7,6 +7,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.List;
+
 @Service
 @ConditionalOnProperty(name = "gdelt.ingestion.enabled", havingValue = "true", matchIfMissing = true)
 class GdeltPollingImporter {
@@ -33,13 +36,22 @@ class GdeltPollingImporter {
     )
     void importLatestCompleteWindows() {
         int imported = 0;
+        long importedFiles = 0;
+        long importedRows = 0;
         int skippedFiles = 0;
         int failed = 0;
+        List<GdeltCompleteWindow> windows = discovery.discoverLatestCompleteWindows(maxWindowsPerPoll);
 
-        for (GdeltCompleteWindow window : discovery.discoverLatestCompleteWindows(maxWindowsPerPoll)) {
+        for (GdeltCompleteWindow window : windows) {
             try {
                 var results = importer.importWindow(window.sourceTimestamp());
-                skippedFiles += results.stream().filter(GdeltImportResult::skipped).count();
+                long skippedInWindow = results.stream().filter(GdeltImportResult::skipped).count();
+                skippedFiles += skippedInWindow;
+                importedFiles += results.size() - skippedInWindow;
+                importedRows += results.stream()
+                        .filter(result -> !result.skipped())
+                        .mapToLong(GdeltImportResult::rowCount)
+                        .sum();
                 if (results.stream().anyMatch(result -> !result.skipped())) {
                     imported++;
                 }
@@ -49,7 +61,17 @@ class GdeltPollingImporter {
             }
         }
 
-        LOGGER.info("GDELT polling completed: importedWindows={}, skippedFiles={}, failedWindows={}",
-                imported, skippedFiles, failed);
+        LOGGER.info(
+                "GDELT polling completed: discoveredWindows={}, firstWindow={}, lastWindow={}, importedWindows={}, importedFiles={}, importedRows={}, skippedFiles={}, failedWindows={}",
+                windows.size(), firstTimestamp(windows), lastTimestamp(windows), imported, importedFiles, importedRows,
+                skippedFiles, failed);
+    }
+
+    private Instant firstTimestamp(List<GdeltCompleteWindow> windows) {
+        return windows.isEmpty() ? null : windows.getFirst().sourceTimestamp();
+    }
+
+    private Instant lastTimestamp(List<GdeltCompleteWindow> windows) {
+        return windows.isEmpty() ? null : windows.getLast().sourceTimestamp();
     }
 }
