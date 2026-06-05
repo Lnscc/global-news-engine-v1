@@ -8,7 +8,10 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @ConditionalOnProperty(name = "gdelt.ingestion.enabled", havingValue = "true", matchIfMissing = true)
@@ -19,15 +22,18 @@ class GdeltPollingImporter {
     private final GdeltMasterfileDiscovery discovery;
     private final GdeltRawImporter importer;
     private final int maxWindowsPerPoll;
+    private final int maxFailedWindowsPerPoll;
 
     GdeltPollingImporter(
             GdeltMasterfileDiscovery discovery,
             GdeltRawImporter importer,
-            @Value("${gdelt.ingestion.max-windows-per-poll:4}") int maxWindowsPerPoll
+            @Value("${gdelt.ingestion.max-windows-per-poll:4}") int maxWindowsPerPoll,
+            @Value("${gdelt.ingestion.max-failed-windows-per-poll:20}") int maxFailedWindowsPerPoll
     ) {
         this.discovery = discovery;
         this.importer = importer;
         this.maxWindowsPerPoll = maxWindowsPerPoll;
+        this.maxFailedWindowsPerPoll = maxFailedWindowsPerPoll;
     }
 
     @Scheduled(
@@ -40,11 +46,11 @@ class GdeltPollingImporter {
         long importedRows = 0;
         int skippedFiles = 0;
         int failed = 0;
-        List<GdeltCompleteWindow> windows = discovery.discoverLatestCompleteWindows(maxWindowsPerPoll);
+        List<Instant> windows = windowsToImport();
 
-        for (GdeltCompleteWindow window : windows) {
+        for (Instant window : windows) {
             try {
-                var results = importer.importWindow(window.sourceTimestamp());
+                var results = importer.importWindow(window);
                 long skippedInWindow = results.stream().filter(GdeltImportResult::skipped).count();
                 skippedFiles += skippedInWindow;
                 importedFiles += results.size() - skippedInWindow;
@@ -57,7 +63,7 @@ class GdeltPollingImporter {
                 }
             } catch (RuntimeException exception) {
                 failed++;
-                LOGGER.warn("Failed to import GDELT window {}: {}", window.sourceTimestamp(), exception.getMessage());
+                LOGGER.warn("Failed to import GDELT window {}: {}", window, exception.getMessage());
             }
         }
 
@@ -67,11 +73,19 @@ class GdeltPollingImporter {
                 skippedFiles, failed);
     }
 
-    private Instant firstTimestamp(List<GdeltCompleteWindow> windows) {
-        return windows.isEmpty() ? null : windows.getFirst().sourceTimestamp();
+    private List<Instant> windowsToImport() {
+        Set<Instant> timestamps = new LinkedHashSet<>(importer.failedWindowTimestamps(maxFailedWindowsPerPoll));
+        discovery.discoverLatestCompleteWindows(maxWindowsPerPoll).stream()
+                .map(GdeltCompleteWindow::sourceTimestamp)
+                .forEach(timestamps::add);
+        return new ArrayList<>(timestamps);
     }
 
-    private Instant lastTimestamp(List<GdeltCompleteWindow> windows) {
-        return windows.isEmpty() ? null : windows.getLast().sourceTimestamp();
+    private Instant firstTimestamp(List<Instant> windows) {
+        return windows.isEmpty() ? null : windows.getFirst();
+    }
+
+    private Instant lastTimestamp(List<Instant> windows) {
+        return windows.isEmpty() ? null : windows.getLast();
     }
 }

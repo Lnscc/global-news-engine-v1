@@ -69,6 +69,16 @@ public class GdeltRawImporter {
         return results;
     }
 
+    List<Instant> failedWindowTimestamps(int limit) {
+        return jdbcTemplate.query("""
+                SELECT DISTINCT source_timestamp
+                FROM gdelt_import_files
+                WHERE status = 'FAILED'
+                ORDER BY source_timestamp
+                LIMIT ?
+                """, (resultSet, rowNum) -> resultSet.getTimestamp(1).toInstant(), limit);
+    }
+
     GdeltImportResult importDataset(GdeltDataset dataset, Instant sourceTimestamp) {
         String sourceFile = FILE_TIMESTAMP.format(sourceTimestamp) + "." + dataset.fileSuffix();
         String sourceUrl = downloadBaseUri.resolve(sourceFile).toString();

@@ -9,6 +9,8 @@ docker compose up -d
 
 Der Import startet nach `gdelt.ingestion.initial-delay` und laeuft danach alle `gdelt.ingestion.poll-interval`.
 
+Fehlgeschlagene Zeitfenster werden bei spaeteren Polls erneut versucht. Die Anzahl wird ueber `gdelt.ingestion.max-failed-windows-per-poll` begrenzt.
+
 ## Importstatus
 
 Letzte erfolgreich importierte Dateien:
