@@ -40,14 +40,7 @@ Die heruntergeladenen ZIP-Dateien werden nicht archiviert. Sie werden gestreamt,
 
 Raw-Daten in eine erste Staging-Schicht ueberfuehren.
 
-Definition of Done:
-
-- Staging-Tabellen fuer Events, Mentions und GKG sind per Flyway angelegt.
-- Ein Transformationsjob liest nur erfolgreich importierte Raw-Dateien.
-- Der Job ist idempotent und verarbeitet Raw-Zeilen nicht doppelt.
-- Fehlerhafte Raw-Zeilen werden mit Fehlermeldung separat protokolliert.
-- Der erste Schnitt extrahiert nur Kernfelder, die wir fuer Artikel, Ereignisse und Quellen brauchen.
-- Tests decken Parsing, Idempotenz und Fehlerfaelle ab.
+Detailplan: [Raw to Staging Plan](raw_to_staging_plan.md)
 
 ## Danach
 
