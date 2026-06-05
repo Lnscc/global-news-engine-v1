@@ -60,6 +60,14 @@ class GdeltMasterfileDiscovery {
         }
     }
 
+    List<GdeltCompleteWindow> discoverLatestCompleteWindows(int limit) {
+        List<GdeltCompleteWindow> windows = discoverCompleteWindows();
+        if (limit <= 0 || windows.size() <= limit) {
+            return windows;
+        }
+        return windows.subList(windows.size() - limit, windows.size());
+    }
+
     List<GdeltCompleteWindow> parseCompleteWindows(String masterfileContent) {
         Map<Instant, EnumMap<GdeltDataset, URI>> filesByTimestamp = new java.util.HashMap<>();
 

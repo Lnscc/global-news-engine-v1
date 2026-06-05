@@ -27,22 +27,21 @@ Die heruntergeladenen ZIP-Dateien werden nicht archiviert. Sie werden gestreamt,
 - Flyway-Migration fuer Raw-Tabellen
 - Raw-Tabellen fuer Events, Mentions und GKG
 - Importprotokoll ueber `gdelt_import_files`
-- Einmaliger Import eines 15-Minuten-Zeitfensters per `--gdelt.import.timestamp`
 - Idempotenz fuer bereits importierte Dateien
+- Discovery fuer vollstaendige GDELT-Zeitfenster
+- Automatischer Polling-Import vollstaendiger Zeitfenster
 - Tests fuer Kontextstart, Flyway-Migration und Raw-Importer
 
 ## Naechster Meilenstein
 
-Die Anwendung soll dauerhaft laufen und automatisch vollstaendige GDELT-Zeitfenster importieren.
+Importstatus und Betrieb sollen einfach nachvollziehbar werden.
 
 Definition of Done:
 
-- Die Anwendung liest regelmaessig die GDELT-Dateiliste.
-- Ein Zeitfenster wird importiert, sobald Events, Mentions und GKG vorhanden sind.
-- Unvollstaendige Zeitfenster werden uebersprungen und spaeter erneut geprueft.
-- Bereits importierte Dateien werden uebersprungen.
-- Fehlerhafte Downloads stoppen nicht die Anwendung.
-- Der aktuelle Importstatus ist per Log und SQL nachvollziehbar.
+- Der letzte erfolgreiche Import ist sichtbar.
+- Fehlgeschlagene Dateien sind schnell auffindbar.
+- Der Rueckstand zum neuesten vollstaendigen GDELT-Zeitfenster ist erkennbar.
+- Es gibt einfache SQL-Abfragen oder eine kleine Statusausgabe fuer den Betrieb.
 
 ## Danach
 
