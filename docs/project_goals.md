@@ -33,15 +33,15 @@ Die heruntergeladenen ZIP-Dateien werden nicht archiviert. Sie werden gestreamt,
 
 ## Naechster Meilenstein
 
-Die Anwendung soll dauerhaft laufen und automatisch neue GDELT-Dateien importieren.
+Die Anwendung soll dauerhaft laufen und automatisch vollstaendige GDELT-Zeitfenster importieren.
 
 Definition of Done:
 
 - Die Anwendung liest regelmaessig die GDELT-Dateiliste.
-- Neue Events-, Mentions- und GKG-Dateien werden erkannt.
+- Ein Zeitfenster wird importiert, sobald Events, Mentions und GKG vorhanden sind.
+- Unvollstaendige Zeitfenster werden uebersprungen und spaeter erneut geprueft.
 - Bereits importierte Dateien werden uebersprungen.
 - Fehlerhafte Downloads stoppen nicht die Anwendung.
-- Fehlgeschlagene Dateien koennen spaeter erneut versucht werden.
 - Der aktuelle Importstatus ist per Log und SQL nachvollziehbar.
 
 ## Danach
