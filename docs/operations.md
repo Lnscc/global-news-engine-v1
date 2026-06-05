@@ -11,6 +11,15 @@ Der Import startet nach `gdelt.ingestion.initial-delay` und laeuft danach alle `
 
 Fehlgeschlagene Zeitfenster werden bei spaeteren Polls erneut versucht. Die Anzahl wird ueber `gdelt.ingestion.max-failed-windows-per-poll` begrenzt.
 
+## Tests
+
+```powershell
+docker compose up -d
+.\mvnw.cmd verify
+```
+
+Der PostgreSQL-Integrationstest nutzt die lokale Compose-Datenbank unter `localhost:5432`, legt ein temporaeres Schema an und entfernt es nach dem Test wieder.
+
 ## Importstatus
 
 Letzte erfolgreich importierte Dateien:

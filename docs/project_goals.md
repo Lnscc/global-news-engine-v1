@@ -30,21 +30,24 @@ Die heruntergeladenen ZIP-Dateien werden nicht archiviert. Sie werden gestreamt,
 - Idempotenz fuer bereits importierte Dateien
 - Discovery fuer vollstaendige GDELT-Zeitfenster
 - Automatischer Polling-Import vollstaendiger Zeitfenster
+- Retry fuer fehlgeschlagene Zeitfenster
 - Operations-Doku mit SQL-Abfragen fuer Importstatus
 - Polling-Log mit Zeitfenster, Datei- und Zeilenzaehlern
 - Tests fuer Kontextstart, Flyway-Migration und Raw-Importer
+- PostgreSQL-Integrationstest gegen lokale Compose-Datenbank
 
 ## Naechster Meilenstein
 
-PostgreSQL-Integrationstests sollen die echte Ziel-Datenbank absichern.
+Raw-Daten in eine erste Staging-Schicht ueberfuehren.
 
 Definition of Done:
 
-- Mindestens ein Test laeuft gegen PostgreSQL statt H2.
-- Flyway-Migrationen werden gegen PostgreSQL ausgefuehrt.
-- Der Raw-Importer schreibt Events, Mentions und GKG in PostgreSQL.
-- Der Test prueft Idempotenz fuer bereits importierte Dateien.
-- Der Test ist klar von schnellen Unit-/H2-Tests getrennt.
+- Staging-Tabellen fuer Events, Mentions und GKG sind per Flyway angelegt.
+- Ein Transformationsjob liest nur erfolgreich importierte Raw-Dateien.
+- Der Job ist idempotent und verarbeitet Raw-Zeilen nicht doppelt.
+- Fehlerhafte Raw-Zeilen werden mit Fehlermeldung separat protokolliert.
+- Der erste Schnitt extrahiert nur Kernfelder, die wir fuer Artikel, Ereignisse und Quellen brauchen.
+- Tests decken Parsing, Idempotenz und Fehlerfaelle ab.
 
 ## Danach
 
@@ -52,14 +55,13 @@ Definition of Done:
 2. Kleine Statusausgabe fuer den Betrieb bauen.
 3. Import-Performance messen.
 4. Bei Bedarf JDBC-Batches durch PostgreSQL `COPY` ersetzen.
-5. Raw-Zeilen in strukturierte Staging-Tabellen ueberfuehren.
-6. Artikel- und Story-Modell entwerfen.
-7. Erste Auswertungen fuer Quellen, Laender, Themen und Zeitverlauf bauen.
+5. Artikel- und Story-Modell entwerfen.
+6. Erste Auswertungen fuer Quellen, Laender, Themen und Zeitverlauf bauen.
 
 ## Offene Entscheidungen
 
 - Wie lange behalten wir Raw-Daten?
 - Brauchen wir Partitionierung nach Datum?
-- Wann wechseln wir von Batch-Import zu kontinuierlichem Polling?
 - Welche Felder werden zuerst aus Events, Mentions und GKG normalisiert?
 - Soll der Import Rueckstaende automatisch tageweise aufholen?
+- Soll die Staging-Transformation automatisch nach jedem Raw-Import laufen oder separat gestartet werden?

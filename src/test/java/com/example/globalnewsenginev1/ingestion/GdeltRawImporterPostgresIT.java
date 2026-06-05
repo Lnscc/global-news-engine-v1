@@ -3,14 +3,12 @@ package com.example.globalnewsenginev1.ingestion;
 import com.sun.net.httpserver.HttpServer;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
 
 import org.postgresql.ds.PGSimpleDataSource;
 
@@ -19,32 +17,39 @@ import java.io.ByteArrayOutputStream;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Testcontainers(disabledWithoutDocker = true)
 class GdeltRawImporterPostgresIT {
-
-    @Container
-    private static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17-alpine")
-            .withDatabaseName("gne")
-            .withUsername("gne")
-            .withPassword("gne");
 
     private HttpServer server;
     private JdbcTemplate jdbcTemplate;
     private GdeltRawImporter importer;
+    private DataSource adminDataSource;
+    private String schemaName;
 
     @BeforeEach
     void setUp() throws Exception {
-        DataSource dataSource = dataSource();
+        adminDataSource = adminDataSource();
+        Assumptions.assumeTrue(canConnect(adminDataSource),
+                "PostgreSQL integration test requires local compose database at jdbc:postgresql://localhost:5432/gne");
+
+        schemaName = "it_" + UUID.randomUUID().toString().replace("-", "");
+        new JdbcTemplate(adminDataSource).execute("CREATE SCHEMA " + schemaName);
+
+        DataSource dataSource = schemaDataSource(schemaName);
         Flyway.configure()
                 .dataSource(dataSource)
                 .locations("classpath:db/migration")
+                .schemas(schemaName)
+                .defaultSchema(schemaName)
                 .load()
                 .migrate();
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -66,7 +71,12 @@ class GdeltRawImporterPostgresIT {
 
     @AfterEach
     void tearDown() {
-        server.stop(0);
+        if (server != null) {
+            server.stop(0);
+        }
+        if (adminDataSource != null && schemaName != null) {
+            new JdbcTemplate(adminDataSource).execute("DROP SCHEMA IF EXISTS " + schemaName + " CASCADE");
+        }
     }
 
     @Test
@@ -89,12 +99,35 @@ class GdeltRawImporterPostgresIT {
                 """, Integer.class)).isEqualTo(3);
     }
 
-    private DataSource dataSource() {
+    private DataSource adminDataSource() {
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
-        dataSource.setUrl(POSTGRES.getJdbcUrl());
-        dataSource.setUser(POSTGRES.getUsername());
-        dataSource.setPassword(POSTGRES.getPassword());
+        dataSource.setUrl(System.getProperty("it.postgres.jdbc-url", "jdbc:postgresql://localhost:5432/gne"));
+        dataSource.setUser(System.getProperty("it.postgres.username", "gne"));
+        dataSource.setPassword(System.getProperty("it.postgres.password", "gne"));
         return dataSource;
+    }
+
+    private DataSource schemaDataSource(String schema) {
+        PGSimpleDataSource dataSource = new PGSimpleDataSource();
+        dataSource.setUrl(withCurrentSchema(
+                System.getProperty("it.postgres.jdbc-url", "jdbc:postgresql://localhost:5432/gne"),
+                schema));
+        dataSource.setUser(System.getProperty("it.postgres.username", "gne"));
+        dataSource.setPassword(System.getProperty("it.postgres.password", "gne"));
+        return dataSource;
+    }
+
+    private String withCurrentSchema(String jdbcUrl, String schema) {
+        String separator = jdbcUrl.contains("?") ? "&" : "?";
+        return jdbcUrl + separator + "currentSchema=" + schema;
+    }
+
+    private boolean canConnect(DataSource dataSource) {
+        try (Connection ignored = dataSource.getConnection()) {
+            return true;
+        } catch (SQLException exception) {
+            return false;
+        }
     }
 
     private int countRows(String tableName) {
