@@ -78,15 +78,16 @@ public class GdeltParserTests {
     }
 
     public static String mentionRow() {
-        String[] columns = new String[15];
+        String[] columns = new String[16];
         columns[0] = "123";
         columns[1] = "20260705120000";
         columns[2] = "20260705121500";
         columns[3] = "1";
         columns[4] = "example.org";
         columns[5] = "https://example.org/a";
-        columns[13] = "80";
-        columns[14] = "-1.5";
+        columns[11] = "80";
+        columns[12] = "2999";
+        columns[13] = "-1.5";
         return joinNullable(columns);
     }
 

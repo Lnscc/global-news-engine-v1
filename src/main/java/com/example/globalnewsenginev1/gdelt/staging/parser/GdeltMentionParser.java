@@ -4,7 +4,7 @@ import com.example.globalnewsenginev1.gdelt.staging.model.GdeltStageMention;
 
 public class GdeltMentionParser {
 
-    private static final int MINIMUM_COLUMNS = 15;
+    private static final int MINIMUM_COLUMNS = 16;
 
     public GdeltStageMention parse(String rawTsv) {
         String[] columns = GdeltTsv.split(rawTsv, MINIMUM_COLUMNS, "MENTIONS");
@@ -15,8 +15,8 @@ public class GdeltMentionParser {
                 GdeltTsv.integer(columns, 3, "mention_type"),
                 GdeltTsv.text(columns, 4),
                 GdeltTsv.text(columns, 5),
-                GdeltTsv.integer(columns, 13, "confidence"),
-                GdeltTsv.decimal(columns, 14, "mention_doc_tone")
+                GdeltTsv.integer(columns, 11, "confidence"),
+                GdeltTsv.decimal(columns, 13, "mention_doc_tone")
         );
     }
 }
