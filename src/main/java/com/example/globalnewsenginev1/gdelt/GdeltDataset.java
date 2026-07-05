@@ -1,9 +1,9 @@
-package com.example.globalnewsenginev1.ingestion;
+package com.example.globalnewsenginev1.gdelt;
 
 import java.util.Arrays;
 import java.util.Optional;
 
-enum GdeltDataset {
+public enum GdeltDataset {
     EVENTS("export.CSV.zip", "gdelt_raw_events"),
     MENTIONS("mentions.CSV.zip", "gdelt_raw_mentions"),
     GKG("gkg.csv.zip", "gdelt_raw_gkg");
@@ -16,15 +16,15 @@ enum GdeltDataset {
         this.tableName = tableName;
     }
 
-    String fileSuffix() {
+    public String fileSuffix() {
         return fileSuffix;
     }
 
-    String tableName() {
+    public String tableName() {
         return tableName;
     }
 
-    static Optional<GdeltDataset> fromFileSuffix(String fileSuffix) {
+    public static Optional<GdeltDataset> fromFileSuffix(String fileSuffix) {
         return Arrays.stream(values())
                 .filter(dataset -> dataset.fileSuffix.equals(fileSuffix))
                 .findFirst();

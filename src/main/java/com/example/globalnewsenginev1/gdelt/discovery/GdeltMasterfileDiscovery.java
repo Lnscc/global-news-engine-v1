@@ -1,4 +1,6 @@
-package com.example.globalnewsenginev1.ingestion;
+package com.example.globalnewsenginev1.gdelt.discovery;
+
+import com.example.globalnewsenginev1.gdelt.GdeltDataset;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +25,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-class GdeltMasterfileDiscovery {
+public class GdeltMasterfileDiscovery {
 
     private static final Pattern GDELT_FILE_PATTERN =
             Pattern.compile(".*/?(\\d{14})\\.(export\\.CSV\\.zip|mentions\\.CSV\\.zip|gkg\\.csv\\.zip)$");
@@ -38,7 +40,7 @@ class GdeltMasterfileDiscovery {
         this(HttpClient.newHttpClient(), manifestUri);
     }
 
-    GdeltMasterfileDiscovery(HttpClient httpClient, URI manifestUri) {
+    public GdeltMasterfileDiscovery(HttpClient httpClient, URI manifestUri) {
         this.httpClient = httpClient;
         this.manifestUri = manifestUri;
     }
@@ -60,7 +62,7 @@ class GdeltMasterfileDiscovery {
         }
     }
 
-    List<GdeltCompleteWindow> discoverLatestCompleteWindows(int limit) {
+    public List<GdeltCompleteWindow> discoverLatestCompleteWindows(int limit) {
         List<GdeltCompleteWindow> windows = discoverCompleteWindows();
         if (limit <= 0 || windows.size() <= limit) {
             return windows;
@@ -68,7 +70,7 @@ class GdeltMasterfileDiscovery {
         return windows.subList(windows.size() - limit, windows.size());
     }
 
-    List<GdeltCompleteWindow> parseCompleteWindows(String masterfileContent) {
+    public List<GdeltCompleteWindow> parseCompleteWindows(String masterfileContent) {
         Map<Instant, EnumMap<GdeltDataset, URI>> filesByTimestamp = new java.util.HashMap<>();
 
         try (BufferedReader reader = new BufferedReader(new StringReader(masterfileContent))) {

@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.ingestion;
+package com.example.globalnewsenginev1.gdelt.raw;
 
 import com.sun.net.httpserver.HttpServer;
 import org.h2.jdbcx.JdbcDataSource;

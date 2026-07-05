@@ -1,4 +1,6 @@
-package com.example.globalnewsenginev1.ingestion;
+package com.example.globalnewsenginev1.gdelt.discovery;
+
+import com.example.globalnewsenginev1.gdelt.GdeltDataset;
 
 import org.junit.jupiter.api.Test;
 

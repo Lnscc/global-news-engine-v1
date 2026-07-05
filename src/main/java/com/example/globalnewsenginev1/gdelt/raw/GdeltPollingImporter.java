@@ -1,4 +1,8 @@
-package com.example.globalnewsenginev1.ingestion;
+package com.example.globalnewsenginev1.gdelt.raw;
+
+import com.example.globalnewsenginev1.gdelt.GdeltDataset;
+import com.example.globalnewsenginev1.gdelt.discovery.GdeltCompleteWindow;
+import com.example.globalnewsenginev1.gdelt.discovery.GdeltMasterfileDiscovery;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
