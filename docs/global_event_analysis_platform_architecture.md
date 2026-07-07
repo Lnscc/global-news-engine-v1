@@ -2,6 +2,12 @@
 
 Diese Datei ist der Einstiegspunkt fuer die Architekturplanung. Die Details sind in kleinere Dokumente aufgeteilt, damit die Planung uebersichtlich bleibt.
 
+Weitere Planungsdokumente:
+
+```text
+- articles.md: Artikel-Schicht zwischen GDELT-Staging und Stories
+```
+
 ## Zielbild
 
 Die Plattform soll globale Ereignisse analysieren, clustern und visuell darstellen.
