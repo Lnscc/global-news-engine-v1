@@ -32,17 +32,13 @@ canonical_url
 url_hash
 domain
 first_seen_at
-last_seen_at
-source_language nullable
-title nullable
-image_url nullable
-tone nullable
 created_at
 updated_at
 ```
 
 `canonical_url` ist die normalisierte URL. `url_hash` ist ein SHA-256-Hash der kanonischen URL
-und dient als Unique Key fuer idempotente Upserts.
+und dient als Unique Key fuer idempotente Upserts. `first_seen_at` ist der frueheste
+`source_timestamp` aller Signale zu diesem Artikel.
 
 ### `article_signals`
 
@@ -50,7 +46,6 @@ und dient als Unique Key fuer idempotente Upserts.
 id
 article_id
 signal_type        EVENTS | MENTIONS | GKG
-source_table
 source_id
 source_timestamp
 global_event_id nullable
@@ -59,12 +54,43 @@ themes nullable
 persons nullable
 organizations nullable
 locations nullable
-tone nullable
+tone_value nullable
+tone_raw nullable
 created_at
 ```
 
 `articles` bleibt dedupliziert und stabil. `article_signals` speichert die GDELT-Hinweise,
 aus denen spaeter Stories, Topics und Themes berechnet werden.
+
+`source_id` referenziert die jeweilige Staging-Zeile:
+
+```text
+EVENTS   -> gdelt_stage_events.id
+MENTIONS -> gdelt_stage_mentions.id
+GKG      -> gdelt_stage_gkg.id
+```
+
+Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. Dadurch kann
+derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Staging-Zeile wird bei
+erneuten Job-Laeufen nicht doppelt eingefuegt.
+
+### `article_extraction_errors`
+
+```text
+id
+signal_type        EVENTS | MENTIONS | GKG
+source_id
+source_timestamp
+raw_url nullable
+error_code
+error_message
+created_at
+```
+
+Fehler in dieser Tabelle bedeuten: Die Staging-Zeile war gueltig, konnte aber nicht in einen
+Artikel ueberfuehrt werden, zum Beispiel wegen einer leeren oder ungueltigen URL.
+Auch hier verhindert ein Unique Key auf `(signal_type, source_id)` doppelte Fehlerzeilen bei
+erneuten Job-Laeufen.
 
 ## URL-Normalisierung
 
@@ -77,8 +103,12 @@ Regeln fuer die erste Version:
 - Fragment entfernen (#...)
 - Tracking-Parameter entfernen (utm_*, fbclid, gclid)
 - Host lowercase
-- trailing slash normalisieren
+- Query-Parameter stabil sortieren
+- leere Query entfernen
+- Default-Ports entfernen (:80 fuer http, :443 fuer https)
+- trailing slash am Pfad konservativ normalisieren
 - http und https zunaechst nicht aggressiv mergen
+- nur http und https akzeptieren
 ```
 
 Die letzte Regel verhindert falsche Deduplikate. Eine staerkere Normalisierung kann spaeter
@@ -114,8 +144,9 @@ Die erste Testabdeckung soll diese Faelle pruefen:
 ```text
 - gleiche URL mit utm_* Parametern wird ein Artikel
 - Event, Mention und GKG zur gleichen URL erzeugen einen Artikel mit mehreren Signalen
+- mehrere Mention-Zeilen zur gleichen URL erzeugen mehrere Signale am selben Artikel
 - zweiter Lauf erzeugt keine Duplikate
-- leere oder kaputte URLs werden uebersprungen oder in einer Fehler-Tabelle protokolliert
+- leere oder kaputte URLs werden in `article_extraction_errors` protokolliert
 ```
 
 ## Minimaler Nutzen
@@ -148,5 +179,5 @@ Diese Themen gehoeren nicht in die erste Artikel-Iteration:
 2. ArticleUrlNormalizer implementieren
 3. Tests fuer URL-Normalisierung schreiben
 4. Article-Extractor-Service mit idempotenten Upserts bauen
-5. Transformer-Tests fuer Artikel und Signale ergaenzen
+5. Service-Tests fuer Artikel, Signale und Extraction-Errors ergaenzen
 ```
