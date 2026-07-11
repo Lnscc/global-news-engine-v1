@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.articles;
+package com.example.globalnewsenginev1.articles.normalization;
 
 import org.springframework.stereotype.Component;
 
@@ -14,9 +14,9 @@ import java.util.List;
 import java.util.Locale;
 
 @Component
-class ArticleUrlNormalizer {
+public class ArticleUrlNormalizer {
 
-    NormalizedArticleUrl normalize(String rawUrl) {
+    public NormalizedArticleUrl normalize(String rawUrl) {
         if (rawUrl == null || rawUrl.trim().isEmpty()) {
             throw new ArticleUrlNormalizationException("EMPTY_URL", "URL is empty");
         }

@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.articles;
+package com.example.globalnewsenginev1.articles.extraction;
 
 public record ArticleExtractionResult(
         long articlesCreated,

@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.articles;
+package com.example.globalnewsenginev1.articles.normalization;
 
 import org.junit.jupiter.api.Test;
 

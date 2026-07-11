@@ -1,4 +1,8 @@
-package com.example.globalnewsenginev1.articles;
+package com.example.globalnewsenginev1.articles.extraction;
+
+import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizationException;
+import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizer;
+import com.example.globalnewsenginev1.articles.normalization.NormalizedArticleUrl;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;

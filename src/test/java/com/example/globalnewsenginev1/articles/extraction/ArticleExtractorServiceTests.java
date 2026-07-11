@@ -1,4 +1,6 @@
-package com.example.globalnewsenginev1.articles;
+package com.example.globalnewsenginev1.articles.extraction;
+
+import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizer;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;

@@ -1,6 +1,6 @@
 # ART-002: Article Query Service
 
-Status: offen
+Status: erledigt
 Bereich: articles
 
 ## Kontext

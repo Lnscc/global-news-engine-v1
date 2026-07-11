@@ -1,4 +1,4 @@
-package com.example.globalnewsenginev1.articles;
+package com.example.globalnewsenginev1.articles.extraction;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
