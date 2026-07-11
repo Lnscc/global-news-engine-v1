@@ -172,6 +172,9 @@ Diese Themen gehoeren nicht in die erste Artikel-Iteration:
 - Topic- und Theme-Aggregation
 ```
 
+Weitere geplante Arbeiten liegen unter `docs/tickets`, zum Beispiel
+`ART-001-signal-details-typisieren.md`.
+
 ## Naechster Implementierungsschritt
 
 ```text
