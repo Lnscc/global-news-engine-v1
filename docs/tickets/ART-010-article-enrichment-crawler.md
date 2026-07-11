@@ -29,6 +29,8 @@ bleibt davon unabhaengig.
 - HTML-Parser fuer title, publishedAt, language, mainImageUrl und extractedText
 - definierte Prioritaet geeigneter Metadaten, zum Beispiel Open Graph vor HTML-Fallbacks
 - separater, konfigurierbarer Enrichment-Worker auf Basis von ArticleEnrichmentRepository
+- automatische, batch-begrenzte Aufnahme neuer Artikel ohne Enrichment-Zeile als PENDING;
+  ein manueller Enqueue-Schritt ist im regulaeren Betrieb nicht erforderlich
 - Retry-Klassifizierung mit Backoff fuer temporaere Fehler
 - permanente Fehler ohne nextAttemptAt fuer nicht verarbeitbare Antworten
 - begrenzte und bereinigte technische Fehlermeldungen
@@ -88,6 +90,8 @@ Prioritaet, Normalisierung und Konfliktverhalten muessen je Feld dokumentiert un
 
 ```text
 - ein PENDING- oder retry-faelliges Enrichment wird atomar beansprucht und genau einmal verarbeitet
+- neue Artikel ohne `article_enrichments`-Zeile werden automatisch und idempotent in begrenzten
+  Batches als PENDING aufgenommen
 - eine dokumentierte Quellenmatrix weist fuer jedes Enrichment-Feld aus, was GDELT liefern kann,
   was der Crawler liefert und welche Quelle bei Konflikten gewinnt
 - GDELT-Signalzeitpunkte werden nicht ungeprueft als Publikationszeitpunkt verwendet
@@ -107,3 +111,19 @@ Prioritaet, Normalisierung und Konfliktverhalten muessen je Feld dokumentiert un
 
 Dieses Ticket setzt ART-008 voraus. ART-009 kann unabhaengig davon implementiert werden, liefert
 aber erst nach erfolgreichem Crawling tatsaechlich angereicherte Inhalte aus.
+
+## Implementierungskommentar
+
+Implementiert wurde ein separat konfigurierbarer Enrichment-Job, der faellige Zeilen atomar ueber
+`ArticleEnrichmentRepository` beansprucht und Seitenfehler innerhalb eines Batches isoliert. Der
+HTTP-Adapter begrenzt Verbindungs-/Lesezeit, Response-Groesse und Redirects, validiert jedes Ziel
+gegen SSRF und klassifiziert Netzwerk-, HTTP- und Inhaltsfehler als temporaer oder permanent.
+Der Parser persistiert priorisierte Metadaten und bereinigten Haupttext; temporaere Fehler erhalten
+begrenztes exponentielles Backoff. Die GDELT-Quellen und Konfliktregeln sind in `docs/articles.md`
+dokumentiert. Lokale HTTP-Server-Tests decken Extraktion, partielle Metadaten, Redirects, Timeout,
+Groessenlimit, Content-Type, HTTP-Fehler und Adressschutz ab.
+
+Der Worker nimmt vor jedem Claim automatisch und idempotent bis zur konfigurierten Batch-Groesse
+neue Artikel ohne `article_enrichments`-Zeile als PENDING auf. Damit ist im regulaeren Betrieb kein
+manueller Enqueue-Schritt erforderlich. Das Enqueueing bleibt Teil des getrennten Enrichment-Jobs
+und `ArticleExtractorService` unveraendert frei von Enrichment-Verantwortung.

@@ -114,6 +114,24 @@ Regeln fuer die erste Version:
 Die letzte Regel verhindert falsche Deduplikate. Eine staerkere Normalisierung kann spaeter
 nachgezogen werden, wenn reale Daten zeigen, welche Domains sich sicher zusammenfuehren lassen.
 
+## Quellenmatrix fuer Enrichment
+
+Die persistierten GDELT-Felder liefern URLs, Beobachtungszeitpunkte und Signale, aber keine
+belastbaren Webseiten-Metadaten. Signalzeiten werden nicht als Publikationszeitpunkt umgedeutet.
+
+| Zielfeld | GDELT-Quelle | Crawler-Quelle | Prioritaet und Konfliktregel |
+|---|---|---|---|
+| `canonicalUrl` | `source_url`, `mention_identifier`, `document_identifier` | finale URL nur fuer relative Verweise | bestehende Artikelidentitaet gewinnt |
+| `domain` | aus kanonischer URL | keine | bestehender Artikelwert gewinnt |
+| `title` | kein belastbares Feld | `og:title`, `twitter:title`, HTML-`title` | Crawler in dieser Reihenfolge |
+| `publishedAt` | nur Signal-/Beobachtungszeiten | `article:published_time`, Metadaten, `time[datetime]` | nur Zielseitenwert; kein GDELT-Fallback |
+| `language` | kein persistiertes Feld | HTML-`lang`, Sprach-Metadaten | Crawler in dieser Reihenfolge |
+| `mainImageUrl` | keines | `og:image`, `twitter:image` | Crawler; relativ zur finalen URL |
+| `extractedText` | keines | bereinigter sichtbarer Haupttext | ausschliesslich Crawler |
+
+`themes`, `persons`, `organizations`, `locations` und `tone` bleiben GDELT-Signale. Fehlende
+Crawler-Felder bleiben `null` und loesen keinen Quellenwechsel aus.
+
 ## Article-Extractor-Job
 
 Der Job verarbeitet fertig gestagte GDELT-Zeilen und erzeugt Artikel plus Signale.

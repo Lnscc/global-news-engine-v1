@@ -31,6 +31,34 @@ public class ArticleEnrichmentRepository {
                 """, articleId, utc(now), utc(now), articleId, articleId) == 1;
     }
 
+    public int enqueueMissing(int batchSize, Instant now) {
+        if (batchSize <= 0) {
+            throw new IllegalArgumentException("batchSize must be greater than zero");
+        }
+        return transactionTemplate.execute(status -> {
+            List<Long> articleIds = jdbcTemplate.queryForList("""
+                    SELECT article.id
+                    FROM articles article
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM article_enrichments enrichment
+                        WHERE enrichment.article_id = article.id
+                    )
+                    ORDER BY article.id
+                    LIMIT ?
+                    FOR UPDATE SKIP LOCKED
+                    """, Long.class, batchSize);
+            int inserted = 0;
+            for (Long articleId : articleIds) {
+                inserted += jdbcTemplate.update("""
+                        INSERT INTO article_enrichments
+                            (article_id, status, attempt_count, created_at, updated_at)
+                        VALUES (?, 'PENDING', 0, ?, ?)
+                        """, articleId, utc(now), utc(now));
+            }
+            return inserted;
+        });
+    }
+
     public List<ClaimedArticleEnrichment> claimDue(int batchSize, Instant now) {
         if (batchSize <= 0) {
             throw new IllegalArgumentException("batchSize must be greater than zero");

@@ -81,6 +81,27 @@ class ArticleEnrichmentRepositoryTests {
     }
 
     @Test
+    void enqueuesMissingArticlesIdempotentlyInLimitedBatches() {
+        Instant now = Instant.parse("2026-07-11T10:00:00Z");
+        long first = insertArticle("auto-first", now);
+        long second = insertArticle("auto-second", now);
+        long third = insertArticle("auto-third", now);
+
+        assertThat(repository.enqueueMissing(2, now)).isEqualTo(2);
+        assertThat(repository.claimDue(10, now))
+                .extracting(ClaimedArticleEnrichment::articleId)
+                .containsExactly(first, second);
+
+        assertThat(repository.enqueueMissing(2, now.plusSeconds(1))).isEqualTo(1);
+        assertThat(repository.enqueueMissing(2, now.plusSeconds(2))).isZero();
+        assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM article_enrichments", Long.class))
+                .isEqualTo(3);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT status FROM article_enrichments WHERE article_id = ?", String.class, third))
+                .isEqualTo("PENDING");
+    }
+
+    @Test
     void distinguishesPermanentFailureFromRetryableFailure() {
         Instant now = Instant.parse("2026-07-11T10:00:00Z");
         long articleId = insertArticle("permanent", now);
@@ -134,6 +155,30 @@ class ArticleEnrichmentRepositoryTests {
                     .map(ClaimedArticleEnrichment::articleId)
                     .toList();
             assertThat(claimedIds).hasSize(6).doesNotHaveDuplicates();
+        }
+    }
+
+    @Test
+    void parallelWorkersEnqueueEachArticleOnlyOnce() throws Exception {
+        Instant now = Instant.parse("2026-07-11T10:00:00Z");
+        for (int index = 0; index < 6; index++) {
+            insertArticle("parallel-enqueue-" + index, now);
+        }
+        CountDownLatch start = new CountDownLatch(1);
+        try (ExecutorService executor = Executors.newFixedThreadPool(2)) {
+            Future<Integer> first = executor.submit(() -> {
+                start.await();
+                return repository.enqueueMissing(3, now);
+            });
+            Future<Integer> second = executor.submit(() -> {
+                start.await();
+                return repository.enqueueMissing(3, now);
+            });
+            start.countDown();
+
+            assertThat(first.get() + second.get()).isEqualTo(6);
+            assertThat(jdbcTemplate.queryForObject("SELECT count(*) FROM article_enrichments", Long.class))
+                    .isEqualTo(6);
         }
     }
 
