@@ -1,0 +1,218 @@
+{
+  "info": {
+    "_postman_id": "33af713d-e32f-4a3d-939e-5bb0bb90d003",
+    "name": "Global News Engine - ART-003 Article API",
+    "description": "Manuelle Tests fuer die REST-Endpunkte aus ART-003.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Articles",
+      "item": [
+        {
+          "name": "Artikel auflisten",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles?offset={{offset}}&limit={{pageLimit}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{pageLimit}}" }
+              ]
+            },
+            "description": "Liefert eine paginierte Artikelliste. Erlaubtes Limit: 1 bis 100."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response hat stabile Page-Felder', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.all.keys('articles', 'offset', 'limit', 'total');",
+                  "  pm.expect(body.articles).to.be.an('array');",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.articles.length > 0) {",
+                  "  pm.environment.set('articleId', body.articles[0].id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Artikeldetails abrufen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/{{articleId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", "{{articleId}}"]
+            },
+            "description": "Verwendet articleId aus dem Environment. Der Listen-Request aktualisiert die Variable automatisch, wenn Artikel existieren."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Detail enthaelt stabile Felder', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.include.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'createdAt', 'updatedAt', 'signals');",
+                  "  pm.expect(body.signals).to.be.an('array');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Nicht vorhandener Artikel",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/999999999",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", "999999999"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status ist 404', () => pm.response.to.have.status(404));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Aggregationen",
+      "item": [
+        {
+          "name": "Top-Domains",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/domains/top?limit={{aggregateLimit}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", "domains", "top"],
+              "query": [{ "key": "limit", "value": "{{aggregateLimit}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response ist ein Array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Top-Themes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/themes/top?limit={{aggregateLimit}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", "themes", "top"],
+              "query": [{ "key": "limit", "value": "{{aggregateLimit}}" }]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response ist ein Array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Validierung",
+      "item": [
+        {
+          "name": "Negativer Offset ergibt 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles?offset=-1&limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles"],
+              "query": [
+                { "key": "offset", "value": "-1" },
+                { "key": "limit", "value": "20" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Fehlercode ist stabil', () => pm.expect(pm.response.json().code).to.eql('invalid_request'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Zu grosses Limit ergibt 400",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles?offset=0&limit=101",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles"],
+              "query": [
+                { "key": "offset", "value": "0" },
+                { "key": "limit", "value": "101" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Fehlercode ist stabil', () => pm.expect(pm.response.json().code).to.eql('invalid_request'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
