@@ -6,6 +6,8 @@ import com.example.globalnewsenginev1.articles.query.ArticleQueryService;
 import com.example.globalnewsenginev1.articles.query.ArticleSignal;
 import com.example.globalnewsenginev1.articles.query.ArticleSummary;
 import com.example.globalnewsenginev1.articles.query.NamedCount;
+import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealth;
+import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealthService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -21,9 +23,14 @@ import java.util.List;
 public class ArticleController {
 
     private final ArticleQueryService articleQueryService;
+    private final ArticleExtractionHealthService extractionHealthService;
 
-    public ArticleController(ArticleQueryService articleQueryService) {
+    public ArticleController(
+            ArticleQueryService articleQueryService,
+            ArticleExtractionHealthService extractionHealthService
+    ) {
         this.articleQueryService = articleQueryService;
+        this.extractionHealthService = extractionHealthService;
     }
 
     @GetMapping
@@ -50,6 +57,11 @@ public class ArticleController {
     @GetMapping("/themes/top")
     public List<NamedCountResponse> topThemes(@RequestParam(defaultValue = "10") int limit) {
         return articleQueryService.topThemes(limit).stream().map(NamedCountResponse::from).toList();
+    }
+
+    @GetMapping("/extraction/health")
+    public ArticleExtractionHealth extractionHealth() {
+        return extractionHealthService.health();
     }
 
     public record ArticlePageResponse(List<ArticleSummaryResponse> articles, int offset, int limit, long total) {

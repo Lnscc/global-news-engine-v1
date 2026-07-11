@@ -1,5 +1,8 @@
 package com.example.globalnewsenginev1.articles.api;
 
+import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealth;
+import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealthService;
+import com.example.globalnewsenginev1.articles.health.SignalTypeExtractionHealth;
 import com.example.globalnewsenginev1.articles.query.ArticleDetail;
 import com.example.globalnewsenginev1.articles.query.ArticlePage;
 import com.example.globalnewsenginev1.articles.query.ArticleQueryService;
@@ -24,14 +27,30 @@ import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standal
 class ArticleControllerTests {
 
     private ArticleQueryService queryService;
+    private ArticleExtractionHealthService healthService;
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
         queryService = mock(ArticleQueryService.class);
-        mockMvc = standaloneSetup(new ArticleController(queryService))
+        healthService = mock(ArticleExtractionHealthService.class);
+        mockMvc = standaloneSetup(new ArticleController(queryService, healthService))
                 .setControllerAdvice(new ArticleApiExceptionHandler())
                 .build();
+    }
+
+    @Test
+    void returnsExtractionHealth() throws Exception {
+        when(healthService.health()).thenReturn(new ArticleExtractionHealth(3, List.of(
+                new SignalTypeExtractionHealth("EVENTS", 2, 5,
+                        Instant.parse("2026-07-05T12:00:00Z"), List.of()))));
+
+        mockMvc.perform(get("/articles/extraction/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.articlesCreatedTotal").value(3))
+                .andExpect(jsonPath("$.signalTypes[0].signalType").value("EVENTS"))
+                .andExpect(jsonPath("$.signalTypes[0].pendingStageRows").value(2))
+                .andExpect(jsonPath("$.signalTypes[0].articleSignals").value(5));
     }
 
     @Test

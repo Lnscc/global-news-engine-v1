@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "33af713d-e32f-4a3d-939e-5bb0bb90d003",
-    "name": "Global News Engine - ART-003 Article API",
-    "description": "Manuelle Tests fuer die REST-Endpunkte aus ART-003.",
+    "name": "Global News Engine - Article API",
+    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich Extraction Health aus ART-005.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -145,6 +145,51 @@
                 "exec": [
                   "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
                   "pm.test('Response ist ein Array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Extraction Health",
+      "item": [
+        {
+          "name": "Extraction-Status abrufen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/articles/extraction/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["articles", "extraction", "health"]
+            },
+            "description": "Liefert Pending-Zeilen, erfolgreiche Signale, gruppierte Extraction-Errors und den letzten verarbeiteten Timestamp je Signaltyp sowie die Gesamtzahl der Artikel."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response hat stabile Health-Felder', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.all.keys('articlesCreatedTotal', 'signalTypes');",
+                  "  pm.expect(body.articlesCreatedTotal).to.be.a('number');",
+                  "  pm.expect(body.signalTypes).to.be.an('array').with.lengthOf(3);",
+                  "});",
+                  "pm.test('Alle Signaltypen und Metriken sind vorhanden', () => {",
+                  "  const signalTypes = pm.response.json().signalTypes;",
+                  "  pm.expect(signalTypes.map(item => item.signalType)).to.have.members(['EVENTS', 'MENTIONS', 'GKG']);",
+                  "  signalTypes.forEach(item => {",
+                  "    pm.expect(item).to.have.all.keys('signalType', 'pendingStageRows', 'articleSignals', 'latestProcessedSourceTimestamp', 'extractionErrors');",
+                  "    pm.expect(item.pendingStageRows).to.be.a('number');",
+                  "    pm.expect(item.articleSignals).to.be.a('number');",
+                  "    pm.expect(item.extractionErrors).to.be.an('array');",
+                  "  });",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
