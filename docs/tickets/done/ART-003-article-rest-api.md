@@ -1,6 +1,6 @@
 # ART-003: Article REST API
 
-Status: offen
+Status: erledigt
 Bereich: articles
 
 ## Kontext
