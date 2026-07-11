@@ -1,6 +1,6 @@
 # ART-007: Article Enrichment vorbereiten
 
-Status: offen
+Status: erledigt
 Bereich: articles
 
 ## Kontext
@@ -33,3 +33,16 @@ ueberladen.
 - Crawling/Enrichment bleibt getrennt von GDELT-Extraktion
 - Migrationspfad fuer spaetere Umsetzung ist beschrieben
 ```
+
+## Umsetzungskommentar
+
+Dokumentiert am 2026-07-11:
+
+- `docs/articles.md` beschreibt `article_enrichments` als separate 1:1-Tabelle fuer Titel,
+  Publikationszeitpunkt, Sprache, Hauptbild, extrahierten Text und den Verarbeitungszustand.
+- Das Modell definiert Status, Retry- und Fehlerfelder sowie die Regeln fuer erfolgreiche,
+  fehlgeschlagene und parallel ausgefuehrte Enrichment-Versuche.
+- GDELT-Extraktion und Crawling bleiben getrennte Jobs; der bestehende Extractor erhaelt keine
+  Crawling-Verantwortung.
+- Ein additiver, schrittweiser Migrations- und Backfill-Pfad bis zur spaeteren API-Erweiterung ist
+  festgehalten. Diese Planung fuehrt noch keine Datenbank- oder API-Aenderung ein.

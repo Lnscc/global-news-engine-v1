@@ -172,6 +172,87 @@ Diese Themen gehoeren nicht in die erste Artikel-Iteration:
 - Topic- und Theme-Aggregation
 ```
 
+## Zielmodell fuer Article Enrichment
+
+### Entscheidung
+
+Angereicherte Inhalte werden spaeter in einer separaten 1:1-Tabelle `article_enrichments`
+gespeichert. `articles` bleibt damit die stabile, ausschliesslich aus GDELT-Signalen abgeleitete
+Identitaet eines Artikels. Die Trennung verhindert, dass Crawl-Zustaende, grosse Texte und
+wiederholbare Fehlerbehandlung die erste Extraktionsschicht belasten.
+
+Die erste Enrichment-Version verwendet eine aktuelle Zeile je Artikel. Versionierung von
+Crawler-Ergebnissen ist nicht Teil dieses Zielmodells; falls sie spaeter benoetigt wird, kann eine
+Historientabelle ergaenzt werden, ohne `articles` zu veraendern.
+
+### `article_enrichments`
+
+```text
+article_id              PK und FK -> articles.id
+title                   nullable
+published_at            nullable
+language                nullable, BCP-47-Sprachcode soweit ermittelbar
+main_image_url           nullable
+extracted_text           nullable
+status                   PENDING | PROCESSING | SUCCEEDED | FAILED
+attempt_count            Anzahl gestarteter Versuche
+last_attempt_at          nullable
+next_attempt_at          nullable, fuer Retry-Planung
+error_code               nullable
+error_message            nullable
+enriched_at              nullable, Zeitpunkt des letzten Erfolgs
+created_at
+updated_at
+```
+
+`extracted_text` liegt zunaechst direkt in `article_enrichments`: Es gehoert zum selben
+Crawler-Ergebnis und benoetigt in der geplanten Version weder eigene Kardinalitaet noch eigenen
+Lebenszyklus. Eine separate Content- oder Object-Storage-Loesung wird erst eingefuehrt, wenn
+reale Textgroessen, Versionierung oder unabhaengige Verarbeitung dies rechtfertigen.
+
+Bei `SUCCEEDED` werden Fehlerfelder und `next_attempt_at` geleert. Ein fehlender einzelner
+Metadatenwert ist erlaubt, solange der Crawl insgesamt verwertbar ist. Bei `FAILED` werden ein
+stabiler `error_code`, eine begrenzte technische Fehlermeldung und gegebenenfalls
+`next_attempt_at` gespeichert. Permanente Fehler haben keinen naechsten Versuch. Ein Worker muss
+eine Zeile vor dem Abruf atomar von `PENDING` oder retry-faelligem `FAILED` auf `PROCESSING`
+setzen, damit parallele Worker denselben Artikel nicht gleichzeitig verarbeiten.
+
+### Getrennte Verarbeitung
+
+```text
+GDELT staging -> ArticleExtractorService -> articles + article_signals
+                                             |
+                                             v
+                                  Enrichment-Queue/Worker
+                                             |
+                                             v
+                                    article_enrichments
+```
+
+Der bestehende `ArticleExtractorService` schreibt weiterhin nur `articles`, `article_signals`
+und `article_extraction_errors`. Er ruft keine Webseiten ab und kennt keine Enrichment-Felder.
+Ein separater, unabhaengig planbarer Worker waehlt Artikel ohne Enrichment-Zeile beziehungsweise
+retry-faellige Enrichments aus, crawlt die `canonical_url` und persistiert das Ergebnis. Dadurch
+bleiben GDELT-Import und -Extraktion auch dann funktionsfaehig, wenn Zielseiten langsam, gesperrt
+oder fehlerhaft sind.
+
+### Migrationspfad
+
+```text
+1. Additive Flyway-Migration fuer `article_enrichments`, Status-Constraint und Index auf
+   `(status, next_attempt_at)` anlegen; bestehende Artikel und APIs bleiben unveraendert.
+2. Enrichment-Repository und Worker separat vom GDELT-Extractor implementieren. Der Worker darf
+   fehlende Zeilen bei Bedarf als `PENDING` anlegen; ein verpflichtender Volltabellen-Backfill ist
+   fuer das Deployment nicht erforderlich.
+3. Crawl-/Parser-Adapter mit Zeitlimits, Groessenlimit, Retry-Klassifizierung und Tests ergaenzen.
+4. Query-Service und REST-Vertrag erst danach additiv um nullable Enrichment-Daten erweitern und
+   dabei die Postman-Collection samt Contract-Tests aktualisieren.
+5. Bestehende Artikel kontrolliert in Batches enqueuen. Metriken fuer Pending, Processing,
+   Succeeded, Failed, Retry-Alter und Fehlertypen beobachten.
+6. Falls Textvolumen oder Versionierung es erfordern, `extracted_text` spaeter additiv in eine
+   Content-Tabelle oder Object Storage auslagern; die Metadatenzeile behaelt dabei ihre 1:1-ID.
+```
+
 Weitere geplante Arbeiten liegen unter `docs/tickets`, zum Beispiel
 `ART-001-signal-details-typisieren.md`.
 
