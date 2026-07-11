@@ -1,6 +1,6 @@
 # ART-008: Article Enrichment implementieren
 
-Status: offen
+Status: erledigt
 Bereich: articles
 
 ## Kontext
@@ -40,3 +40,11 @@ eine Erweiterung der Article REST API.
 - ArticleExtractorService bleibt unveraendert frei von Crawling- und Enrichment-Verantwortung
 - automatisierte Tests decken Migration und wesentliche Zustandsuebergaenge ab
 ```
+
+## Implementierungskommentar
+
+Implementiert wurde eine additive `article_enrichments`-Migration mit 1:1-Fremdschluessel,
+Status- und Zustands-Constraints sowie Faelligkeitsindex. Ein separates Enrichment-Repository
+unterstuetzt idempotentes Enqueueing, atomare Batch-Beanspruchung mit `FOR UPDATE SKIP LOCKED`,
+erfolgreiche Ergebnis-Persistenz und temporaere beziehungsweise permanente Fehler. Der
+`ArticleExtractorService` und die REST API bleiben unveraendert.
