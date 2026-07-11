@@ -1,6 +1,6 @@
 # ART-004: Article DB Views fuer Debugging
 
-Status: offen
+Status: erledigt
 Bereich: articles
 
 ## Kontext
