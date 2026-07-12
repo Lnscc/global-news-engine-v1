@@ -46,3 +46,8 @@ Dokumentiert am 2026-07-11:
   Crawling-Verantwortung.
 - Ein additiver, schrittweiser Migrations- und Backfill-Pfad bis zur spaeteren API-Erweiterung ist
   festgehalten. Diese Planung fuehrt noch keine Datenbank- oder API-Aenderung ein.
+
+## Spaetere Aufhebung
+
+Das hier entworfene Crawler-Zielmodell wurde nach Analyse von GKG-Feld 27 verworfen. Migration V6
+entfernt `article_enrichments`; ART-011 erschliesst stattdessen die vorhandenen GKG-Metadaten.

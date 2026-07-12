@@ -1,48 +1,38 @@
-# ART-009: Article API um Enrichment erweitern
+# ART-009: Article API um GKG-Metadaten erweitern
 
 Status: offen
 Bereich: articles
 
 ## Kontext
 
-ART-008 fuehrt persistierte Enrichment-Daten in `article_enrichments` ein. Die bestehenden
-Endpoints `GET /articles` und `GET /articles/{id}` liefern bislang nur die technische
-Artikelidentitaet und bei der Detailabfrage die GDELT-Signale. Vorhandene angereicherte Inhalte
-waeren damit fuer API-Clients nicht sichtbar.
+ART-011 erschliesst den nahezu flaechendeckenden `PAGE_TITLE` aus GKG-Feld 27. Das fruehere
+Crawler-Enrichment-Modell wurde entfernt. Die bestehenden Endpoints liefern bislang nur die
+technische Artikelidentitaet und Signale.
 
 ## Ziel
 
-Artikelabfragen liefern neben den bisherigen Feldern alle fuer den Artikel vorhandenen
-Enrichment-Daten. Noch nicht angereicherte Artikel bleiben abrufbar und enthalten fuer diese
-Felder `null` beziehungsweise einen nicht erfolgreichen Enrichment-Status.
+Artikelabfragen liefern die im Artikelmodell vorhandenen GKG-Metadaten, zunaechst insbesondere
+Titel und transparente Quellenangabe. Crawler-Status- und Fehlerfelder sind nicht Teil des Vertrags.
 
 ## Umfang
 
 ```text
-- ArticleQueryService liest article_enrichments per LEFT JOIN
-- ArticleSummary und ArticleDetail werden um Enrichment-Daten erweitert
-- GET /articles liefert vorhandene Enrichment-Daten je Listeneintrag
-- GET /articles/{id} liefert vorhandene Enrichment-Daten zusammen mit allen bisherigen Signalen
-- API-Vertrag umfasst title, publishedAt, language, mainImageUrl, extractedText,
-  enrichmentStatus, attemptCount, lastAttemptAt, nextAttemptAt, errorCode, errorMessage
-  und enrichedAt
-- Controller-, Query-Service- und Contract-Tests fuer Artikel mit und ohne Enrichment
-- Postman-Collection und Postman-Tests werden an den neuen Response-Vertrag angepasst
+- ArticleSummary und ArticleDetail um title und titleSource erweitern
+- GET /articles und GET /articles/{id} liefern die Felder nullable aus
+- Controller-, Query-Service- und Contract-Tests
+- Postman-Collection und Postman-Tests aktualisieren
 ```
 
 ## Akzeptanzkriterien
 
 ```text
-- GET /articles enthaelt alle persistierten Enrichment-Felder, wenn sie vorhanden sind
-- GET /articles/{id} enthaelt alle persistierten Enrichment-Felder und weiterhin alle Signale
-- Artikel ohne article_enrichments-Zeile werden durch den LEFT JOIN nicht ausgefiltert
-- nullable Felder und Enrichment-Status sind im Response-Vertrag eindeutig definiert
-- Pagination, Sortierung und bestehende Statuscodes bleiben unveraendert
-- Tests decken vollstaendiges, partielles, fehlgeschlagenes und fehlendes Enrichment ab
-- docs/postman/Article-API.postman_collection.json ist aktualisiert, enthaelt passende
-  Contract-Tests und bleibt valides JSON
+- Titel und Quelle werden fuer Artikel mit GKG-Metadaten ausgegeben
+- Artikel ohne Titel bleiben abrufbar und liefern null
+- Pagination, Sortierung, Signale und Statuscodes bleiben unveraendert
+- Postman-Collection ist aktualisiert und valides JSON
 ```
 
 ## Abhaengigkeit
 
-Dieses Ticket wird nach ART-008 umgesetzt, da es dessen Tabelle und Zustandsmodell voraussetzt.
+Dieses Ticket wird nach ART-011 umgesetzt. Ein spaeterer Crawler aus ART-010 erweitert den Vertrag
+nur bei einem neu nachgewiesenen Bedarf.

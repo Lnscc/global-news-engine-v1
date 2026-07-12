@@ -116,21 +116,24 @@ nachgezogen werden, wenn reale Daten zeigen, welche Domains sich sicher zusammen
 
 ## Quellenmatrix fuer Enrichment
 
-Die persistierten GDELT-Felder liefern URLs, Beobachtungszeitpunkte und Signale, aber keine
-belastbaren Webseiten-Metadaten. Signalzeiten werden nicht als Publikationszeitpunkt umgedeutet.
+Die strukturierten Staging-Felder liefern URLs, Beobachtungszeitpunkte und Signale. Die vollstaendig
+gespeicherten GKG-Rohzeilen enthalten darueber hinaus in Feld 27 (`V2EXTRASXML`) nahezu immer einen
+`PAGE_TITLE` und optional weitere Seitenmetadaten. Details und Messwerte stehen in
+`docs/analysis/ART-011-gkg-xml-extras.md`. Signalzeiten werden nicht als Publikationszeitpunkt
+umgedeutet.
 
 | Zielfeld | GDELT-Quelle | Crawler-Quelle | Prioritaet und Konfliktregel |
 |---|---|---|---|
 | `canonicalUrl` | `source_url`, `mention_identifier`, `document_identifier` | finale URL nur fuer relative Verweise | bestehende Artikelidentitaet gewinnt |
 | `domain` | aus kanonischer URL | keine | bestehender Artikelwert gewinnt |
-| `title` | kein belastbares Feld | `og:title`, `twitter:title`, HTML-`title` | Crawler in dieser Reihenfolge |
-| `publishedAt` | nur Signal-/Beobachtungszeiten | `article:published_time`, Metadaten, `time[datetime]` | nur Zielseitenwert; kein GDELT-Fallback |
-| `language` | kein persistiertes Feld | HTML-`lang`, Sprach-Metadaten | Crawler in dieser Reihenfolge |
-| `mainImageUrl` | keines | `og:image`, `twitter:image` | Crawler; relativ zur finalen URL |
-| `extractedText` | keines | bereinigter sichtbarer Haupttext | ausschliesslich Crawler |
+| `title` | GKG-Feld 27: `PAGE_TITLE` | spaeter optional | GDELT nach HTML-Dekodierung ist primaer |
+| `publishedAt` | `PAGE_PRECISEPUBTIMESTAMP` ist zu analysieren; Signalzeiten sind ungeeignet | spaeter optional | noch nicht festgelegt |
+| `language` | kein derzeit persistiertes Feld | spaeter optional | noch nicht verfuegbar |
+| `mainImageUrl` | nicht nachgewiesen | spaeter optional | noch nicht verfuegbar |
+| `extractedText` | keines | spaeter optional | noch nicht verfuegbar |
 
-`themes`, `persons`, `organizations`, `locations` und `tone` bleiben GDELT-Signale. Fehlende
-Crawler-Felder bleiben `null` und loesen keinen Quellenwechsel aus.
+`themes`, `persons`, `organizations`, `locations` und `tone` bleiben GDELT-Signale. Ein externer
+Crawler ist aktuell nicht aktiv und wird erst bei nachgewiesenem Bedarf wieder eingefuehrt.
 
 ## Article-Extractor-Job
 
@@ -190,86 +193,16 @@ Diese Themen gehoeren nicht in die erste Artikel-Iteration:
 - Topic- und Theme-Aggregation
 ```
 
-## Zielmodell fuer Article Enrichment
+## Externes Article Enrichment
 
-### Entscheidung
+Das fruehere Crawler-Zielmodell mit der Tabelle `article_enrichments` wurde nach der Analyse realer
+GKG-Rohdaten verworfen. Migration V5 dokumentiert die historische Einfuehrung; Migration V6
+entfernt die Tabelle wieder. Es gibt derzeit weder Enrichment-Queue noch Crawl-Statusmodell.
 
-Angereicherte Inhalte werden spaeter in einer separaten 1:1-Tabelle `article_enrichments`
-gespeichert. `articles` bleibt damit die stabile, ausschliesslich aus GDELT-Signalen abgeleitete
-Identitaet eines Artikels. Die Trennung verhindert, dass Crawl-Zustaende, grosse Texte und
-wiederholbare Fehlerbehandlung die erste Extraktionsschicht belasten.
-
-Die erste Enrichment-Version verwendet eine aktuelle Zeile je Artikel. Versionierung von
-Crawler-Ergebnissen ist nicht Teil dieses Zielmodells; falls sie spaeter benoetigt wird, kann eine
-Historientabelle ergaenzt werden, ohne `articles` zu veraendern.
-
-### `article_enrichments`
-
-```text
-article_id              PK und FK -> articles.id
-title                   nullable
-published_at            nullable
-language                nullable, BCP-47-Sprachcode soweit ermittelbar
-main_image_url           nullable
-extracted_text           nullable
-status                   PENDING | PROCESSING | SUCCEEDED | FAILED
-attempt_count            Anzahl gestarteter Versuche
-last_attempt_at          nullable
-next_attempt_at          nullable, fuer Retry-Planung
-error_code               nullable
-error_message            nullable
-enriched_at              nullable, Zeitpunkt des letzten Erfolgs
-created_at
-updated_at
-```
-
-`extracted_text` liegt zunaechst direkt in `article_enrichments`: Es gehoert zum selben
-Crawler-Ergebnis und benoetigt in der geplanten Version weder eigene Kardinalitaet noch eigenen
-Lebenszyklus. Eine separate Content- oder Object-Storage-Loesung wird erst eingefuehrt, wenn
-reale Textgroessen, Versionierung oder unabhaengige Verarbeitung dies rechtfertigen.
-
-Bei `SUCCEEDED` werden Fehlerfelder und `next_attempt_at` geleert. Ein fehlender einzelner
-Metadatenwert ist erlaubt, solange der Crawl insgesamt verwertbar ist. Bei `FAILED` werden ein
-stabiler `error_code`, eine begrenzte technische Fehlermeldung und gegebenenfalls
-`next_attempt_at` gespeichert. Permanente Fehler haben keinen naechsten Versuch. Ein Worker muss
-eine Zeile vor dem Abruf atomar von `PENDING` oder retry-faelligem `FAILED` auf `PROCESSING`
-setzen, damit parallele Worker denselben Artikel nicht gleichzeitig verarbeiten.
-
-### Getrennte Verarbeitung
-
-```text
-GDELT staging -> ArticleExtractorService -> articles + article_signals
-                                             |
-                                             v
-                                  Enrichment-Queue/Worker
-                                             |
-                                             v
-                                    article_enrichments
-```
-
-Der bestehende `ArticleExtractorService` schreibt weiterhin nur `articles`, `article_signals`
-und `article_extraction_errors`. Er ruft keine Webseiten ab und kennt keine Enrichment-Felder.
-Ein separater, unabhaengig planbarer Worker waehlt Artikel ohne Enrichment-Zeile beziehungsweise
-retry-faellige Enrichments aus, crawlt die `canonical_url` und persistiert das Ergebnis. Dadurch
-bleiben GDELT-Import und -Extraktion auch dann funktionsfaehig, wenn Zielseiten langsam, gesperrt
-oder fehlerhaft sind.
-
-### Migrationspfad
-
-```text
-1. Additive Flyway-Migration fuer `article_enrichments`, Status-Constraint und Index auf
-   `(status, next_attempt_at)` anlegen; bestehende Artikel und APIs bleiben unveraendert.
-2. Enrichment-Repository und Worker separat vom GDELT-Extractor implementieren. Der Worker darf
-   fehlende Zeilen bei Bedarf als `PENDING` anlegen; ein verpflichtender Volltabellen-Backfill ist
-   fuer das Deployment nicht erforderlich.
-3. Crawl-/Parser-Adapter mit Zeitlimits, Groessenlimit, Retry-Klassifizierung und Tests ergaenzen.
-4. Query-Service und REST-Vertrag erst danach additiv um nullable Enrichment-Daten erweitern und
-   dabei die Postman-Collection samt Contract-Tests aktualisieren.
-5. Bestehende Artikel kontrolliert in Batches enqueuen. Metriken fuer Pending, Processing,
-   Succeeded, Failed, Retry-Alter und Fehlertypen beobachten.
-6. Falls Textvolumen oder Versionierung es erfordern, `extracted_text` spaeter additiv in eine
-   Content-Tabelle oder Object Storage auslagern; die Metadatenzeile behaelt dabei ihre 1:1-ID.
-```
+ART-011 erschliesst stattdessen zuerst die bereits importierten GKG-Seitenmetadaten und ordnet sie
+direkt dem Artikelmodell zu. Ein externer Crawler wird erst bei einem konkret nachgewiesenen Bedarf
+fuer Volltext, Hauptbild, Sprache oder Qualitaetsvalidierung neu entworfen. Dabei wird kein altes
+Schema vorsorglich beibehalten.
 
 Weitere geplante Arbeiten liegen unter `docs/tickets`, zum Beispiel
 `ART-001-signal-details-typisieren.md`.

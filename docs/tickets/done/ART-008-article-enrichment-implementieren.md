@@ -48,3 +48,10 @@ Status- und Zustands-Constraints sowie Faelligkeitsindex. Ein separates Enrichme
 unterstuetzt idempotentes Enqueueing, atomare Batch-Beanspruchung mit `FOR UPDATE SKIP LOCKED`,
 erfolgreiche Ergebnis-Persistenz und temporaere beziehungsweise permanente Fehler. Der
 `ArticleExtractorService` und die REST API bleiben unveraendert.
+
+## Spaetere Aufhebung
+
+Die Entscheidung wurde nach Analyse realer GKG-Rohdaten revidiert: GKG-Feld 27 liefert Titel
+nahezu flaechendeckend, waehrend kein aktiver Crawler mehr betrieben wird. Migration V6 entfernt
+`article_enrichments` wieder; Repository und Zustandsmodell wurden ebenfalls entfernt. ART-011
+uebernimmt die GKG-Metadatenextraktion. Dieser historische Ticketstatus bleibt unveraendert.
