@@ -1,6 +1,6 @@
 # ART-007: Article Enrichment vorbereiten
 
-Status: erledigt
+Status: verworfen
 Bereich: articles
 
 ## Kontext

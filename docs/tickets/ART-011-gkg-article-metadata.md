@@ -24,7 +24,7 @@ HTTP-Abruf in das Artikelmodell uebernommen. Der GDELT-Titel ist die primaere Ti
 - title und title_source additiv im Artikelmodell persistieren
 - Konfliktregel fuer mehrere GKG-Signale desselben Artikels definieren
 - bestehende Raw-/Staging-Daten kontrolliert und idempotent nachziehen
-- Quellenmatrix und API-Folgeticket ART-009 aktualisieren
+- Quellenmatrix aktualisieren und API-Folgeticket ART-012 vorbereiten
 - reale anonymisierungsfreie GKG-Beispiele als Test-Fixtures verwenden
 ```
 
@@ -43,6 +43,6 @@ HTTP-Abruf in das Artikelmodell uebernommen. Der GDELT-Titel ist die primaere Ti
 
 ## Abhaengigkeiten
 
-ART-009 soll nach dieser Umsetzung den GDELT-basierten Titel ausgeben. ART-010 bleibt fuer einen
+ART-012 soll nach dieser Umsetzung den GDELT-basierten Titel ausgeben. ART-010 bleibt fuer einen
 spaeteren, bedarfsgetriebenen Crawler zurueckgestellt. Das fruehere ART-008-Schema wurde durch V6
 entfernt und ist keine Voraussetzung.

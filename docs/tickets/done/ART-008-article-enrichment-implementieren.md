@@ -1,6 +1,6 @@
 # ART-008: Article Enrichment implementieren
 
-Status: erledigt
+Status: verworfen
 Bereich: articles
 
 ## Kontext

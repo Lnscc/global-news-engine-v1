@@ -1,13 +1,12 @@
-# ART-009: Article API um GKG-Metadaten erweitern
+# ART-012: Article API um GKG-Metadaten erweitern
 
 Status: offen
 Bereich: articles
 
 ## Kontext
 
-ART-011 erschliesst den nahezu flaechendeckenden `PAGE_TITLE` aus GKG-Feld 27. Das fruehere
-Crawler-Enrichment-Modell wurde entfernt. Die bestehenden Endpoints liefern bislang nur die
-technische Artikelidentitaet und Signale.
+ART-011 erschliesst den nahezu flaechendeckenden `PAGE_TITLE` aus GKG-Feld 27 und persistiert
+GKG-Metadaten direkt am Artikel. Das fruehere Crawler-Enrichment-Modell wurde entfernt.
 
 ## Ziel
 
