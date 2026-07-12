@@ -1,6 +1,6 @@
 # ART-018: GKG-Records vom Artikel trennen
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, articles
 
 ## Kontext
@@ -96,3 +96,13 @@ kleineren Folgetickets.
 
 Theme-Normalisierung, Personen-/Organisationssuche, strukturierte Orte, Event-/Mention-Tabellen,
 Story-Clustering und externe Webseitenabrufe sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Implementiert am 2026-07-12. Migration V8 fuehrt `gdelt_gkg_records` ein, uebernimmt bestehende
+GKG-Signale mitsamt Staging-Dokumentkennung und Seitentitel, entfernt die GKG-Zeilen aus
+`article_signals` sowie die persistierten Titelkopien aus `articles`. Der Extractor schreibt neue
+GKG-Daten idempotent direkt als einzelne Records. Article-Queries, Titelsuche, Themefilter,
+Top-Themes, Health-Ausgaben und Debug-Views leiten GKG-Werte aus dem neuen Modell ab; die REST-
+Responses projizieren weiterhin `title`, `titleSource` und GKG-Detailsignale ohne Vertragsbruch.
+Tests decken Neuimport, konkurrierende Titel, Query-Projektion, Health und Migrationen ab.

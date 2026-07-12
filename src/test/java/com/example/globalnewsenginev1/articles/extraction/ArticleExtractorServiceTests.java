@@ -35,7 +35,11 @@ class ArticleExtractorServiceTests {
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
             ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V4__create_article_debug_views.sql"));
+            ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V8__create_gkg_records.sql"));
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -70,7 +74,8 @@ class ArticleExtractorServiceTests {
         assertThat(firstRun).isEqualTo(new ArticleExtractionResult(1, 4, 1));
         assertThat(secondRun).isEqualTo(new ArticleExtractionResult(0, 0, 0));
         assertThat(countRows("articles")).isEqualTo(1);
-        assertThat(countRows("article_signals")).isEqualTo(4);
+        assertThat(countRows("article_signals")).isEqualTo(3);
+        assertThat(countRows("gdelt_gkg_records")).isEqualTo(1);
         assertThat(countRows("article_extraction_errors")).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("SELECT first_seen_at FROM articles", OffsetDateTime.class).toInstant())
                 .isEqualTo(earlier);
@@ -78,14 +83,18 @@ class ArticleExtractorServiceTests {
                 SELECT COUNT(*) FROM article_signals WHERE signal_type = 'MENTIONS'
                 """, Integer.class)).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject("""
-                SELECT tone_value FROM article_signals WHERE signal_type = 'GKG'
+                SELECT tone_value FROM gdelt_gkg_records
                 """, Double.class)).isEqualTo(-3.5);
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT error_code FROM article_extraction_errors
                 """, String.class)).isEqualTo("INVALID_URL");
-        assertThat(jdbcTemplate.queryForMap("SELECT title, title_source FROM articles"))
-                .containsEntry("TITLE", "GDELT title")
-                .containsEntry("TITLE_SOURCE", "GKG");
+        assertThat(jdbcTemplate.queryForMap("""
+                SELECT page_title, themes_raw, persons_raw, organizations_raw, locations_raw
+                FROM gdelt_gkg_records
+                """))
+                .containsEntry("PAGE_TITLE", "GDELT title")
+                .containsEntry("THEMES_RAW", "THEME")
+                .containsEntry("PERSONS_RAW", "Jane Doe");
     }
 
     @Test
@@ -99,9 +108,11 @@ class ArticleExtractorServiceTests {
         extractorService.extractArticles(100);
         extractorService.extractArticles(100);
 
-        assertThat(jdbcTemplate.queryForObject("SELECT title FROM articles", String.class))
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT page_title FROM gdelt_gkg_records ORDER BY source_timestamp, id LIMIT 1
+                """, String.class))
                 .isEqualTo("First title");
-        assertThat(countRows("article_signals")).isEqualTo(2);
+        assertThat(countRows("gdelt_gkg_records")).isEqualTo(2);
     }
 
     private long insertRawEvent(Instant sourceTimestamp) {

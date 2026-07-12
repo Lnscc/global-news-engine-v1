@@ -31,8 +31,6 @@ id
 canonical_url
 url_hash
 domain
-title nullable
-title_source nullable
 first_seen_at
 created_at
 updated_at
@@ -42,44 +40,48 @@ updated_at
 und dient als Unique Key fuer idempotente Upserts. `first_seen_at` ist der frueheste
 `source_timestamp` aller Signale zu diesem Artikel.
 
-`title` enthaelt den aus GKG-Feld 27 extrahierten, HTML-dekodierten und getrimmten `PAGE_TITLE`
-(maximal 1.000 Zeichen). `title_source` ist dafuer `GKG`. Bei mehreren Titeln fuer dieselbe
-kanonische URL gewinnt deterministisch das GKG-Signal mit der kleinsten Staging-ID; ein bereits
-gesetzter Titel wird nicht stillschweigend ersetzt.
+GKG-Metadaten werden nicht am Artikel dupliziert. Die Article API projiziert `title` und
+`titleSource` aus dem fruehesten nicht leeren GKG-Record nach `source_timestamp` und `id`.
 
 ### `article_signals`
 
 ```text
 id
 article_id
-signal_type        EVENTS | MENTIONS | GKG
+signal_type        EVENTS | MENTIONS
 source_id
 source_timestamp
 global_event_id nullable
 event_code nullable
-themes nullable
-persons nullable
-organizations nullable
-locations nullable
 tone_value nullable
 tone_raw nullable
 created_at
 ```
 
-`articles` bleibt dedupliziert und stabil. `article_signals` speichert die GDELT-Hinweise,
-aus denen spaeter Stories, Topics und Themes berechnet werden.
+`articles` bleibt dedupliziert und stabil. `article_signals` speichert EVENTS- und
+MENTIONS-Hinweise. GKG besitzt ein eigenes Record-Modell.
 
 `source_id` referenziert die jeweilige Staging-Zeile:
 
 ```text
 EVENTS   -> gdelt_stage_events.id
 MENTIONS -> gdelt_stage_mentions.id
-GKG      -> gdelt_stage_gkg.id
 ```
 
 Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. Dadurch kann
 derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Staging-Zeile wird bei
 erneuten Job-Laeufen nicht doppelt eingefuegt.
+
+### `gdelt_gkg_records`
+
+Jede GKG-Staging-Zeile wird als eigener Record mit `source_id`, `article_id`, Zeitstempel,
+Dokumentkennung, Seitentitel, unveraenderten Raw-Mehrfachwerten und Tone persistiert. Mehrere
+GKG-Analysen desselben Artikels bleiben getrennt. `source_id` ist eindeutig und referenziert
+`gdelt_stage_gkg.id`; dadurch sind Neuimport und Backfill idempotent.
+
+Die Raw-Felder `themes_raw`, `persons_raw`, `organizations_raw`, `locations_raw` und `tone_raw`
+bleiben zur Provenienz erhalten. Die API projiziert GKG-Records weiterhin als Signale, sodass der
+REST-Vertrag unveraendert bleibt.
 
 ### `article_extraction_errors`
 
@@ -139,7 +141,7 @@ umgedeutet.
 | `mainImageUrl` | nicht nachgewiesen | spaeter optional | noch nicht verfuegbar |
 | `extractedText` | keines | spaeter optional | noch nicht verfuegbar |
 
-`themes`, `persons`, `organizations`, `locations` und `tone` bleiben GDELT-Signale. Ein externer
+`themes`, `persons`, `organizations`, `locations` und `tone` bleiben am GKG-Record. Ein externer
 Crawler ist aktuell nicht aktiv und wird erst bei nachgewiesenem Bedarf wieder eingefuehrt.
 Leere, fehlende und defekte `PAGE_TITLE`-Tags ergeben keinen Titel und blockieren die anderen
 GKG-Felder nicht. Bei Wiederholungen wird der erste nicht leere, korrekt geschlossene Titel
@@ -148,8 +150,8 @@ Zeitstempelsemantik und ein normalisiertes Autorenmodell muessen separat geklaer
 
 Migration V7 markiert bestehende Staging-Zeilen mit `metadata_extracted = false`. Der Staging-Job
 parst diese Zeilen kontrolliert aus dem unveraenderten Raw-TSV nach und setzt die Markierung. Der
-Article-Extractor ordnet danach fehlende Titel auch bereits vorhandenen GKG-Signalen zu. Beide
-Schritte sind wiederholbar und ueberschreiben kein bereits festgelegtes Ergebnis.
+Migration V8 ueberfuehrt vorhandene GKG-Signale in `gdelt_gkg_records`, entfernt die GKG-Kopien
+aus `article_signals` und entfernt `articles.title` sowie `articles.title_source`.
 
 ## Article-Extractor-Job
 
@@ -160,7 +162,7 @@ GDELT staging rows
 -> URL extrahieren
 -> canonical URL berechnen
 -> article upsert
--> article_signal idempotent einfuegen
+-> EVENTS/MENTIONS als article_signal oder GKG als gdelt_gkg_record idempotent einfuegen
 ```
 
 Quellen:

@@ -24,9 +24,17 @@ class ArticleDatabaseViewsTests {
                 + ";MODE=PostgreSQL;DB_CLOSE_DELAY=-1");
         try (Connection connection = dataSource.getConnection()) {
             ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V1__create_gdelt_raw_tables.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V2__create_gdelt_staging_tables.sql"));
+            ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V4__create_article_debug_views.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V8__create_gkg_records.sql"));
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
@@ -47,9 +55,14 @@ class ArticleDatabaseViewsTests {
                 INSERT INTO article_signals
                     (article_id, signal_type, source_id, source_timestamp, global_event_id,
                      event_code, themes, tone_value, created_at)
-                VALUES (?, 'EVENT', 101, ?, 9001, '010', 'THEME_A', -1.5, ?),
-                       (?, 'GKG', 102, ?, NULL, NULL, 'THEME_B', 2.5, ?)
-                """, articleId, timestamp, timestamp, articleId, timestamp.plusMinutes(5), timestamp);
+                VALUES (?, 'EVENT', 101, ?, 9001, '010', 'THEME_A', -1.5, ?)
+                """, articleId, timestamp, timestamp);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_gkg_records
+                    (source_id, article_id, source_timestamp, document_identifier, themes_raw,
+                     tone_value, created_at)
+                VALUES (102, ?, ?, 'https://example.com/one', 'THEME_B', 2.5, ?)
+                """, articleId, timestamp.plusMinutes(5), timestamp);
 
         Map<String, Object> summary = jdbcTemplate.queryForMap("""
                 SELECT signal_count, event_signal_count, mention_signal_count, gkg_signal_count

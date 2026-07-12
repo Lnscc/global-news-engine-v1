@@ -39,7 +39,6 @@ public class ArticleExtractorService {
             ArticleExtractionResult events = extractEvents(batchSize);
             ArticleExtractionResult mentions = extractMentions(batchSize);
             ArticleExtractionResult gkg = extractGkg(batchSize);
-            assignGkgTitles(batchSize);
             return events.plus(mentions).plus(gkg);
         });
     }
@@ -113,33 +112,30 @@ public class ArticleExtractorService {
     private ArticleExtractionResult extractGkg(int batchSize) {
         Counters counters = new Counters();
         jdbcTemplate.query("""
-                SELECT stage.id, stage.source_timestamp, stage.document_identifier,
+                SELECT stage.id, stage.source_timestamp, stage.document_identifier, stage.page_title,
                        stage.themes, stage.persons, stage.organizations, stage.locations, stage.tone
                 FROM gdelt_stage_gkg stage
-                LEFT JOIN article_signals signal
-                    ON signal.signal_type = 'GKG' AND signal.source_id = stage.id
+                LEFT JOIN gdelt_gkg_records record ON record.source_id = stage.id
                 LEFT JOIN article_extraction_errors error
                     ON error.signal_type = 'GKG' AND error.source_id = stage.id
-                WHERE signal.source_id IS NULL
+                WHERE record.source_id IS NULL
                   AND error.source_id IS NULL
                 ORDER BY stage.id
                 LIMIT ?
                 """, resultSet -> {
             String toneRaw = resultSet.getString("tone");
-            StageSignal signal = new StageSignal(
-                    "GKG",
+            GkgStageRecord record = new GkgStageRecord(
                     resultSet.getLong("id"),
                     resultSet.getTimestamp("source_timestamp").toInstant(),
                     resultSet.getString("document_identifier"),
-                    null,
-                    null,
+                    resultSet.getString("page_title"),
                     resultSet.getString("themes"),
                     resultSet.getString("persons"),
                     resultSet.getString("organizations"),
                     resultSet.getString("locations"),
                     parseGkgToneValue(toneRaw),
                     toneRaw);
-            process(signal, counters);
+            processGkg(record, counters);
         }, batchSize);
         return counters.result();
     }
@@ -159,25 +155,27 @@ public class ArticleExtractorService {
         }
     }
 
-    private void assignGkgTitles(int batchSize) {
-        var titles = jdbcTemplate.query("""
-                SELECT article.id, stage.page_title
-                FROM gdelt_stage_gkg stage
-                JOIN article_signals signal
-                  ON signal.signal_type = 'GKG' AND signal.source_id = stage.id
-                JOIN articles article ON article.id = signal.article_id
-                WHERE stage.page_title IS NOT NULL
-                  AND article.title IS NULL
-                ORDER BY stage.id
-                LIMIT ?
-                """, (resultSet, rowNum) -> new ArticleTitle(
-                resultSet.getLong("id"), resultSet.getString("page_title")), batchSize);
-        for (ArticleTitle title : titles) {
+    private void processGkg(GkgStageRecord record, Counters counters) {
+        try {
+            NormalizedArticleUrl normalizedUrl = urlNormalizer.normalize(record.documentIdentifier());
+            ArticleUpsert article = upsertArticle(normalizedUrl, record.sourceTimestamp());
             jdbcTemplate.update("""
-                    UPDATE articles
-                    SET title = ?, title_source = 'GKG', updated_at = ?
-                    WHERE id = ? AND title IS NULL
-                    """, title.title(), utc(Instant.now()), title.articleId());
+                    INSERT INTO gdelt_gkg_records
+                        (source_id, article_id, source_timestamp, document_identifier, page_title,
+                         themes_raw, persons_raw, organizations_raw, locations_raw,
+                         tone_raw, tone_value, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, record.sourceId(), article.articleId(), utc(record.sourceTimestamp()),
+                    record.documentIdentifier(), record.pageTitle(), record.themesRaw(), record.personsRaw(),
+                    record.organizationsRaw(), record.locationsRaw(), record.toneRaw(), record.toneValue(),
+                    utc(Instant.now()));
+            counters.signalsCreated++;
+            if (article.created()) counters.articlesCreated++;
+        } catch (ArticleUrlNormalizationException exception) {
+            insertExtractionError(new StageSignal("GKG", record.sourceId(), record.sourceTimestamp(),
+                    record.documentIdentifier(), null, null, null, null, null, null, null, null),
+                    exception.code(), exception.getMessage());
+            counters.errorsCreated++;
         }
     }
 
@@ -267,8 +265,10 @@ public class ArticleExtractorService {
     private record ArticleUpsert(Long articleId, boolean created) {
     }
 
-    private record ArticleTitle(long articleId, String title) {
-    }
+    private record GkgStageRecord(long sourceId, Instant sourceTimestamp, String documentIdentifier,
+                                  String pageTitle, String themesRaw, String personsRaw,
+                                  String organizationsRaw, String locationsRaw, Double toneValue,
+                                  String toneRaw) { }
 
     private record StageSignal(
             String signalType,

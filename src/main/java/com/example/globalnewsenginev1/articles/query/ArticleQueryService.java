@@ -40,7 +40,10 @@ public class ArticleQueryService {
         String whereClause = whereClause(criteria, parameters);
         String direction = criteria.direction().toUpperCase(java.util.Locale.ROOT);
         String query = """
-                SELECT id, canonical_url, domain, first_seen_at, title, title_source
+                SELECT articles.id, canonical_url, domain, first_seen_at,
+                       (SELECT g.page_title FROM gdelt_gkg_records g
+                        WHERE g.article_id = articles.id AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> ''
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS title
                 FROM articles
                 """ + whereClause + " ORDER BY first_seen_at " + direction + ", id " + direction + " " + """
                 LIMIT ? OFFSET ?
@@ -53,7 +56,7 @@ public class ArticleQueryService {
                 resultSet.getString("domain"),
                 instant(resultSet, "first_seen_at"),
                 resultSet.getString("title"),
-                resultSet.getString("title_source")), parameters.toArray());
+                resultSet.getString("title") == null ? null : "GKG"), parameters.toArray());
         parameters.remove(parameters.size() - 1);
         parameters.remove(parameters.size() - 1);
         long total = jdbcTemplate.queryForObject(
@@ -64,7 +67,9 @@ public class ArticleQueryService {
     private String whereClause(ArticleSearchCriteria criteria, List<Object> parameters) {
         List<String> predicates = new ArrayList<>();
         if (hasText(criteria.query())) {
-            predicates.add("LOWER(title) LIKE ? ESCAPE '!'");
+            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g WHERE g.article_id = articles.id "
+                    + "AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> '' "
+                    + "AND LOWER(g.page_title) LIKE ? ESCAPE '!')");
             parameters.add("%" + escapeLike(criteria.query().toLowerCase(java.util.Locale.ROOT)) + "%");
         }
         if (hasText(criteria.domain())) {
@@ -80,14 +85,18 @@ public class ArticleQueryService {
             parameters.add(Timestamp.from(criteria.firstSeenTo()));
         }
         if (hasText(criteria.theme())) {
-            predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
-                    + "AND POSITION(? IN (';' || s.themes || ';')) > 0)");
+            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g WHERE g.article_id = articles.id "
+                    + "AND POSITION(? IN (';' || g.themes_raw || ';')) > 0)");
             parameters.add(";" + criteria.theme() + ";");
         }
         if (criteria.signalType() != null) {
-            predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
-                    + "AND s.signal_type = ?)");
-            parameters.add(criteria.signalType());
+            if ("GKG".equals(criteria.signalType())) {
+                predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g WHERE g.article_id = articles.id)");
+            } else {
+                predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
+                        + "AND s.signal_type = ?)");
+                parameters.add(criteria.signalType());
+            }
         }
         return predicates.isEmpty() ? "" : " WHERE " + String.join(" AND ", predicates);
     }
@@ -119,16 +128,20 @@ public class ArticleQueryService {
 
     public Optional<ArticleDetail> articleDetail(long articleId) {
         List<ArticleDetailRow> articles = jdbcTemplate.query("""
-                SELECT id, canonical_url, domain, first_seen_at, title, title_source, created_at, updated_at
+                SELECT articles.id, canonical_url, domain, first_seen_at,
+                       (SELECT g.page_title FROM gdelt_gkg_records g
+                        WHERE g.article_id = articles.id AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> ''
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS title,
+                       created_at, updated_at
                 FROM articles
-                WHERE id = ?
+                WHERE articles.id = ?
                 """, (resultSet, rowNum) -> new ArticleDetailRow(
                 resultSet.getLong("id"),
                 resultSet.getString("canonical_url"),
                 resultSet.getString("domain"),
                 instant(resultSet, "first_seen_at"),
                 resultSet.getString("title"),
-                resultSet.getString("title_source"),
+                resultSet.getString("title") == null ? null : "GKG",
                 instant(resultSet, "created_at"),
                 instant(resultSet, "updated_at")), articleId);
         return articles.stream().findFirst().map(article -> new ArticleDetail(
@@ -153,10 +166,10 @@ public class ArticleQueryService {
         validateAggregateLimit(limit);
         Map<String, Long> counts = new LinkedHashMap<>();
         jdbcTemplate.query("""
-                SELECT themes
-                FROM article_signals
-                WHERE themes IS NOT NULL AND themes <> ''
-                """, (RowCallbackHandler) resultSet -> Arrays.stream(resultSet.getString("themes").split(";"))
+                SELECT themes_raw
+                FROM gdelt_gkg_records
+                WHERE themes_raw IS NOT NULL AND themes_raw <> ''
+                """, (RowCallbackHandler) resultSet -> Arrays.stream(resultSet.getString("themes_raw").split(";"))
                 .map(String::trim)
                 .filter(theme -> !theme.isEmpty())
                 .forEach(theme -> counts.merge(theme, 1L, Long::sum)));
@@ -174,6 +187,11 @@ public class ArticleQueryService {
                        themes, persons, organizations, locations, tone_value, tone_raw
                 FROM article_signals
                 WHERE article_id = ?
+                UNION ALL
+                SELECT id, 'GKG', source_id, source_timestamp, NULL, NULL,
+                       themes_raw, persons_raw, organizations_raw, locations_raw, tone_value, tone_raw
+                FROM gdelt_gkg_records
+                WHERE article_id = ?
                 ORDER BY source_timestamp ASC, id ASC
                 """, (resultSet, rowNum) -> new ArticleSignal(
                 resultSet.getLong("id"),
@@ -187,7 +205,7 @@ public class ArticleQueryService {
                 resultSet.getString("organizations"),
                 resultSet.getString("locations"),
                 nullableDouble(resultSet, "tone_value"),
-                resultSet.getString("tone_raw")), articleId);
+                resultSet.getString("tone_raw")), articleId, articleId);
     }
 
     private void validatePagination(int offset, int limit) {
