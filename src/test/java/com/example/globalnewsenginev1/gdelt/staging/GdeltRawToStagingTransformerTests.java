@@ -33,6 +33,10 @@ class GdeltRawToStagingTransformerTests {
                     new ClassPathResource("db/migration/V1__create_gdelt_raw_tables.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V2__create_gdelt_staging_tables.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V3__create_articles.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -71,6 +75,33 @@ class GdeltRawToStagingTransformerTests {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT global_event_id FROM gdelt_stage_events",
                 Long.class)).isEqualTo(123L);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT page_title FROM gdelt_stage_gkg",
+                String.class)).isEqualTo("First Rain Exposes Flaws In ₹28 Lakh & More");
+    }
+
+    @Test
+    void backfillsMetadataForAlreadyStagedGkgRowsIdempotently() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        long importId = insertImportFile("GKG", "20260705120000.gkg.csv.zip", timestamp);
+        long rawId = insertRaw("gdelt_raw_gkg", importId, "20260705120000.gkg.csv.zip", timestamp, 1,
+                GdeltParserTests.gkgRow());
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_stage_gkg
+                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                     gkg_record_id, document_identifier)
+                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
+                       '20260705120000-1', 'https://example.org/a'
+                FROM gdelt_raw_gkg WHERE id = ?
+                """, utc(timestamp), rawId);
+
+        transformer.transformCompletedRawRows(100);
+        transformer.transformCompletedRawRows(100);
+
+        assertThat(jdbcTemplate.queryForMap(
+                "SELECT page_title, metadata_extracted FROM gdelt_stage_gkg"))
+                .containsEntry("PAGE_TITLE", "First Rain Exposes Flaws In ₹28 Lakh & More")
+                .containsEntry("METADATA_EXTRACTED", true);
     }
 
     private long insertImportFile(String datasetType, String sourceFile, Instant sourceTimestamp) {
@@ -86,7 +117,7 @@ class GdeltRawToStagingTransformerTests {
                 """, Long.class, datasetType, sourceFile);
     }
 
-    private void insertRaw(
+    private long insertRaw(
             String tableName,
             long importFileId,
             String sourceFile,
@@ -100,6 +131,9 @@ class GdeltRawToStagingTransformerTests {
                 VALUES (?, ?, ?, ?, ?, ?)
                 """.formatted(tableName),
                 importFileId, sourceFile, utc(sourceTimestamp), rowNumber, rawTsv, utc(sourceTimestamp));
+        return jdbcTemplate.queryForObject("""
+                SELECT id FROM %s WHERE source_file = ? AND row_number = ?
+                """.formatted(tableName), Long.class, sourceFile, rowNumber);
     }
 
     private int countRows(String tableName) {

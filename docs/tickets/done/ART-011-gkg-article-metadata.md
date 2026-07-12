@@ -1,6 +1,6 @@
 # ART-011: GKG-Artikelmetadaten extrahieren
 
-Status: offen
+Status: erledigt
 Bereich: articles, gdelt
 
 ## Kontext
@@ -46,3 +46,15 @@ HTTP-Abruf in das Artikelmodell uebernommen. Der GDELT-Titel ist die primaere Ti
 ART-012 soll nach dieser Umsetzung den GDELT-basierten Titel ausgeben. ART-010 bleibt fuer einen
 spaeteren, bedarfsgetriebenen Crawler zurueckgestellt. Das fruehere ART-008-Schema wurde durch V6
 entfernt und ist keine Voraussetzung.
+
+## Implementierungskommentar
+
+Umgesetzt wurde die robuste Extraktion von `PAGE_TITLE` aus der 27. GKG-Spalte inklusive
+HTML-Entity-Dekodierung, Trimmen und einem Limit von 1.000 Zeichen. Leere, fehlende, wiederholte
+und defekte Tags bleiben tolerierbar. Migration V7 ergaenzt Staging- und Artikelfelder; bestehende
+Raw-/Staging-Zeilen werden durch eine persistente Extraktionsmarkierung idempotent nachgezogen.
+Der erste GKG-Titel einer kanonischen Artikel-URL gewinnt deterministisch und wird mit
+`title_source = GKG` gespeichert; spaetere Konflikte ueberschreiben ihn nicht. Publikationszeit
+und Autoren werden nach der Analyse mangels geklaerter Semantik beziehungsweise Zielmodell noch
+nicht persistiert. Parser-, Staging-, Backfill-/Idempotenz- und Artikelkonfliktverhalten sind durch
+Tests abgedeckt. ART-012 kann auf den neuen Artikelfeldern aufbauen.

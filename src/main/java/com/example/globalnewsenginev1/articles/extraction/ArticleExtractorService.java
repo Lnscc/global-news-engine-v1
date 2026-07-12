@@ -39,6 +39,7 @@ public class ArticleExtractorService {
             ArticleExtractionResult events = extractEvents(batchSize);
             ArticleExtractionResult mentions = extractMentions(batchSize);
             ArticleExtractionResult gkg = extractGkg(batchSize);
+            assignGkgTitles(batchSize);
             return events.plus(mentions).plus(gkg);
         });
     }
@@ -158,6 +159,28 @@ public class ArticleExtractorService {
         }
     }
 
+    private void assignGkgTitles(int batchSize) {
+        var titles = jdbcTemplate.query("""
+                SELECT article.id, stage.page_title
+                FROM gdelt_stage_gkg stage
+                JOIN article_signals signal
+                  ON signal.signal_type = 'GKG' AND signal.source_id = stage.id
+                JOIN articles article ON article.id = signal.article_id
+                WHERE stage.page_title IS NOT NULL
+                  AND article.title IS NULL
+                ORDER BY stage.id
+                LIMIT ?
+                """, (resultSet, rowNum) -> new ArticleTitle(
+                resultSet.getLong("id"), resultSet.getString("page_title")), batchSize);
+        for (ArticleTitle title : titles) {
+            jdbcTemplate.update("""
+                    UPDATE articles
+                    SET title = ?, title_source = 'GKG', updated_at = ?
+                    WHERE id = ? AND title IS NULL
+                    """, title.title(), utc(Instant.now()), title.articleId());
+        }
+    }
+
     private ArticleUpsert upsertArticle(NormalizedArticleUrl normalizedUrl, Instant sourceTimestamp) {
         Long articleId = findArticleId(normalizedUrl.urlHash());
         Instant now = Instant.now();
@@ -242,6 +265,9 @@ public class ArticleExtractorService {
     }
 
     private record ArticleUpsert(Long articleId, boolean created) {
+    }
+
+    private record ArticleTitle(long articleId, String title) {
     }
 
     private record StageSignal(

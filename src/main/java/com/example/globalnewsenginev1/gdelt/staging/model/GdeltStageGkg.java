@@ -12,6 +12,7 @@ public record GdeltStageGkg(
         String persons,
         String organizations,
         String locations,
-        String tone
+        String tone,
+        String pageTitle
 ) {
 }

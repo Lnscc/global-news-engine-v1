@@ -31,6 +31,8 @@ id
 canonical_url
 url_hash
 domain
+title nullable
+title_source nullable
 first_seen_at
 created_at
 updated_at
@@ -39,6 +41,11 @@ updated_at
 `canonical_url` ist die normalisierte URL. `url_hash` ist ein SHA-256-Hash der kanonischen URL
 und dient als Unique Key fuer idempotente Upserts. `first_seen_at` ist der frueheste
 `source_timestamp` aller Signale zu diesem Artikel.
+
+`title` enthaelt den aus GKG-Feld 27 extrahierten, HTML-dekodierten und getrimmten `PAGE_TITLE`
+(maximal 1.000 Zeichen). `title_source` ist dafuer `GKG`. Bei mehreren Titeln fuer dieselbe
+kanonische URL gewinnt deterministisch das GKG-Signal mit der kleinsten Staging-ID; ein bereits
+gesetzter Titel wird nicht stillschweigend ersetzt.
 
 ### `article_signals`
 
@@ -134,6 +141,15 @@ umgedeutet.
 
 `themes`, `persons`, `organizations`, `locations` und `tone` bleiben GDELT-Signale. Ein externer
 Crawler ist aktuell nicht aktiv und wird erst bei nachgewiesenem Bedarf wieder eingefuehrt.
+Leere, fehlende und defekte `PAGE_TITLE`-Tags ergeben keinen Titel und blockieren die anderen
+GKG-Felder nicht. Bei Wiederholungen wird der erste nicht leere, korrekt geschlossene Titel
+verwendet. `PAGE_PRECISEPUBTIMESTAMP` und `PAGE_AUTHORS` werden bewusst noch nicht persistiert:
+Zeitstempelsemantik und ein normalisiertes Autorenmodell muessen separat geklaert werden.
+
+Migration V7 markiert bestehende Staging-Zeilen mit `metadata_extracted = false`. Der Staging-Job
+parst diese Zeilen kontrolliert aus dem unveraenderten Raw-TSV nach und setzt die Markierung. Der
+Article-Extractor ordnet danach fehlende Titel auch bereits vorhandenen GKG-Signalen zu. Beide
+Schritte sind wiederholbar und ueberschreiben kein bereits festgelegtes Ergebnis.
 
 ## Article-Extractor-Job
 

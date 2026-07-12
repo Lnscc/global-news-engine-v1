@@ -49,6 +49,7 @@ public class GdeltRawToStagingTransformer {
 
     public GdeltStagingResult transformCompletedRawRows(int batchSize) {
         return transactionTemplate.execute(status -> {
+            backfillGkgMetadata(batchSize);
             DatasetResult events = stageEvents(batchSize);
             DatasetResult mentions = stageMentions(batchSize);
             DatasetResult gkg = stageGkg(batchSize);
@@ -126,13 +127,15 @@ public class GdeltRawToStagingTransformer {
                         INSERT INTO gdelt_stage_gkg
                             (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
                              gkg_record_id, document_date, source_collection_identifier, source_common_name,
-                             document_identifier, themes, persons, organizations, locations, tone)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                             document_identifier, themes, persons, organizations, locations, tone,
+                             page_title, metadata_extracted)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)
                         """,
                         row.rawId(), row.importFileId(), row.sourceFile(), utc(row.sourceTimestamp()),
                         row.rowNumber(), utc(Instant.now()), gkg.gkgRecordId(), nullableUtc(gkg.documentDate()),
                         gkg.sourceCollectionIdentifier(), gkg.sourceCommonName(), gkg.documentIdentifier(),
-                        gkg.themes(), gkg.persons(), gkg.organizations(), gkg.locations(), gkg.tone());
+                        gkg.themes(), gkg.persons(), gkg.organizations(), gkg.locations(), gkg.tone(),
+                        gkg.pageTitle());
                 staged++;
             } catch (GdeltParseException exception) {
                 insertError("GKG", row, exception);
@@ -140,6 +143,26 @@ public class GdeltRawToStagingTransformer {
             }
         }
         return new DatasetResult(staged, errors);
+    }
+
+    private void backfillGkgMetadata(int batchSize) {
+        List<GkgMetadataRow> rows = jdbcTemplate.query("""
+                SELECT stage.id, raw.raw_tsv
+                FROM gdelt_stage_gkg stage
+                JOIN gdelt_raw_gkg raw ON raw.id = stage.raw_id
+                WHERE stage.metadata_extracted = FALSE
+                ORDER BY stage.id
+                LIMIT ?
+                """, (resultSet, rowNum) -> new GkgMetadataRow(
+                resultSet.getLong("id"), resultSet.getString("raw_tsv")), batchSize);
+        for (GkgMetadataRow row : rows) {
+            GdeltStageGkg gkg = gkgParser.parse(row.rawTsv());
+            jdbcTemplate.update("""
+                    UPDATE gdelt_stage_gkg
+                    SET page_title = ?, metadata_extracted = TRUE
+                    WHERE id = ?
+                    """, gkg.pageTitle(), row.stageId());
+        }
     }
 
     private List<RawRow> loadPendingRows(String rawTable, String stageTable, String datasetType, int batchSize) {
@@ -196,5 +219,8 @@ public class GdeltRawToStagingTransformer {
     }
 
     private record DatasetResult(long staged, long errors) {
+    }
+
+    private record GkgMetadataRow(long stageId, String rawTsv) {
     }
 }

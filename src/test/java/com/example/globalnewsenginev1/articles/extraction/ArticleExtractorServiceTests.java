@@ -34,6 +34,8 @@ class ArticleExtractorServiceTests {
                     new ClassPathResource("db/migration/V2__create_gdelt_staging_tables.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -59,8 +61,8 @@ class ArticleExtractorServiceTests {
         insertStageEvent(eventRawId, later, "https://example.org/a?utm_source=wire", -1.25);
         insertStageMention(mentionRawId1, later, "https://example.org/a#paragraph", -1.5);
         insertStageMention(mentionRawId2, earlier, "https://EXAMPLE.org/a/", -2.5);
-        insertStageGkg(gkgRawId, later, "https://example.org/a?utm_source=x", "-3.5,2,3");
-        insertStageGkg(badGkgRawId, later, "not a url", "bad-tone");
+        insertStageGkg(gkgRawId, later, "https://example.org/a?utm_source=x", "-3.5,2,3", "GDELT title");
+        insertStageGkg(badGkgRawId, later, "not a url", "bad-tone", "Ignored title");
 
         ArticleExtractionResult firstRun = extractorService.extractArticles(100);
         ArticleExtractionResult secondRun = extractorService.extractArticles(100);
@@ -81,6 +83,25 @@ class ArticleExtractorServiceTests {
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT error_code FROM article_extraction_errors
                 """, String.class)).isEqualTo("INVALID_URL");
+        assertThat(jdbcTemplate.queryForMap("SELECT title, title_source FROM articles"))
+                .containsEntry("TITLE", "GDELT title")
+                .containsEntry("TITLE_SOURCE", "GKG");
+    }
+
+    @Test
+    void keepsTheFirstGkgTitleWhenSignalsConflict() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        long firstRawId = insertRawGkg(timestamp, "first");
+        long secondRawId = insertRawGkg(timestamp, "second");
+        insertStageGkg(firstRawId, timestamp, "https://example.org/article", "0", "First title");
+        insertStageGkg(secondRawId, timestamp, "https://example.org/article", "0", "Conflicting title");
+
+        extractorService.extractArticles(100);
+        extractorService.extractArticles(100);
+
+        assertThat(jdbcTemplate.queryForObject("SELECT title FROM articles", String.class))
+                .isEqualTo("First title");
+        assertThat(countRows("article_signals")).isEqualTo(2);
     }
 
     private long insertRawEvent(Instant sourceTimestamp) {
@@ -152,15 +173,18 @@ class ArticleExtractorServiceTests {
                 """, utc(sourceTimestamp), mentionIdentifier, tone, rawId);
     }
 
-    private void insertStageGkg(long rawId, Instant sourceTimestamp, String documentIdentifier, String tone) {
+    private void insertStageGkg(
+            long rawId, Instant sourceTimestamp, String documentIdentifier, String tone, String pageTitle
+    ) {
         jdbcTemplate.update("""
                 INSERT INTO gdelt_stage_gkg
                     (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
-                     gkg_record_id, document_identifier, themes, persons, organizations, locations, tone)
+                     gkg_record_id, document_identifier, themes, persons, organizations, locations, tone,
+                     page_title, metadata_extracted)
                 SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
-                       '20260705120000-' || id, ?, 'THEME', 'Jane Doe', 'Example Org', '1#Berlin', ?
+                       '20260705120000-' || id, ?, 'THEME', 'Jane Doe', 'Example Org', '1#Berlin', ?, ?, TRUE
                 FROM gdelt_raw_gkg WHERE id = ?
-                """, utc(sourceTimestamp), documentIdentifier, tone, rawId);
+                """, utc(sourceTimestamp), documentIdentifier, tone, pageTitle, rawId);
     }
 
     private int countRows(String tableName) {

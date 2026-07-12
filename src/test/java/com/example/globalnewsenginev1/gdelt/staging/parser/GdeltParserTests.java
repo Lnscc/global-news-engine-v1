@@ -54,6 +54,23 @@ public class GdeltParserTests {
         assertThat(gkg.persons()).isEqualTo("Jane Doe");
         assertThat(gkg.organizations()).isEqualTo("Example Org");
         assertThat(gkg.locations()).isEqualTo("1#Berlin#GM#GM16#52.5#13.4#-1746443");
+        assertThat(gkg.pageTitle()).isEqualTo("First Rain Exposes Flaws In ₹28 Lakh & More");
+    }
+
+    @Test
+    void toleratesMissingMalformedAndRepeatedPageTitles() {
+        String[] missing = gkgColumns();
+        missing[26] = "<PAGE_AUTHORS>Jane Doe</PAGE_AUTHORS>";
+        assertThat(new GdeltGkgParser().parse(joinNullable(missing)).pageTitle()).isNull();
+
+        String[] malformed = gkgColumns();
+        malformed[26] = "<PAGE_TITLE>unterminated";
+        assertThat(new GdeltGkgParser().parse(joinNullable(malformed)).pageTitle()).isNull();
+
+        String[] repeated = gkgColumns();
+        repeated[26] = "<PAGE_TITLE> </PAGE_TITLE><PAGE_TITLE> Second &amp; valid </PAGE_TITLE>";
+        assertThat(new GdeltGkgParser().parse(joinNullable(repeated)).pageTitle())
+                .isEqualTo("Second & valid");
     }
 
     @Test
@@ -92,7 +109,11 @@ public class GdeltParserTests {
     }
 
     public static String gkgRow() {
-        String[] columns = new String[16];
+        return joinNullable(gkgColumns());
+    }
+
+    private static String[] gkgColumns() {
+        String[] columns = new String[27];
         columns[0] = "20260705120000-1";
         columns[1] = "20260705120000";
         columns[2] = "1";
@@ -103,7 +124,10 @@ public class GdeltParserTests {
         columns[11] = "Jane Doe";
         columns[13] = "Example Org";
         columns[15] = "-1.5,2,3,4,5,6";
-        return joinNullable(columns);
+        columns[26] = "<PAGE_PRECISEPUBTIMESTAMP>20260711181500</PAGE_PRECISEPUBTIMESTAMP>"
+                + "<PAGE_TITLE> First Rain Exposes Flaws In &#x20B9;28 Lakh &amp; More </PAGE_TITLE>"
+                + "<PAGE_AUTHORS>Jane Doe</PAGE_AUTHORS>";
+        return columns;
     }
 
     private static String[] eventColumns() {
