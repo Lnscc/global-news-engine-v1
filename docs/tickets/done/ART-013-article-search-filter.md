@@ -1,6 +1,6 @@
 # ART-013: Artikelsuche und Filter
 
-Status: offen
+Status: erledigt
 Bereich: articles
 
 ## Kontext
