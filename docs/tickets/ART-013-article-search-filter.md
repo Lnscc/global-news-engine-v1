@@ -66,3 +66,13 @@ GDELT-Nachweis und nicht den noch separat zu modellierenden Publikationszeitpunk
 
 Publikationszeit, Sprache, Autoren, Publisher-Metadaten, Volltextsuche und Cursor-Pagination sind
 nicht Teil dieses Tickets. `q` ist zunaechst eine Titelsuche und fuehrt keinen externen Abruf aus.
+
+## Implementierungskommentar
+
+`GET /articles` unterstuetzt nun die optionalen Parameter `q`, `domain`, `firstSeenFrom`,
+`firstSeenTo`, `theme`, `signalType` und `direction`. Die Filter werden im Query-Service mit AND
+kombiniert; Signal- und Theme-Filter verwenden korrelierte `EXISTS`-Abfragen, sodass ein Artikel
+auch bei mehreren passenden Signalen nur einmal erscheint. Anzahl, Offset-/Limit-Pagination und
+die stabile Sortierung nach `firstSeenAt` und `id` verwenden dieselben Filter. Ungueltige Werte
+und unbekannte Parameter liefern den bestehenden `invalid_request`-Fehlervertrag. Controller-,
+Query-Service- und Postman-Tests decken den erweiterten Vertrag ab.

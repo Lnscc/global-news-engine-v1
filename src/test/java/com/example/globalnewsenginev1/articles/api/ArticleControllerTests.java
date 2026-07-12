@@ -8,6 +8,7 @@ import com.example.globalnewsenginev1.articles.query.ArticlePage;
 import com.example.globalnewsenginev1.articles.query.ArticleQueryService;
 import com.example.globalnewsenginev1.articles.query.ArticleSignal;
 import com.example.globalnewsenginev1.articles.query.ArticleSummary;
+import com.example.globalnewsenginev1.articles.query.ArticleSearchCriteria;
 import com.example.globalnewsenginev1.articles.query.NamedCount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +57,8 @@ class ArticleControllerTests {
 
     @Test
     void returnsAnEmptyArticlePageWithDefaults() throws Exception {
-        when(queryService.latestArticles(0, 20)).thenReturn(new ArticlePage(List.of(), 0, 20, 0));
+        when(queryService.searchArticles(ArticleSearchCriteria.defaults(), 0, 20))
+                .thenReturn(new ArticlePage(List.of(), 0, 20, 0));
 
         mockMvc.perform(get("/articles"))
                 .andExpect(status().isOk())
@@ -69,7 +71,7 @@ class ArticleControllerTests {
     @Test
     void returnsNullableGkgMetadataInArticlePage() throws Exception {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
-        when(queryService.latestArticles(0, 20)).thenReturn(new ArticlePage(List.of(
+        when(queryService.searchArticles(ArticleSearchCriteria.defaults(), 0, 20)).thenReturn(new ArticlePage(List.of(
                 new ArticleSummary(42, "https://example.org/titled", "example.org", timestamp,
                         "A GKG headline", "GKG"),
                 new ArticleSummary(43, "https://example.org/untitled", "example.org", timestamp,
@@ -81,6 +83,25 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.articles[0].titleSource").value("GKG"))
                 .andExpect(jsonPath("$.articles[1].title").value((Object) null))
                 .andExpect(jsonPath("$.articles[1].titleSource").value((Object) null));
+    }
+
+    @Test
+    void passesSearchFiltersToTheQueryService() throws Exception {
+        ArticleSearchCriteria criteria = new ArticleSearchCriteria(
+                "climate", "example.org", Instant.parse("2026-07-01T00:00:00Z"),
+                Instant.parse("2026-07-02T00:00:00Z"), "CLIMATE", "GKG", "asc");
+        when(queryService.searchArticles(criteria, 5, 10))
+                .thenReturn(new ArticlePage(List.of(), 5, 10, 0));
+
+        mockMvc.perform(get("/articles")
+                        .param("q", "climate").param("domain", "example.org")
+                        .param("firstSeenFrom", "2026-07-01T00:00:00Z")
+                        .param("firstSeenTo", "2026-07-02T00:00:00Z")
+                        .param("theme", "CLIMATE").param("signalType", "GKG")
+                        .param("direction", "asc").param("offset", "5").param("limit", "10"))
+                .andExpect(status().isOk());
+
+        verify(queryService).searchArticles(criteria, 5, 10);
     }
 
     @Test
@@ -125,7 +146,7 @@ class ArticleControllerTests {
 
     @Test
     void rejectsInvalidPaginationAndLimits() throws Exception {
-        when(queryService.latestArticles(-1, 20))
+        when(queryService.searchArticles(ArticleSearchCriteria.defaults(), -1, 20))
                 .thenThrow(new IllegalArgumentException("offset must not be negative"));
         when(queryService.topDomains(101))
                 .thenThrow(new IllegalArgumentException("limit must be between 1 and 100"));
@@ -137,6 +158,13 @@ class ArticleControllerTests {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("limit must be between 1 and 100"));
         mockMvc.perform(get("/articles").param("limit", "not-a-number"))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("invalid_request"));
+        mockMvc.perform(get("/articles").param("firstSeenFrom", "yesterday"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("invalid_request"));
+        mockMvc.perform(get("/articles").param("unexpected", "value"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value("invalid_request"));
     }
 }

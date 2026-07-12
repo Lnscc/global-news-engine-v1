@@ -62,6 +62,44 @@ class ArticleQueryServiceTests {
     }
 
     @Test
+    void filtersArticlesIndividuallyAndInCombination() {
+        long matching = insertArticle("https://alpha.example/match", "alpha.example", "2026-07-02T10:00:00Z");
+        long other = insertArticle("https://beta.example/other", "beta.example", "2026-07-03T10:00:00Z");
+        jdbcTemplate.update("UPDATE articles SET title = ? WHERE id = ?", "Climate NEWS today", matching);
+        jdbcTemplate.update("UPDATE articles SET title = ? WHERE id = ?", "Other headline", other);
+        insertSignal(matching, "GKG", 1, "2026-07-02T10:00:00Z", null, "CLIMATE;ENERGY", null);
+        insertSignal(matching, "GKG", 2, "2026-07-02T10:01:00Z", null, "CLIMATE", null);
+        insertSignal(other, "EVENTS", 3, "2026-07-03T10:00:00Z", 123L, "CLIMATE_CHANGE", null);
+
+        ArticleSearchCriteria combined = new ArticleSearchCriteria(
+                "news", "alpha.example", Instant.parse("2026-07-02T10:00:00Z"),
+                Instant.parse("2026-07-03T10:00:00Z"), "CLIMATE", "GKG", "desc");
+
+        assertThat(queryService.searchArticles(combined, 0, 20).articles())
+                .extracting(ArticleSummary::id).containsExactly(matching);
+        assertThat(queryService.searchArticles(
+                new ArticleSearchCriteria(null, null, null, null, "CLIMATE", null, "desc"), 0, 20)
+                .articles()).extracting(ArticleSummary::id).containsExactly(matching);
+        assertThat(queryService.searchArticles(
+                new ArticleSearchCriteria(null, null, null, null, null, "GKG", "desc"), 0, 20)
+                .total()).isEqualTo(1);
+    }
+
+    @Test
+    void appliesFilteredTotalPaginationAndAscendingStableOrder() {
+        long first = insertArticle("https://example.org/one", "example.org", "2026-07-02T10:00:00Z");
+        long second = insertArticle("https://example.org/two", "example.org", "2026-07-02T10:00:00Z");
+        insertArticle("https://other.org/three", "other.org", "2026-07-01T10:00:00Z");
+
+        ArticlePage page = queryService.searchArticles(
+                new ArticleSearchCriteria(null, "example.org", null, null, null, null, "asc"), 1, 1);
+
+        assertThat(page.total()).isEqualTo(2);
+        assertThat(page.articles()).extracting(ArticleSummary::id).containsExactly(second);
+        assertThat(first).isLessThan(second);
+    }
+
+    @Test
     void returnsNullableGkgMetadataInSummaryAndDetail() {
         long titledId = insertArticle("https://example.org/titled", "example.org", "2026-07-02T10:00:00Z");
         long untitledId = insertArticle("https://example.org/untitled", "example.org", "2026-07-01T10:00:00Z");
@@ -126,6 +164,10 @@ class ArticleQueryServiceTests {
         assertThatIllegalArgumentException().isThrownBy(() -> queryService.latestArticles(0, 101));
         assertThatIllegalArgumentException().isThrownBy(() -> queryService.topDomains(0));
         assertThatIllegalArgumentException().isThrownBy(() -> queryService.topThemes(101));
+        assertThatIllegalArgumentException().isThrownBy(() -> queryService.searchArticles(
+                new ArticleSearchCriteria(null, null, null, null, null, "UNKNOWN", "desc"), 0, 20));
+        assertThatIllegalArgumentException().isThrownBy(() -> queryService.searchArticles(
+                new ArticleSearchCriteria(null, null, null, null, null, null, "sideways"), 0, 20));
     }
 
     private long insertArticle(String url, String domain, String firstSeenAt) {

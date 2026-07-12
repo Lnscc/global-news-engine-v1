@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.OffsetDateTime;
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -27,21 +29,92 @@ public class ArticleQueryService {
     }
 
     public ArticlePage latestArticles(int offset, int limit) {
+        return searchArticles(ArticleSearchCriteria.defaults(), offset, limit);
+    }
+
+    public ArticlePage searchArticles(ArticleSearchCriteria criteria, int offset, int limit) {
         validatePagination(offset, limit);
-        List<ArticleSummary> articles = jdbcTemplate.query("""
+        validateCriteria(criteria);
+
+        List<Object> parameters = new ArrayList<>();
+        String whereClause = whereClause(criteria, parameters);
+        String direction = criteria.direction().toUpperCase(java.util.Locale.ROOT);
+        String query = """
                 SELECT id, canonical_url, domain, first_seen_at, title, title_source
                 FROM articles
-                ORDER BY first_seen_at DESC, id DESC
+                """ + whereClause + " ORDER BY first_seen_at " + direction + ", id " + direction + " " + """
                 LIMIT ? OFFSET ?
-                """, (resultSet, rowNum) -> new ArticleSummary(
+                """;
+        parameters.add(limit);
+        parameters.add(offset);
+        List<ArticleSummary> articles = jdbcTemplate.query(query, (resultSet, rowNum) -> new ArticleSummary(
                 resultSet.getLong("id"),
                 resultSet.getString("canonical_url"),
                 resultSet.getString("domain"),
                 instant(resultSet, "first_seen_at"),
                 resultSet.getString("title"),
-                resultSet.getString("title_source")), limit, offset);
-        long total = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles", Long.class);
+                resultSet.getString("title_source")), parameters.toArray());
+        parameters.remove(parameters.size() - 1);
+        parameters.remove(parameters.size() - 1);
+        long total = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM articles " + whereClause, Long.class, parameters.toArray());
         return new ArticlePage(articles, offset, limit, total);
+    }
+
+    private String whereClause(ArticleSearchCriteria criteria, List<Object> parameters) {
+        List<String> predicates = new ArrayList<>();
+        if (hasText(criteria.query())) {
+            predicates.add("LOWER(title) LIKE ? ESCAPE '!'");
+            parameters.add("%" + escapeLike(criteria.query().toLowerCase(java.util.Locale.ROOT)) + "%");
+        }
+        if (hasText(criteria.domain())) {
+            predicates.add("domain = ?");
+            parameters.add(criteria.domain());
+        }
+        if (criteria.firstSeenFrom() != null) {
+            predicates.add("first_seen_at >= ?");
+            parameters.add(Timestamp.from(criteria.firstSeenFrom()));
+        }
+        if (criteria.firstSeenTo() != null) {
+            predicates.add("first_seen_at < ?");
+            parameters.add(Timestamp.from(criteria.firstSeenTo()));
+        }
+        if (hasText(criteria.theme())) {
+            predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
+                    + "AND POSITION(? IN (';' || s.themes || ';')) > 0)");
+            parameters.add(";" + criteria.theme() + ";");
+        }
+        if (criteria.signalType() != null) {
+            predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
+                    + "AND s.signal_type = ?)");
+            parameters.add(criteria.signalType());
+        }
+        return predicates.isEmpty() ? "" : " WHERE " + String.join(" AND ", predicates);
+    }
+
+    private void validateCriteria(ArticleSearchCriteria criteria) {
+        if (criteria == null) {
+            throw new IllegalArgumentException("search criteria must not be null");
+        }
+        if (!List.of("asc", "desc").contains(criteria.direction())) {
+            throw new IllegalArgumentException("direction must be asc or desc");
+        }
+        if (criteria.signalType() != null
+                && !List.of("EVENTS", "MENTIONS", "GKG").contains(criteria.signalType())) {
+            throw new IllegalArgumentException("signalType must be EVENTS, MENTIONS or GKG");
+        }
+        if (criteria.firstSeenFrom() != null && criteria.firstSeenTo() != null
+                && !criteria.firstSeenFrom().isBefore(criteria.firstSeenTo())) {
+            throw new IllegalArgumentException("firstSeenFrom must be before firstSeenTo");
+        }
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
+    }
+
+    private String escapeLike(String value) {
+        return value.replace("!", "!!").replace("%", "!%").replace("_", "!_");
     }
 
     public Optional<ArticleDetail> articleDetail(long articleId) {

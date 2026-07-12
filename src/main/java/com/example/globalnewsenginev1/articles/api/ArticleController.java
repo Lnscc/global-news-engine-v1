@@ -5,6 +5,7 @@ import com.example.globalnewsenginev1.articles.query.ArticlePage;
 import com.example.globalnewsenginev1.articles.query.ArticleQueryService;
 import com.example.globalnewsenginev1.articles.query.ArticleSignal;
 import com.example.globalnewsenginev1.articles.query.ArticleSummary;
+import com.example.globalnewsenginev1.articles.query.ArticleSearchCriteria;
 import com.example.globalnewsenginev1.articles.query.NamedCount;
 import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealth;
 import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealthService;
@@ -17,10 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/articles")
 public class ArticleController {
+
+    private static final Set<String> ARTICLE_LIST_PARAMETERS = Set.of(
+            "q", "domain", "firstSeenFrom", "firstSeenTo", "theme", "signalType",
+            "direction", "offset", "limit");
 
     private final ArticleQueryService articleQueryService;
     private final ArticleExtractionHealthService extractionHealthService;
@@ -35,10 +42,38 @@ public class ArticleController {
 
     @GetMapping
     public ArticlePageResponse latestArticles(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String domain,
+            @RequestParam(required = false) String firstSeenFrom,
+            @RequestParam(required = false) String firstSeenTo,
+            @RequestParam(required = false) String theme,
+            @RequestParam(required = false) String signalType,
+            @RequestParam(defaultValue = "desc") String direction,
             @RequestParam(defaultValue = "0") int offset,
-            @RequestParam(defaultValue = "20") int limit
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam Map<String, String> parameters
     ) {
-        return ArticlePageResponse.from(articleQueryService.latestArticles(offset, limit));
+        parameters.keySet().stream()
+                .filter(parameter -> !ARTICLE_LIST_PARAMETERS.contains(parameter))
+                .findFirst()
+                .ifPresent(parameter -> {
+                    throw new IllegalArgumentException("unknown parameter: " + parameter);
+                });
+        ArticleSearchCriteria criteria = new ArticleSearchCriteria(
+                q, domain, parseInstant("firstSeenFrom", firstSeenFrom),
+                parseInstant("firstSeenTo", firstSeenTo), theme, signalType, direction);
+        return ArticlePageResponse.from(articleQueryService.searchArticles(criteria, offset, limit));
+    }
+
+    private Instant parseInstant(String parameter, String value) {
+        if (value == null) {
+            return null;
+        }
+        try {
+            return Instant.parse(value);
+        } catch (java.time.format.DateTimeParseException exception) {
+            throw new IllegalArgumentException(parameter + " must be an ISO-8601 instant");
+        }
     }
 
     @GetMapping("/{id}")
