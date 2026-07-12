@@ -29,7 +29,7 @@ public class ArticleQueryService {
     public ArticlePage latestArticles(int offset, int limit) {
         validatePagination(offset, limit);
         List<ArticleSummary> articles = jdbcTemplate.query("""
-                SELECT id, canonical_url, domain, first_seen_at
+                SELECT id, canonical_url, domain, first_seen_at, title, title_source
                 FROM articles
                 ORDER BY first_seen_at DESC, id DESC
                 LIMIT ? OFFSET ?
@@ -37,14 +37,16 @@ public class ArticleQueryService {
                 resultSet.getLong("id"),
                 resultSet.getString("canonical_url"),
                 resultSet.getString("domain"),
-                instant(resultSet, "first_seen_at")), limit, offset);
+                instant(resultSet, "first_seen_at"),
+                resultSet.getString("title"),
+                resultSet.getString("title_source")), limit, offset);
         long total = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles", Long.class);
         return new ArticlePage(articles, offset, limit, total);
     }
 
     public Optional<ArticleDetail> articleDetail(long articleId) {
         List<ArticleDetailRow> articles = jdbcTemplate.query("""
-                SELECT id, canonical_url, domain, first_seen_at, created_at, updated_at
+                SELECT id, canonical_url, domain, first_seen_at, title, title_source, created_at, updated_at
                 FROM articles
                 WHERE id = ?
                 """, (resultSet, rowNum) -> new ArticleDetailRow(
@@ -52,10 +54,13 @@ public class ArticleQueryService {
                 resultSet.getString("canonical_url"),
                 resultSet.getString("domain"),
                 instant(resultSet, "first_seen_at"),
+                resultSet.getString("title"),
+                resultSet.getString("title_source"),
                 instant(resultSet, "created_at"),
                 instant(resultSet, "updated_at")), articleId);
         return articles.stream().findFirst().map(article -> new ArticleDetail(
                 article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
+                article.title(), article.titleSource(),
                 article.createdAt(), article.updatedAt(), signalsFor(articleId)));
     }
 
@@ -146,6 +151,8 @@ public class ArticleQueryService {
             String canonicalUrl,
             String domain,
             java.time.Instant firstSeenAt,
+            String title,
+            String titleSource,
             java.time.Instant createdAt,
             java.time.Instant updatedAt
     ) {

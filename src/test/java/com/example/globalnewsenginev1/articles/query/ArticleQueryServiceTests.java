@@ -31,6 +31,8 @@ class ArticleQueryServiceTests {
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.execute("ALTER TABLE articles ADD COLUMN title VARCHAR(1000)");
+        jdbcTemplate.execute("ALTER TABLE articles ADD COLUMN title_source VARCHAR(32)");
         queryService = new ArticleQueryService(jdbcTemplate);
     }
 
@@ -57,6 +59,28 @@ class ArticleQueryServiceTests {
                 .containsExactly(thirdId, secondId);
         assertThat(secondPage.articles()).extracting(ArticleSummary::id)
                 .containsExactly(firstId);
+    }
+
+    @Test
+    void returnsNullableGkgMetadataInSummaryAndDetail() {
+        long titledId = insertArticle("https://example.org/titled", "example.org", "2026-07-02T10:00:00Z");
+        long untitledId = insertArticle("https://example.org/untitled", "example.org", "2026-07-01T10:00:00Z");
+        jdbcTemplate.update("UPDATE articles SET title = ?, title_source = ? WHERE id = ?",
+                "A GKG headline", "GKG", titledId);
+
+        assertThat(queryService.latestArticles(0, 20).articles())
+                .containsExactly(
+                        new ArticleSummary(titledId, "https://example.org/titled", "example.org",
+                                Instant.parse("2026-07-02T10:00:00Z"), "A GKG headline", "GKG"),
+                        new ArticleSummary(untitledId, "https://example.org/untitled", "example.org",
+                                Instant.parse("2026-07-01T10:00:00Z"), null, null));
+
+        ArticleDetail titled = queryService.articleDetail(titledId).orElseThrow();
+        assertThat(titled.title()).isEqualTo("A GKG headline");
+        assertThat(titled.titleSource()).isEqualTo("GKG");
+        ArticleDetail untitled = queryService.articleDetail(untitledId).orElseThrow();
+        assertThat(untitled.title()).isNull();
+        assertThat(untitled.titleSource()).isNull();
     }
 
     @Test

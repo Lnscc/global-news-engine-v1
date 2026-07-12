@@ -35,3 +35,11 @@ Titel und transparente Quellenangabe. Crawler-Status- und Fehlerfelder sind nich
 
 Dieses Ticket wird nach ART-011 umgesetzt. Ein spaeterer Crawler aus ART-010 erweitert den Vertrag
 nur bei einem neu nachgewiesenen Bedarf.
+
+## Implementierungskommentar
+
+`ArticleSummary` und `ArticleDetail` sowie die REST-Responses liefern nun `title` und
+`titleSource` aus den nullable Spalten `articles.title` und `articles.title_source`. Listen- und
+Detailabfragen behalten ihre bisherige Sortierung, Pagination, Signale und Statuscodes bei. Tests
+decken vorhandene GKG-Metadaten und Artikel ohne Titel ab; die Postman-Collection prueft den
+erweiterten Response-Vertrag.

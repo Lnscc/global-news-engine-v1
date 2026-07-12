@@ -7,6 +7,7 @@ import com.example.globalnewsenginev1.articles.query.ArticleDetail;
 import com.example.globalnewsenginev1.articles.query.ArticlePage;
 import com.example.globalnewsenginev1.articles.query.ArticleQueryService;
 import com.example.globalnewsenginev1.articles.query.ArticleSignal;
+import com.example.globalnewsenginev1.articles.query.ArticleSummary;
 import com.example.globalnewsenginev1.articles.query.NamedCount;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -66,13 +67,31 @@ class ArticleControllerTests {
     }
 
     @Test
+    void returnsNullableGkgMetadataInArticlePage() throws Exception {
+        Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
+        when(queryService.latestArticles(0, 20)).thenReturn(new ArticlePage(List.of(
+                new ArticleSummary(42, "https://example.org/titled", "example.org", timestamp,
+                        "A GKG headline", "GKG"),
+                new ArticleSummary(43, "https://example.org/untitled", "example.org", timestamp,
+                        null, null)), 0, 20, 2));
+
+        mockMvc.perform(get("/articles"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.articles[0].title").value("A GKG headline"))
+                .andExpect(jsonPath("$.articles[0].titleSource").value("GKG"))
+                .andExpect(jsonPath("$.articles[1].title").value((Object) null))
+                .andExpect(jsonPath("$.articles[1].titleSource").value((Object) null));
+    }
+
+    @Test
     void returnsArticleDetailAndNotFound() throws Exception {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         ArticleSignal signal = new ArticleSignal(
                 7, "EVENTS", 9, timestamp, 123L, "042",
                 null, null, null, null, -1.5, "-1.5");
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
-                42, "https://example.org/article", "example.org", timestamp, timestamp, timestamp,
+                42, "https://example.org/article", "example.org", timestamp,
+                "A GKG headline", "GKG", timestamp, timestamp,
                 List.of(signal))));
         when(queryService.articleDetail(99)).thenReturn(Optional.empty());
 
@@ -80,6 +99,8 @@ class ArticleControllerTests {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(42))
                 .andExpect(jsonPath("$.canonicalUrl").value("https://example.org/article"))
+                .andExpect(jsonPath("$.title").value("A GKG headline"))
+                .andExpect(jsonPath("$.titleSource").value("GKG"))
                 .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"));
         mockMvc.perform(get("/articles/99"))
                 .andExpect(status().isNotFound());
