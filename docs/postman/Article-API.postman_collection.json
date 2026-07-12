@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "33af713d-e32f-4a3d-939e-5bb0bb90d003",
     "name": "Global News Engine - Article API",
-    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich Extraction Health aus ART-005.",
+    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich nullable GKG-Titelmetadaten und Extraction Health.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -35,6 +35,11 @@
                   "  const body = pm.response.json();",
                   "  pm.expect(body).to.have.all.keys('articles', 'offset', 'limit', 'total');",
                   "  pm.expect(body.articles).to.be.an('array');",
+                  "  body.articles.forEach(article => {",
+                  "    pm.expect(article).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'titleSource');",
+                  "    pm.expect(article.title).to.satisfy(value => value === null || typeof value === 'string');",
+                  "    pm.expect(article.titleSource).to.satisfy(value => value === null || typeof value === 'string');",
+                  "  });",
                   "});",
                   "const body = pm.response.json();",
                   "if (body.articles.length > 0) {",
@@ -66,7 +71,9 @@
                   "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
                   "pm.test('Detail enthaelt stabile Felder', () => {",
                   "  const body = pm.response.json();",
-                  "  pm.expect(body).to.include.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'createdAt', 'updatedAt', 'signals');",
+                  "  pm.expect(body).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'titleSource', 'createdAt', 'updatedAt', 'signals');",
+                  "  pm.expect(body.title).to.satisfy(value => value === null || typeof value === 'string');",
+                  "  pm.expect(body.titleSource).to.satisfy(value => value === null || typeof value === 'string');",
                   "  pm.expect(body.signals).to.be.an('array');",
                   "});"
                 ],

@@ -6,6 +6,8 @@ public record ArticleSummary(
         long id,
         String canonicalUrl,
         String domain,
-        Instant firstSeenAt
+        Instant firstSeenAt,
+        String title,
+        String titleSource
 ) {
 }

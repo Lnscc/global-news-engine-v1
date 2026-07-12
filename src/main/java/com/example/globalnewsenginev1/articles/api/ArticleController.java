@@ -72,10 +72,18 @@ public class ArticleController {
         }
     }
 
-    public record ArticleSummaryResponse(long id, String canonicalUrl, String domain, Instant firstSeenAt) {
+    public record ArticleSummaryResponse(
+            long id,
+            String canonicalUrl,
+            String domain,
+            Instant firstSeenAt,
+            String title,
+            String titleSource
+    ) {
         static ArticleSummaryResponse from(ArticleSummary article) {
             return new ArticleSummaryResponse(
-                    article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt());
+                    article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
+                    article.title(), article.titleSource());
         }
     }
 
@@ -84,6 +92,8 @@ public class ArticleController {
             String canonicalUrl,
             String domain,
             Instant firstSeenAt,
+            String title,
+            String titleSource,
             Instant createdAt,
             Instant updatedAt,
             List<ArticleSignalResponse> signals
@@ -91,6 +101,7 @@ public class ArticleController {
         static ArticleDetailResponse from(ArticleDetail article) {
             return new ArticleDetailResponse(
                     article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
+                    article.title(), article.titleSource(),
                     article.createdAt(), article.updatedAt(),
                     article.signals().stream().map(ArticleSignalResponse::from).toList());
         }

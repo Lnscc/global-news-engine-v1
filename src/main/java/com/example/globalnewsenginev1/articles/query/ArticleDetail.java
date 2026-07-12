@@ -8,6 +8,8 @@ public record ArticleDetail(
         String canonicalUrl,
         String domain,
         Instant firstSeenAt,
+        String title,
+        String titleSource,
         Instant createdAt,
         Instant updatedAt,
         List<ArticleSignal> signals
