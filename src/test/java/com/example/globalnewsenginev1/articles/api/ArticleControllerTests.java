@@ -109,7 +109,7 @@ class ArticleControllerTests {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         ArticleSignal signal = new ArticleSignal(
                 7, "EVENTS", 9, timestamp, 123L, "042",
-                null, null, null, null, -1.5, "-1.5");
+                List.of(), null, null, null, -1.5, "-1.5");
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
                 42, "https://example.org/article", "example.org", timestamp,
                 "A GKG headline", "GKG", timestamp, timestamp,
@@ -122,7 +122,8 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.canonicalUrl").value("https://example.org/article"))
                 .andExpect(jsonPath("$.title").value("A GKG headline"))
                 .andExpect(jsonPath("$.titleSource").value("GKG"))
-                .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"));
+                .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"))
+                .andExpect(jsonPath("$.signals[0].themes").isArray());
         mockMvc.perform(get("/articles/99"))
                 .andExpect(status().isNotFound());
     }

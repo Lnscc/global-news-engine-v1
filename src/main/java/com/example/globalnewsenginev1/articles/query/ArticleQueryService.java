@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -85,9 +86,9 @@ public class ArticleQueryService {
             parameters.add(Timestamp.from(criteria.firstSeenTo()));
         }
         if (hasText(criteria.theme())) {
-            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g WHERE g.article_id = articles.id "
-                    + "AND POSITION(? IN (';' || g.themes_raw || ';')) > 0)");
-            parameters.add(";" + criteria.theme() + ";");
+            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g "
+                    + "WHERE g.article_id = articles.id AND ? = ANY(g.themes))");
+            parameters.add(criteria.theme());
         }
         if (criteria.signalType() != null) {
             if ("GKG".equals(criteria.signalType())) {
@@ -165,14 +166,8 @@ public class ArticleQueryService {
     public List<NamedCount> topThemes(int limit) {
         validateAggregateLimit(limit);
         Map<String, Long> counts = new LinkedHashMap<>();
-        jdbcTemplate.query("""
-                SELECT themes_raw
-                FROM gdelt_gkg_records
-                WHERE themes_raw IS NOT NULL AND themes_raw <> ''
-                """, (RowCallbackHandler) resultSet -> Arrays.stream(resultSet.getString("themes_raw").split(";"))
-                .map(String::trim)
-                .filter(theme -> !theme.isEmpty())
-                .forEach(theme -> counts.merge(theme, 1L, Long::sum)));
+        jdbcTemplate.query("SELECT themes FROM gdelt_gkg_records", (RowCallbackHandler) resultSet ->
+                arrayValues(resultSet, "themes").forEach(theme -> counts.merge(theme, 1L, Long::sum)));
         return counts.entrySet().stream()
                 .map(entry -> new NamedCount(entry.getKey(), entry.getValue()))
                 .sorted(Comparator.comparingLong(NamedCount::count).reversed()
@@ -182,17 +177,11 @@ public class ArticleQueryService {
     }
 
     private List<ArticleSignal> signalsFor(long articleId) {
-        return jdbcTemplate.query("""
+        List<ArticleSignal> signals = new ArrayList<>(jdbcTemplate.query("""
                 SELECT id, signal_type, source_id, source_timestamp, global_event_id, event_code,
                        themes, persons, organizations, locations, tone_value, tone_raw
                 FROM article_signals
                 WHERE article_id = ?
-                UNION ALL
-                SELECT id, 'GKG', source_id, source_timestamp, NULL, NULL,
-                       themes_raw, persons_raw, organizations_raw, locations_raw, tone_value, tone_raw
-                FROM gdelt_gkg_records
-                WHERE article_id = ?
-                ORDER BY source_timestamp ASC, id ASC
                 """, (resultSet, rowNum) -> new ArticleSignal(
                 resultSet.getLong("id"),
                 resultSet.getString("signal_type"),
@@ -200,12 +189,47 @@ public class ArticleQueryService {
                 instant(resultSet, "source_timestamp"),
                 nullableLong(resultSet, "global_event_id"),
                 resultSet.getString("event_code"),
-                resultSet.getString("themes"),
+                normalizeThemes(resultSet.getString("themes")),
                 resultSet.getString("persons"),
                 resultSet.getString("organizations"),
                 resultSet.getString("locations"),
                 nullableDouble(resultSet, "tone_value"),
-                resultSet.getString("tone_raw")), articleId, articleId);
+                resultSet.getString("tone_raw")), articleId));
+        signals.addAll(jdbcTemplate.query("""
+                SELECT id, source_id, source_timestamp, themes, persons_raw, organizations_raw,
+                       locations_raw, tone_value, tone_raw
+                FROM gdelt_gkg_records
+                WHERE article_id = ?
+                """, (resultSet, rowNum) -> new ArticleSignal(
+                resultSet.getLong("id"),
+                "GKG",
+                resultSet.getLong("source_id"),
+                instant(resultSet, "source_timestamp"),
+                null,
+                null,
+                arrayValues(resultSet, "themes"),
+                resultSet.getString("persons_raw"),
+                resultSet.getString("organizations_raw"),
+                resultSet.getString("locations_raw"),
+                nullableDouble(resultSet, "tone_value"),
+                resultSet.getString("tone_raw")), articleId));
+        return signals.stream()
+                .sorted(Comparator.comparing(ArticleSignal::sourceTimestamp).thenComparingLong(ArticleSignal::id))
+                .toList();
+    }
+
+    private List<String> normalizeThemes(String themes) {
+        if (themes == null || themes.isBlank()) return List.of();
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        Arrays.stream(themes.split(";", -1)).map(String::trim)
+                .filter(theme -> !theme.isEmpty()).forEach(normalized::add);
+        return List.copyOf(normalized);
+    }
+
+    private List<String> arrayValues(ResultSet resultSet, String column) throws SQLException {
+        java.sql.Array sqlArray = resultSet.getArray(column);
+        if (sqlArray == null) return List.of();
+        return Arrays.stream((Object[]) sqlArray.getArray()).map(Object::toString).toList();
     }
 
     private void validatePagination(int offset, int limit) {

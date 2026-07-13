@@ -40,6 +40,10 @@ class ArticleExtractorServiceTests {
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V8__create_gkg_records.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V9__normalize_gkg_themes.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -76,6 +80,8 @@ class ArticleExtractorServiceTests {
         assertThat(countRows("articles")).isEqualTo(1);
         assertThat(countRows("article_signals")).isEqualTo(3);
         assertThat(countRows("gdelt_gkg_records")).isEqualTo(1);
+        assertThat(arrayValues("SELECT themes FROM gdelt_gkg_records"))
+                .containsExactly("THEME", "OTHER");
         assertThat(countRows("article_extraction_errors")).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("SELECT first_seen_at FROM articles", OffsetDateTime.class).toInstant())
                 .isEqualTo(earlier);
@@ -89,11 +95,10 @@ class ArticleExtractorServiceTests {
                 SELECT error_code FROM article_extraction_errors
                 """, String.class)).isEqualTo("INVALID_URL");
         assertThat(jdbcTemplate.queryForMap("""
-                SELECT page_title, themes_raw, persons_raw, organizations_raw, locations_raw
+                SELECT page_title, persons_raw, organizations_raw, locations_raw
                 FROM gdelt_gkg_records
                 """))
                 .containsEntry("PAGE_TITLE", "GDELT title")
-                .containsEntry("THEMES_RAW", "THEME")
                 .containsEntry("PERSONS_RAW", "Jane Doe");
     }
 
@@ -193,13 +198,20 @@ class ArticleExtractorServiceTests {
                      gkg_record_id, document_identifier, themes, persons, organizations, locations, tone,
                      page_title, metadata_extracted)
                 SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
-                       '20260705120000-' || id, ?, 'THEME', 'Jane Doe', 'Example Org', '1#Berlin', ?, ?, TRUE
+                       '20260705120000-' || id, ?, ' THEME ; ;OTHER;THEME ',
+                       'Jane Doe', 'Example Org', '1#Berlin', ?, ?, TRUE
                 FROM gdelt_raw_gkg WHERE id = ?
                 """, utc(sourceTimestamp), documentIdentifier, tone, pageTitle, rawId);
     }
 
     private int countRows(String tableName) {
         return jdbcTemplate.queryForObject("SELECT COUNT(*) FROM " + tableName, Integer.class);
+    }
+
+    private java.util.List<String> arrayValues(String query) {
+        return jdbcTemplate.queryForObject(query, (resultSet, rowNum) ->
+                java.util.Arrays.stream((Object[]) resultSet.getArray("themes").getArray())
+                        .map(Object::toString).toList());
     }
 
     private OffsetDateTime utc(Instant instant) {

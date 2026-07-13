@@ -7,6 +7,7 @@ import com.example.globalnewsenginev1.articles.normalization.NormalizedArticleUr
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.SqlArrayValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -15,6 +16,8 @@ import java.sql.SQLException;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.util.LinkedHashSet;
+import java.util.List;
 
 @Service
 public class ArticleExtractorService {
@@ -159,14 +162,16 @@ public class ArticleExtractorService {
         try {
             NormalizedArticleUrl normalizedUrl = urlNormalizer.normalize(record.documentIdentifier());
             ArticleUpsert article = upsertArticle(normalizedUrl, record.sourceTimestamp());
+            List<String> themes = normalizeThemes(record.themesRaw());
             jdbcTemplate.update("""
                     INSERT INTO gdelt_gkg_records
                         (source_id, article_id, source_timestamp, document_identifier, page_title,
-                         themes_raw, persons_raw, organizations_raw, locations_raw,
+                         themes, persons_raw, organizations_raw, locations_raw,
                          tone_raw, tone_value, created_at)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, record.sourceId(), article.articleId(), utc(record.sourceTimestamp()),
-                    record.documentIdentifier(), record.pageTitle(), record.themesRaw(), record.personsRaw(),
+                    record.documentIdentifier(), record.pageTitle(),
+                    new SqlArrayValue("TEXT", themes.toArray()), record.personsRaw(),
                     record.organizationsRaw(), record.locationsRaw(), record.toneRaw(), record.toneValue(),
                     utc(Instant.now()));
             counters.signalsCreated++;
@@ -177,6 +182,20 @@ public class ArticleExtractorService {
                     exception.code(), exception.getMessage());
             counters.errorsCreated++;
         }
+    }
+
+    private List<String> normalizeThemes(String themesRaw) {
+        if (themesRaw == null || themesRaw.isBlank()) {
+            return List.of();
+        }
+        LinkedHashSet<String> normalizedThemes = new LinkedHashSet<>();
+        for (String rawTheme : themesRaw.split(";", -1)) {
+            String theme = rawTheme.trim();
+            if (!theme.isEmpty()) {
+                normalizedThemes.add(theme);
+            }
+        }
+        return List.copyOf(normalizedThemes);
     }
 
     private ArticleUpsert upsertArticle(NormalizedArticleUrl normalizedUrl, Instant sourceTimestamp) {

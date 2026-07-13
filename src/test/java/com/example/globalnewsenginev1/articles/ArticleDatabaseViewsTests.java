@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.init.ScriptUtils;
+import org.springframework.jdbc.support.SqlArrayValue;
 
 import java.sql.Connection;
 import java.time.OffsetDateTime;
@@ -35,6 +36,10 @@ class ArticleDatabaseViewsTests {
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V8__create_gkg_records.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V9__normalize_gkg_themes.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
@@ -59,10 +64,11 @@ class ArticleDatabaseViewsTests {
                 """, articleId, timestamp, timestamp);
         jdbcTemplate.update("""
                 INSERT INTO gdelt_gkg_records
-                    (source_id, article_id, source_timestamp, document_identifier, themes_raw,
+                    (source_id, article_id, source_timestamp, document_identifier, themes,
                      tone_value, created_at)
-                VALUES (102, ?, ?, 'https://example.com/one', 'THEME_B', 2.5, ?)
-                """, articleId, timestamp.plusMinutes(5), timestamp);
+                VALUES (102, ?, ?, 'https://example.com/one', ?, 2.5, ?)
+                """, articleId, timestamp.plusMinutes(5),
+                new SqlArrayValue("TEXT", "THEME_B"), timestamp);
 
         Map<String, Object> summary = jdbcTemplate.queryForMap("""
                 SELECT signal_count, event_signal_count, mention_signal_count, gkg_signal_count

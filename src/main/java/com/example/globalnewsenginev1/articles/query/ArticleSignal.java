@@ -1,6 +1,7 @@
 package com.example.globalnewsenginev1.articles.query;
 
 import java.time.Instant;
+import java.util.List;
 
 public record ArticleSignal(
         long id,
@@ -9,7 +10,7 @@ public record ArticleSignal(
         Instant sourceTimestamp,
         Long globalEventId,
         String eventCode,
-        String themes,
+        List<String> themes,
         String persons,
         String organizations,
         String locations,

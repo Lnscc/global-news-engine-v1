@@ -149,7 +149,7 @@ public class ArticleController {
             Instant sourceTimestamp,
             Long globalEventId,
             String eventCode,
-            String themes,
+            List<String> themes,
             String persons,
             String organizations,
             String locations,

@@ -75,6 +75,7 @@
                   "  pm.expect(body.title).to.satisfy(value => value === null || typeof value === 'string');",
                   "  pm.expect(body.titleSource).to.satisfy(value => value === null || typeof value === 'string');",
                   "  pm.expect(body.signals).to.be.an('array');",
+                  "  body.signals.forEach(signal => pm.expect(signal.themes).to.be.an('array'));",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -103,7 +104,7 @@
                 { "key": "limit", "value": "20" }
               ]
             },
-            "description": "Alle Filter sind optional und werden mit AND kombiniert. firstSeenFrom ist inklusiv, firstSeenTo exklusiv."
+            "description": "Alle Filter sind optional und werden mit AND kombiniert. firstSeenFrom ist inklusiv, firstSeenTo exklusiv. theme gleicht einen vollstaendigen normalisierten GKG-Theme-Eintrag exakt ab; CLIMATE trifft nicht CLIMATE_CHANGE."
           },
           "event": [
             {
@@ -116,6 +117,9 @@
                   "  pm.expect(body).to.have.all.keys('articles', 'offset', 'limit', 'total');",
                   "  pm.expect(body.articles).to.be.an('array');",
                   "  pm.expect(body.total).to.be.a('number');",
+                  "});",
+                  "pm.test('Themefilter fordert einen exakten Theme-Wert an', () => {",
+                  "  pm.expect(pm.request.url.query.get('theme')).to.eql('CLIMATE');",
                   "});",
                   "pm.test('Ergebnisse erfuellen Domain und Zeitraum', () => {",
                   "  pm.response.json().articles.forEach(article => {",
@@ -199,7 +203,15 @@
               "script": {
                 "exec": [
                   "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Response ist ein Array', () => pm.expect(pm.response.json()).to.be.an('array'));"
+                  "pm.test('Response enthaelt normalisierte Theme-Haeufigkeiten', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.be.an('array');",
+                  "  body.forEach(item => {",
+                  "    pm.expect(item).to.have.all.keys('name', 'count');",
+                  "    pm.expect(item.name).to.be.a('string').and.not.empty;",
+                  "    pm.expect(item.count).to.be.a('number');",
+                  "  });",
+                  "});"
                 ],
                 "type": "text/javascript"
               }
