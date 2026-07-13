@@ -1,6 +1,6 @@
 # ART-014: Publikationszeit sauber modellieren
 
-Status: offen
+Status: erledigt
 Bereich: articles, gdelt
 
 ## Kontext
@@ -60,3 +60,23 @@ Beobachtungszeitpunkt gespeichert und mit transparenter Quelle ueber die Article
 Die Standardsortierung von `GET /articles` wird in diesem Ticket noch nicht auf `publishedAt`
 umgestellt. Eine solche Aenderung benoetigt nach der Abdeckungsanalyse eine eigene API-Entscheidung.
 
+## Implementierungskommentar
+
+Implementiert am 2026-07-13:
+
+- Die reale Stichprobe umfasst 17.232 GKG-Staging-Zeilen. 9.148 Zeilen (53,09 Prozent) enthalten
+  `PAGE_PRECISEPUBTIMESTAMP`; alle vorhandenen Werte verwenden das 14-stellige
+  `YYYYMMDDHHMMSS`-Format. Analyse und reproduzierbare SQL-Abfrage liegen unter `docs/analysis`.
+- Der Parser interpretiert kalendarisch gueltige Werte gemaess GDELT als UTC. Fehlende, defekte
+  oder mehr als 15 Minuten nach `document_date` liegende Werte werden tolerant als `null`
+  behandelt. In der Stichprobe wurden 8.860 Werte akzeptiert und 288 klare Zukunftswerte verworfen.
+- Migration V12 ergaenzt Staging und `gdelt_gkg_records` und zieht bestehende Raw-Daten mit
+  demselben Parser nach, den auch Neuimporte verwenden.
+- Entsprechend der Modellentscheidung aus ART-018 bleibt der Kandidat am verursachenden GKG-Record,
+  statt als zweite Wahrheit nach `articles` kopiert zu werden. Summary und Detail projizieren den
+  Wert des fruehesten gueltigen GKG-Records nach `source_timestamp` und `id` als `publishedAt` mit
+  `publishedAtSource = GKG_PAGE_PRECISE_PUB_TIMESTAMP`.
+- Parser-, Staging-, Migrations-, Extractor-, Query-, Controller- und Contract-Tests decken
+  nullable Werte, ungueltige Kalenderdaten, Zukunftswerte, Backfill, Neuimport und konkurrierende
+  GKG-Records ab. Postman-Vertrag und Quellenmatrix wurden aktualisiert.
+- `firstSeenAt`, Pagination, Standardsortierung, Detailsignale und Statuscodes bleiben unveraendert.

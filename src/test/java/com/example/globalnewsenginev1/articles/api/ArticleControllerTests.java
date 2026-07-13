@@ -74,16 +74,21 @@ class ArticleControllerTests {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         when(queryService.searchArticles(ArticleSearchCriteria.defaults(), 0, 20)).thenReturn(new ArticlePage(List.of(
                 new ArticleSummary(42, "https://example.org/titled", "example.org", timestamp,
-                        "A GKG headline", "GKG"),
+                        "A GKG headline", "GKG", timestamp, "GKG_PAGE_PRECISE_PUB_TIMESTAMP"),
                 new ArticleSummary(43, "https://example.org/untitled", "example.org", timestamp,
-                        null, null)), 0, 20, 2));
+                        null, null, null, null)), 0, 20, 2));
 
         mockMvc.perform(get("/articles"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.articles[0].title").value("A GKG headline"))
                 .andExpect(jsonPath("$.articles[0].titleSource").value("GKG"))
+                .andExpect(jsonPath("$.articles[0].publishedAt").value("2026-07-01T10:00:00Z"))
+                .andExpect(jsonPath("$.articles[0].publishedAtSource")
+                        .value("GKG_PAGE_PRECISE_PUB_TIMESTAMP"))
                 .andExpect(jsonPath("$.articles[1].title").value((Object) null))
-                .andExpect(jsonPath("$.articles[1].titleSource").value((Object) null));
+                .andExpect(jsonPath("$.articles[1].titleSource").value((Object) null))
+                .andExpect(jsonPath("$.articles[1].publishedAt").value((Object) null))
+                .andExpect(jsonPath("$.articles[1].publishedAtSource").value((Object) null));
     }
 
     @Test
@@ -114,7 +119,8 @@ class ArticleControllerTests {
                 null, null, null, null, null, null);
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
                 42, "https://example.org/article", "example.org", timestamp,
-                "A GKG headline", "GKG", timestamp, timestamp,
+                "A GKG headline", "GKG", timestamp, "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
+                timestamp, timestamp,
                 List.of(signal))));
         when(queryService.articleDetail(99)).thenReturn(Optional.empty());
 
@@ -124,6 +130,8 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.canonicalUrl").value("https://example.org/article"))
                 .andExpect(jsonPath("$.title").value("A GKG headline"))
                 .andExpect(jsonPath("$.titleSource").value("GKG"))
+                .andExpect(jsonPath("$.publishedAt").value("2026-07-01T10:00:00Z"))
+                .andExpect(jsonPath("$.publishedAtSource").value("GKG_PAGE_PRECISE_PUB_TIMESTAMP"))
                 .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"))
                 .andExpect(jsonPath("$.signals[0].themes").isArray())
                 .andExpect(jsonPath("$.signals[0].persons").isArray())
@@ -144,7 +152,7 @@ class ArticleControllerTests {
                 -3.5, 2.0, 5.5, 7.5, 1.25, 0.75, 420);
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
                 42, "https://example.org/article", "example.org", timestamp,
-                null, null, timestamp, timestamp, List.of(signal))));
+                null, null, null, null, timestamp, timestamp, List.of(signal))));
 
         mockMvc.perform(get("/articles/42"))
                 .andExpect(status().isOk())

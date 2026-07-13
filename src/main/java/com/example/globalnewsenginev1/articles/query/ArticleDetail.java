@@ -10,6 +10,8 @@ public record ArticleDetail(
         Instant firstSeenAt,
         String title,
         String titleSource,
+        Instant publishedAt,
+        String publishedAtSource,
         Instant createdAt,
         Instant updatedAt,
         List<ArticleSignal> signals

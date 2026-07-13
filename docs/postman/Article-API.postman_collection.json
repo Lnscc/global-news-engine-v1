@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "33af713d-e32f-4a3d-939e-5bb0bb90d003",
     "name": "Global News Engine - Article API",
-    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich normalisierter GKG-Personen, Organisationen, Orte und Tone-Komponenten, Artikelsuche und Extraction Health.",
+    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich nullable GKG-Publikationszeit, normalisierter GKG-Personen, Organisationen, Orte und Tone-Komponenten, Artikelsuche und Extraction Health.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -36,9 +36,12 @@
                   "  pm.expect(body).to.have.all.keys('articles', 'offset', 'limit', 'total');",
                   "  pm.expect(body.articles).to.be.an('array');",
                   "  body.articles.forEach(article => {",
-                  "    pm.expect(article).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'titleSource');",
+                  "    pm.expect(article).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'titleSource', 'publishedAt', 'publishedAtSource');",
                   "    pm.expect(article.title).to.satisfy(value => value === null || typeof value === 'string');",
                   "    pm.expect(article.titleSource).to.satisfy(value => value === null || typeof value === 'string');",
+                  "    pm.expect(article.publishedAt).to.satisfy(value => value === null || !Number.isNaN(Date.parse(value)));",
+                  "    pm.expect(article.publishedAtSource).to.satisfy(value => value === null || value === 'GKG_PAGE_PRECISE_PUB_TIMESTAMP');",
+                  "    pm.expect(article.publishedAt === null).to.eql(article.publishedAtSource === null);",
                   "  });",
                   "});",
                   "const body = pm.response.json();",
@@ -61,7 +64,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["articles", "{{articleId}}"]
             },
-            "description": "Verwendet articleId aus dem Environment. GKG-Signale liefern Personen und Organisationen als Arrays, Orte als typisierte Objekte und Tone als sieben nullable Felder."
+            "description": "Verwendet articleId aus dem Environment. publishedAt wird nullable aus PAGE_PRECISEPUBTIMESTAMP projiziert. GKG-Signale liefern Personen und Organisationen als Arrays, Orte als typisierte Objekte und Tone als sieben nullable Felder."
           },
           "event": [
             {
@@ -71,9 +74,12 @@
                   "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
                   "pm.test('Detail enthaelt stabile Felder', () => {",
                   "  const body = pm.response.json();",
-                  "  pm.expect(body).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'titleSource', 'createdAt', 'updatedAt', 'signals');",
+                  "  pm.expect(body).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'titleSource', 'publishedAt', 'publishedAtSource', 'createdAt', 'updatedAt', 'signals');",
                   "  pm.expect(body.title).to.satisfy(value => value === null || typeof value === 'string');",
                   "  pm.expect(body.titleSource).to.satisfy(value => value === null || typeof value === 'string');",
+                  "  pm.expect(body.publishedAt).to.satisfy(value => value === null || !Number.isNaN(Date.parse(value)));",
+                  "  pm.expect(body.publishedAtSource).to.satisfy(value => value === null || value === 'GKG_PAGE_PRECISE_PUB_TIMESTAMP');",
+                  "  pm.expect(body.publishedAt === null).to.eql(body.publishedAtSource === null);",
                   "  pm.expect(body.signals).to.be.an('array');",
                   "  body.signals.forEach(signal => {",
                   "    pm.expect(signal).to.have.all.keys('id', 'signalType', 'sourceId', 'sourceTimestamp', 'globalEventId', 'eventCode', 'themes', 'persons', 'organizations', 'locations', 'toneValue', 'tonePositiveScore', 'toneNegativeScore', 'tonePolarity', 'toneActivityReferenceDensity', 'toneSelfGroupReferenceDensity', 'toneWordCount');",

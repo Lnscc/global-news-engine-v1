@@ -54,6 +54,7 @@ public class GdeltParserTests {
         assertThat(gkg.persons()).isEqualTo("Jane Doe");
         assertThat(gkg.organizations()).isEqualTo("Example Org");
         assertThat(gkg.locations()).isEqualTo("1#Berlin#GM#GM16#52.5#13.4#-1746443");
+        assertThat(gkg.pagePrecisePublicationTime()).isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
         assertThat(gkg.pageTitle()).isEqualTo("First Rain Exposes Flaws In ₹28 Lakh & More");
     }
 
@@ -71,6 +72,27 @@ public class GdeltParserTests {
         repeated[26] = "<PAGE_TITLE> </PAGE_TITLE><PAGE_TITLE> Second &amp; valid </PAGE_TITLE>";
         assertThat(new GdeltGkgParser().parse(joinNullable(repeated)).pageTitle())
                 .isEqualTo("Second & valid");
+    }
+
+    @Test
+    void toleratesInvalidAndImplausiblePrecisePublicationTimes() {
+        String[] malformed = gkgColumns();
+        malformed[26] = "<PAGE_PRECISEPUBTIMESTAMP>not-a-date</PAGE_PRECISEPUBTIMESTAMP>";
+        assertThat(new GdeltGkgParser().parse(joinNullable(malformed)).pagePrecisePublicationTime()).isNull();
+
+        String[] invalidCalendar = gkgColumns();
+        invalidCalendar[26] = "<PAGE_PRECISEPUBTIMESTAMP>20260230120000</PAGE_PRECISEPUBTIMESTAMP>";
+        assertThat(new GdeltGkgParser().parse(joinNullable(invalidCalendar)).pagePrecisePublicationTime()).isNull();
+
+        String[] future = gkgColumns();
+        future[26] = "<PAGE_PRECISEPUBTIMESTAMP>20260705121600</PAGE_PRECISEPUBTIMESTAMP>";
+        assertThat(new GdeltGkgParser().parse(joinNullable(future)).pagePrecisePublicationTime()).isNull();
+
+        String[] repeated = gkgColumns();
+        repeated[26] = "<PAGE_PRECISEPUBTIMESTAMP>invalid</PAGE_PRECISEPUBTIMESTAMP>"
+                + "<PAGE_PRECISEPUBTIMESTAMP>20260705115500</PAGE_PRECISEPUBTIMESTAMP>";
+        assertThat(new GdeltGkgParser().parse(joinNullable(repeated)).pagePrecisePublicationTime())
+                .isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
     }
 
     @Test
@@ -124,7 +146,7 @@ public class GdeltParserTests {
         columns[11] = "Jane Doe";
         columns[13] = "Example Org";
         columns[15] = "-1.5,2,3,4,5,6";
-        columns[26] = "<PAGE_PRECISEPUBTIMESTAMP>20260711181500</PAGE_PRECISEPUBTIMESTAMP>"
+        columns[26] = "<PAGE_PRECISEPUBTIMESTAMP>20260705115500</PAGE_PRECISEPUBTIMESTAMP>"
                 + "<PAGE_TITLE> First Rain Exposes Flaws In &#x20B9;28 Lakh &amp; More </PAGE_TITLE>"
                 + "<PAGE_AUTHORS>Jane Doe</PAGE_AUTHORS>";
         return columns;

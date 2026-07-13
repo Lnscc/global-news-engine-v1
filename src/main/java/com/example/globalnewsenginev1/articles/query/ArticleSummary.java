@@ -8,6 +8,8 @@ public record ArticleSummary(
         String domain,
         Instant firstSeenAt,
         String title,
-        String titleSource
+        String titleSource,
+        Instant publishedAt,
+        String publishedAtSource
 ) {
 }

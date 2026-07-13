@@ -75,13 +75,14 @@ erneuten Job-Laeufen nicht doppelt eingefuegt.
 ### `gdelt_gkg_records`
 
 Jede GKG-Staging-Zeile wird als eigener Record mit `source_id`, `article_id`, Zeitstempel,
-Dokumentkennung, Seitentitel, unveraenderten Raw-Mehrfachwerten und Tone persistiert. Mehrere
+Dokumentkennung, Seitentitel, nullablem `page_precise_pub_timestamp`, normalisierten Mehrfachwerten
+und Tone persistiert. Mehrere
 GKG-Analysen desselben Artikels bleiben getrennt. `source_id` ist eindeutig und referenziert
 `gdelt_stage_gkg.id`; dadurch sind Neuimport und Backfill idempotent.
 
-Die Raw-Felder `themes_raw`, `persons_raw`, `organizations_raw`, `locations_raw` und `tone_raw`
-bleiben zur Provenienz erhalten. Die API projiziert GKG-Records weiterhin als Signale, sodass der
-REST-Vertrag unveraendert bleibt.
+Die unveraenderten Rohwerte bleiben in Raw und Staging zur Provenienz erhalten. Das Produktmodell
+speichert Themes, Personen und Organisationen als Arrays, Orte als typisierte JSON-Liste und Tone
+in einzelnen Messfeldern. Die API projiziert GKG-Records weiterhin als Signale.
 
 ### `article_extraction_errors`
 
@@ -136,7 +137,7 @@ umgedeutet.
 | `canonicalUrl` | `source_url`, `mention_identifier`, `document_identifier` | finale URL nur fuer relative Verweise | bestehende Artikelidentitaet gewinnt |
 | `domain` | aus kanonischer URL | keine | bestehender Artikelwert gewinnt |
 | `title` | GKG-Feld 27: `PAGE_TITLE` | spaeter optional | GDELT nach HTML-Dekodierung ist primaer |
-| `publishedAt` | `PAGE_PRECISEPUBTIMESTAMP` ist zu analysieren; Signalzeiten sind ungeeignet | spaeter optional | noch nicht festgelegt |
+| `publishedAt` | GKG-Feld 27: strikt validiertes `PAGE_PRECISEPUBTIMESTAMP` in UTC | spaeter optional | fruehester GKG-Record mit gueltigem Kandidaten gewinnt |
 | `language` | kein derzeit persistiertes Feld | spaeter optional | noch nicht verfuegbar |
 | `mainImageUrl` | nicht nachgewiesen | spaeter optional | noch nicht verfuegbar |
 | `extractedText` | keines | spaeter optional | noch nicht verfuegbar |
@@ -145,8 +146,11 @@ umgedeutet.
 Crawler ist aktuell nicht aktiv und wird erst bei nachgewiesenem Bedarf wieder eingefuehrt.
 Leere, fehlende und defekte `PAGE_TITLE`-Tags ergeben keinen Titel und blockieren die anderen
 GKG-Felder nicht. Bei Wiederholungen wird der erste nicht leere, korrekt geschlossene Titel
-verwendet. `PAGE_PRECISEPUBTIMESTAMP` und `PAGE_AUTHORS` werden bewusst noch nicht persistiert:
-Zeitstempelsemantik und ein normalisiertes Autorenmodell muessen separat geklaert werden.
+verwendet. `PAGE_PRECISEPUBTIMESTAMP` wird am GKG-Record persistiert und als nullable
+`publishedAt` mit Quelle `GKG_PAGE_PRECISE_PUB_TIMESTAMP` ueber die Article API projiziert.
+Ungueltige sowie mehr als 15 Minuten nach `document_date` liegende Werte werden verworfen.
+`PAGE_AUTHORS` wird bewusst noch nicht persistiert; ein normalisiertes Autorenmodell muss separat
+geklaert werden.
 
 Migration V7 markiert bestehende Staging-Zeilen mit `metadata_extracted = false`. Der Staging-Job
 parst diese Zeilen kontrolliert aus dem unveraenderten Raw-TSV nach und setzt die Markierung. Der

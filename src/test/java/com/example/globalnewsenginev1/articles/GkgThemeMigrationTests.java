@@ -1,6 +1,8 @@
 package com.example.globalnewsenginev1.articles;
 
 import db.migration.V11__normalize_remaining_gkg_values;
+import db.migration.V12__add_gkg_publication_time;
+import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -37,19 +39,50 @@ class GkgThemeMigrationTests {
                 """, timestamp, timestamp, timestamp);
         Long articleId = jdbcTemplate.queryForObject("SELECT id FROM articles", Long.class);
         jdbcTemplate.update("""
+                INSERT INTO gdelt_import_files
+                    (dataset_type, source_file, source_url, source_timestamp, status, row_count,
+                     started_at, completed_at)
+                VALUES ('GKG', 'sample.gkg.csv.zip', 'http://localhost/sample', ?, 'COMPLETED', 1, ?, ?)
+                """, timestamp, timestamp, timestamp);
+        Long importFileId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_import_files", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_raw_gkg
+                    (import_file_id, source_file, source_timestamp, row_number, raw_tsv, ingested_at)
+                VALUES (?, 'sample.gkg.csv.zip', ?, 1, ?, ?)
+                """, importFileId, timestamp, GdeltParserTests.gkgRow(), timestamp);
+        Long rawId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_raw_gkg", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_stage_gkg
+                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                     gkg_record_id, document_date, document_identifier, metadata_extracted)
+                VALUES (?, ?, 'sample.gkg.csv.zip', ?, 1, ?, '20260705120000-1', ?,
+                        'https://example.org/a', TRUE)
+                """, rawId, importFileId, timestamp, timestamp,
+                OffsetDateTime.parse("2026-07-05T12:00:00Z"));
+        Long stageId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_stage_gkg", Long.class);
+        jdbcTemplate.update("""
+                UPDATE gdelt_stage_gkg
+                SET persons = ' Jane Doe;;John Doe;Jane Doe ',
+                    organizations = ' Example Org;Example Org ',
+                    locations = '4#Exeter, Devon, United Kingdom#UK#UKD4#50.7#-3.53333#-2595805;bad',
+                    tone = '-3.5,2.0,5.5,7.5,1.25,0.75,420'
+                WHERE id = ?
+                """, stageId);
+        jdbcTemplate.update("""
                 INSERT INTO gdelt_gkg_records
                     (source_id, article_id, source_timestamp, themes_raw, persons_raw,
                      organizations_raw, locations_raw, tone_raw, created_at)
-                VALUES (1, ?, ?, ' CLIMATE ; ;ENERGY;CLIMATE;CLIMATE_CHANGE ',
+                VALUES (?, ?, ?, ' CLIMATE ; ;ENERGY;CLIMATE;CLIMATE_CHANGE ',
                         ' Jane Doe;;John Doe;Jane Doe ', ' Example Org;Example Org ',
                         '4#Exeter, Devon, United Kingdom#UK#UKD4#50.7#-3.53333#-2595805;bad',
                         '-3.5,2.0,5.5,7.5,1.25,0.75,420', ?)
-                """, articleId, timestamp, timestamp);
+                """, stageId, articleId, timestamp, timestamp);
 
         try (Connection connection = dataSource.getConnection()) {
             execute(connection, "V9__normalize_gkg_themes.sql");
             execute(connection, "V10__store_gkg_themes_as_array.sql");
             new V11__normalize_remaining_gkg_values().migrate(connection);
+            new V12__add_gkg_publication_time().migrate(connection);
         }
 
         java.util.List<String> themes = jdbcTemplate.queryForObject("SELECT themes FROM gdelt_gkg_records",
@@ -83,6 +116,12 @@ class GkgThemeMigrationTests {
                 .containsEntry("TONE_VALUE", -3.5)
                 .containsEntry("TONE_POSITIVE_SCORE", 2.0)
                 .containsEntry("TONE_WORD_COUNT", 420);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT page_precise_pub_timestamp FROM gdelt_stage_gkg", OffsetDateTime.class))
+                .isEqualTo(OffsetDateTime.parse("2026-07-05T11:55:00Z"));
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT page_precise_pub_timestamp FROM gdelt_gkg_records", OffsetDateTime.class))
+                .isEqualTo(OffsetDateTime.parse("2026-07-05T11:55:00Z"));
     }
 
     private void execute(Connection connection, String migration) {

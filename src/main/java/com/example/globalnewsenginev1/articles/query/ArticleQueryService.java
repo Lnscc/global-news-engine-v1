@@ -53,7 +53,10 @@ public class ArticleQueryService {
                 SELECT articles.id, canonical_url, domain, first_seen_at,
                        (SELECT g.page_title FROM gdelt_gkg_records g
                         WHERE g.article_id = articles.id AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> ''
-                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS title
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS title,
+                       (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg_records g
+                        WHERE g.article_id = articles.id AND g.page_precise_pub_timestamp IS NOT NULL
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at
                 FROM articles
                 """ + whereClause + " ORDER BY first_seen_at " + direction + ", id " + direction + " " + """
                 LIMIT ? OFFSET ?
@@ -66,7 +69,10 @@ public class ArticleQueryService {
                 resultSet.getString("domain"),
                 instant(resultSet, "first_seen_at"),
                 resultSet.getString("title"),
-                resultSet.getString("title") == null ? null : "GKG"), parameters.toArray());
+                resultSet.getString("title") == null ? null : "GKG",
+                nullableInstant(resultSet, "published_at"),
+                resultSet.getTimestamp("published_at") == null
+                        ? null : "GKG_PAGE_PRECISE_PUB_TIMESTAMP"), parameters.toArray());
         parameters.remove(parameters.size() - 1);
         parameters.remove(parameters.size() - 1);
         long total = jdbcTemplate.queryForObject(
@@ -142,6 +148,9 @@ public class ArticleQueryService {
                        (SELECT g.page_title FROM gdelt_gkg_records g
                         WHERE g.article_id = articles.id AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> ''
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS title,
+                       (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg_records g
+                        WHERE g.article_id = articles.id AND g.page_precise_pub_timestamp IS NOT NULL
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at,
                        created_at, updated_at
                 FROM articles
                 WHERE articles.id = ?
@@ -152,11 +161,15 @@ public class ArticleQueryService {
                 instant(resultSet, "first_seen_at"),
                 resultSet.getString("title"),
                 resultSet.getString("title") == null ? null : "GKG",
+                nullableInstant(resultSet, "published_at"),
+                resultSet.getTimestamp("published_at") == null
+                        ? null : "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
                 instant(resultSet, "created_at"),
                 instant(resultSet, "updated_at")), articleId);
         return articles.stream().findFirst().map(article -> new ArticleDetail(
                 article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
                 article.title(), article.titleSource(),
+                article.publishedAt(), article.publishedAtSource(),
                 article.createdAt(), article.updatedAt(), signalsFor(articleId)));
     }
 
@@ -287,6 +300,11 @@ public class ArticleQueryService {
         return resultSet.wasNull() ? null : value;
     }
 
+    private java.time.Instant nullableInstant(ResultSet resultSet, String column) throws SQLException {
+        java.sql.Timestamp value = resultSet.getTimestamp(column);
+        return value == null ? null : value.toInstant();
+    }
+
     private Integer nullableInteger(ResultSet resultSet, String column) throws SQLException {
         int value = resultSet.getInt(column);
         return resultSet.wasNull() ? null : value;
@@ -299,6 +317,8 @@ public class ArticleQueryService {
             java.time.Instant firstSeenAt,
             String title,
             String titleSource,
+            java.time.Instant publishedAt,
+            String publishedAtSource,
             java.time.Instant createdAt,
             java.time.Instant updatedAt
     ) {

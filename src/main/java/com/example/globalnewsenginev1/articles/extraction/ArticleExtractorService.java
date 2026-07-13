@@ -126,6 +126,7 @@ public class ArticleExtractorService {
         Counters counters = new Counters();
         jdbcTemplate.query("""
                 SELECT stage.id, stage.source_timestamp, stage.document_identifier, stage.page_title,
+                       stage.page_precise_pub_timestamp,
                        stage.themes, stage.persons, stage.organizations, stage.locations, stage.tone
                 FROM gdelt_stage_gkg stage
                 LEFT JOIN gdelt_gkg_records record ON record.source_id = stage.id
@@ -141,6 +142,7 @@ public class ArticleExtractorService {
                     resultSet.getTimestamp("source_timestamp").toInstant(),
                     resultSet.getString("document_identifier"),
                     resultSet.getString("page_title"),
+                    nullableInstant(resultSet, "page_precise_pub_timestamp"),
                     resultSet.getString("themes"),
                     resultSet.getString("persons"),
                     resultSet.getString("organizations"),
@@ -176,13 +178,14 @@ public class ArticleExtractorService {
             jdbcTemplate.update("""
                     INSERT INTO gdelt_gkg_records
                         (source_id, article_id, source_timestamp, document_identifier, page_title,
+                         page_precise_pub_timestamp,
                          themes, persons, organizations, locations, tone_value,
                          tone_positive_score, tone_negative_score, tone_polarity,
                          tone_activity_reference_density, tone_self_group_reference_density,
                          tone_word_count, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, ?)
                     """, record.sourceId(), article.articleId(), utc(record.sourceTimestamp()),
-                    record.documentIdentifier(), record.pageTitle(),
+                    record.documentIdentifier(), record.pageTitle(), nullableUtc(record.pagePrecisePublicationTime()),
                     new SqlArrayValue("TEXT", themes.toArray()),
                     new SqlArrayValue("TEXT", values.persons().toArray()),
                     new SqlArrayValue("TEXT", values.organizations().toArray()),
@@ -294,15 +297,25 @@ public class ArticleExtractorService {
         return resultSet.wasNull() ? null : value;
     }
 
+    private Instant nullableInstant(ResultSet resultSet, String column) throws SQLException {
+        java.sql.Timestamp value = resultSet.getTimestamp(column);
+        return value == null ? null : value.toInstant();
+    }
+
     private OffsetDateTime utc(Instant instant) {
         return instant.atOffset(ZoneOffset.UTC);
+    }
+
+    private OffsetDateTime nullableUtc(Instant instant) {
+        return instant == null ? null : utc(instant);
     }
 
     private record ArticleUpsert(Long articleId, boolean created) {
     }
 
     private record GkgStageRecord(long sourceId, Instant sourceTimestamp, String documentIdentifier,
-                                  String pageTitle, String themesRaw, String personsRaw,
+                                  String pageTitle, Instant pagePrecisePublicationTime,
+                                  String themesRaw, String personsRaw,
                                   String organizationsRaw, String locationsRaw, String toneRaw) { }
 
     private record StageSignal(
