@@ -1,5 +1,7 @@
 package com.example.globalnewsenginev1.articles.query;
 
+import com.example.globalnewsenginev1.articles.normalization.GkgLocation;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -11,10 +13,15 @@ public record ArticleSignal(
         Long globalEventId,
         String eventCode,
         List<String> themes,
-        String persons,
-        String organizations,
-        String locations,
+        List<String> persons,
+        List<String> organizations,
+        List<GkgLocation> locations,
         Double toneValue,
-        String toneRaw
+        Double tonePositiveScore,
+        Double toneNegativeScore,
+        Double tonePolarity,
+        Double toneActivityReferenceDensity,
+        Double toneSelfGroupReferenceDensity,
+        Integer toneWordCount
 ) {
 }

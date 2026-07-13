@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.articles;
 
+import db.migration.V11__normalize_remaining_gkg_values;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ class ArticleDatabaseViewsTests {
                     new ClassPathResource("db/migration/V9__normalize_gkg_themes.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
+            new V11__normalize_remaining_gkg_values().migrate(connection);
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
@@ -65,10 +67,11 @@ class ArticleDatabaseViewsTests {
         jdbcTemplate.update("""
                 INSERT INTO gdelt_gkg_records
                     (source_id, article_id, source_timestamp, document_identifier, themes,
-                     tone_value, created_at)
-                VALUES (102, ?, ?, 'https://example.com/one', ?, 2.5, ?)
+                     persons, organizations, locations, tone_value, created_at)
+                VALUES (102, ?, ?, 'https://example.com/one', ?, ?, ?, CAST('[]' AS JSON), 2.5, ?)
                 """, articleId, timestamp.plusMinutes(5),
-                new SqlArrayValue("TEXT", "THEME_B"), timestamp);
+                new SqlArrayValue("TEXT", "THEME_B"), new SqlArrayValue("TEXT"),
+                new SqlArrayValue("TEXT"), timestamp);
 
         Map<String, Object> summary = jdbcTemplate.queryForMap("""
                 SELECT signal_count, event_signal_count, mention_signal_count, gkg_signal_count

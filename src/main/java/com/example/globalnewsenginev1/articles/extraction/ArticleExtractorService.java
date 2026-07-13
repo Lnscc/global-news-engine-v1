@@ -2,14 +2,19 @@ package com.example.globalnewsenginev1.articles.extraction;
 
 import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizationException;
 import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizer;
+import com.example.globalnewsenginev1.articles.normalization.GkgValueNormalizer;
 import com.example.globalnewsenginev1.articles.normalization.NormalizedArticleUrl;
+import com.example.globalnewsenginev1.articles.normalization.NormalizedGkgValues;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.SqlArrayValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,11 +27,14 @@ import java.util.List;
 @Service
 public class ArticleExtractorService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ArticleExtractorService.class);
+
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
     private final ArticleUrlNormalizer urlNormalizer;
+    private final ObjectMapper objectMapper;
+    private final GkgValueNormalizer gkgValueNormalizer;
 
-    @Autowired
     public ArticleExtractorService(
             JdbcTemplate jdbcTemplate,
             TransactionTemplate transactionTemplate,
@@ -35,6 +43,8 @@ public class ArticleExtractorService {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.urlNormalizer = urlNormalizer;
+        this.objectMapper = new ObjectMapper();
+        this.gkgValueNormalizer = new GkgValueNormalizer();
     }
 
     public ArticleExtractionResult extractArticles(int batchSize) {
@@ -126,7 +136,6 @@ public class ArticleExtractorService {
                 ORDER BY stage.id
                 LIMIT ?
                 """, resultSet -> {
-            String toneRaw = resultSet.getString("tone");
             GkgStageRecord record = new GkgStageRecord(
                     resultSet.getLong("id"),
                     resultSet.getTimestamp("source_timestamp").toInstant(),
@@ -136,8 +145,7 @@ public class ArticleExtractorService {
                     resultSet.getString("persons"),
                     resultSet.getString("organizations"),
                     resultSet.getString("locations"),
-                    parseGkgToneValue(toneRaw),
-                    toneRaw);
+                    resultSet.getString("tone"));
             processGkg(record, counters);
         }, batchSize);
         return counters.result();
@@ -163,17 +171,30 @@ public class ArticleExtractorService {
             NormalizedArticleUrl normalizedUrl = urlNormalizer.normalize(record.documentIdentifier());
             ArticleUpsert article = upsertArticle(normalizedUrl, record.sourceTimestamp());
             List<String> themes = normalizeThemes(record.themesRaw());
+            NormalizedGkgValues values = gkgValueNormalizer.normalize(
+                    record.personsRaw(), record.organizationsRaw(), record.locationsRaw(), record.toneRaw());
             jdbcTemplate.update("""
                     INSERT INTO gdelt_gkg_records
                         (source_id, article_id, source_timestamp, document_identifier, page_title,
-                         themes, persons_raw, organizations_raw, locations_raw,
-                         tone_raw, tone_value, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                         themes, persons, organizations, locations, tone_value,
+                         tone_positive_score, tone_negative_score, tone_polarity,
+                         tone_activity_reference_density, tone_self_group_reference_density,
+                         tone_word_count, created_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, ?)
                     """, record.sourceId(), article.articleId(), utc(record.sourceTimestamp()),
                     record.documentIdentifier(), record.pageTitle(),
-                    new SqlArrayValue("TEXT", themes.toArray()), record.personsRaw(),
-                    record.organizationsRaw(), record.locationsRaw(), record.toneRaw(), record.toneValue(),
+                    new SqlArrayValue("TEXT", themes.toArray()),
+                    new SqlArrayValue("TEXT", values.persons().toArray()),
+                    new SqlArrayValue("TEXT", values.organizations().toArray()),
+                    locationsJson(values), values.tone().value(), values.tone().positiveScore(),
+                    values.tone().negativeScore(), values.tone().polarity(),
+                    values.tone().activityReferenceDensity(), values.tone().selfGroupReferenceDensity(),
+                    values.tone().wordCount(),
                     utc(Instant.now()));
+            if (values.discardedLocationCount() > 0) {
+                LOGGER.warn("Discarded malformed GKG locations: source_id={}, discarded_location_count={}",
+                        record.sourceId(), values.discardedLocationCount());
+            }
             counters.signalsCreated++;
             if (article.created()) counters.articlesCreated++;
         } catch (ArticleUrlNormalizationException exception) {
@@ -255,15 +276,11 @@ public class ArticleExtractorService {
                 errorCode, errorMessage, utc(Instant.now()));
     }
 
-    private Double parseGkgToneValue(String toneRaw) {
-        if (toneRaw == null || toneRaw.isBlank()) {
-            return null;
-        }
-        String firstValue = toneRaw.split(",", 2)[0];
+    private String locationsJson(NormalizedGkgValues values) {
         try {
-            return Double.valueOf(firstValue);
-        } catch (NumberFormatException exception) {
-            return null;
+            return objectMapper.writeValueAsString(values.locations());
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Could not serialize normalized GKG locations", exception);
         }
     }
 
@@ -286,8 +303,7 @@ public class ArticleExtractorService {
 
     private record GkgStageRecord(long sourceId, Instant sourceTimestamp, String documentIdentifier,
                                   String pageTitle, String themesRaw, String personsRaw,
-                                  String organizationsRaw, String locationsRaw, Double toneValue,
-                                  String toneRaw) { }
+                                  String organizationsRaw, String locationsRaw, String toneRaw) { }
 
     private record StageSignal(
             String signalType,

@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.articles.query;
 
+import com.example.globalnewsenginev1.articles.normalization.GkgLocation;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -38,8 +39,11 @@ class ArticleQueryServiceTests {
                     source_id BIGINT NOT NULL UNIQUE, article_id BIGINT NOT NULL REFERENCES articles(id),
                     source_timestamp TIMESTAMP WITH TIME ZONE NOT NULL, document_identifier TEXT,
                     page_title VARCHAR(1000), themes TEXT ARRAY NOT NULL,
-                    persons_raw TEXT, organizations_raw TEXT,
-                    locations_raw TEXT, tone_raw TEXT, tone_value DOUBLE PRECISION,
+                    persons TEXT ARRAY NOT NULL, organizations TEXT ARRAY NOT NULL,
+                    locations JSON NOT NULL, tone_value DOUBLE PRECISION,
+                    tone_positive_score DOUBLE PRECISION, tone_negative_score DOUBLE PRECISION,
+                    tone_polarity DOUBLE PRECISION, tone_activity_reference_density DOUBLE PRECISION,
+                    tone_self_group_reference_density DOUBLE PRECISION, tone_word_count INTEGER,
                     created_at TIMESTAMP WITH TIME ZONE NOT NULL)
                 """);
         queryService = new ArticleQueryService(jdbcTemplate);
@@ -134,6 +138,17 @@ class ArticleQueryServiceTests {
     void returnsArticleDetailWithDifferentSignalTypesInChronologicalOrder() {
         long articleId = insertArticle("https://example.org/article", "example.org", "2026-07-01T10:00:00Z");
         insertGkgRecord(articleId, 3, "2026-07-01T10:15:00Z", null, "THEME_B;THEME_A", -2.5);
+        jdbcTemplate.update("""
+                UPDATE gdelt_gkg_records
+                SET persons = ?, organizations = ?,
+                    locations = CAST(? AS JSON), tone_positive_score = 3.0,
+                    tone_negative_score = 5.5, tone_polarity = 8.5,
+                    tone_activity_reference_density = 1.25,
+                    tone_self_group_reference_density = 0.75, tone_word_count = 420
+                WHERE source_id = 3
+                """, new SqlArrayValue("TEXT", "Jane Doe"), new SqlArrayValue("TEXT", "Example Org"),
+                "[{\"type\":4,\"name\":\"Exeter\",\"countryCode\":\"UK\",\"adm1Code\":\"UKD4\","
+                        + "\"latitude\":50.7,\"longitude\":-3.53333,\"featureId\":\"-2595805\"}]");
         insertSignal(articleId, "EVENTS", 1, "2026-07-01T10:00:00Z", 123L,
                 null, -1.0);
         insertSignal(articleId, "MENTIONS", 2, "2026-07-01T10:05:00Z", 123L,
@@ -146,6 +161,11 @@ class ArticleQueryServiceTests {
                 .containsExactly("EVENTS", "MENTIONS", "GKG");
         assertThat(detail.signals().getFirst().globalEventId()).isEqualTo(123L);
         assertThat(detail.signals().getLast().themes()).containsExactly("THEME_B", "THEME_A");
+        assertThat(detail.signals().getLast().persons()).containsExactly("Jane Doe");
+        assertThat(detail.signals().getLast().organizations()).containsExactly("Example Org");
+        assertThat(detail.signals().getLast().locations()).containsExactly(
+                new GkgLocation(4, "Exeter", "UK", "UKD4", 50.7, -3.53333, "-2595805"));
+        assertThat(detail.signals().getLast().toneWordCount()).isEqualTo(420);
     }
 
     @Test
@@ -214,10 +234,11 @@ class ArticleQueryServiceTests {
         jdbcTemplate.update("""
                 INSERT INTO gdelt_gkg_records
                     (source_id, article_id, source_timestamp, document_identifier, page_title,
-                     themes, tone_value, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                     themes, persons, organizations, locations, tone_value, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?)
                 """, sourceId, articleId, utc(timestamp), "https://example.org/" + sourceId,
-                pageTitle, new SqlArrayValue("TEXT", normalizedThemes(themes).toArray()), tone, utc(timestamp));
+                pageTitle, new SqlArrayValue("TEXT", normalizedThemes(themes).toArray()),
+                new SqlArrayValue("TEXT"), new SqlArrayValue("TEXT"), "[]", tone, utc(timestamp));
     }
 
     private List<String> normalizedThemes(String themes) {

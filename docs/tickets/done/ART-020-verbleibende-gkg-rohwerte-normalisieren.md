@@ -1,6 +1,6 @@
 # ART-020: Verbleibende GKG-Rohwerte normalisieren
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, articles
 
 ## Kontext
@@ -104,3 +104,26 @@ Das Ticket baut auf dem in ART-019 etablierten Array- und API-Modell auf.
 
 Namensaufloesung, Personen- oder Organisations-IDs, Geocoding, Ortszusammenfuehrung,
 Uebersetzungen und semantische Entitaetsbeziehungen sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Implementiert am 2026-07-13:
+
+- Personen und Organisationen werden zentral getrimmt, leerwertfrei, exakt dedupliziert und als
+  geordnete `TEXT[]` gespeichert.
+- Orte werden in sieben typisierte Felder zerlegt und als geordnetes JSON gespeichert. Leere
+  Koordinaten bleiben `null`; fehlerhafte Einzelorte werden verworfen und bei Neuimport sowie
+  Backfill als `discarded_location_count` protokolliert, ohne den Record zu blockieren.
+- Tone wird in die sieben GKG-Komponenten zerlegt; ungueltige Einzelkomponenten bleiben `null` und
+  `tone_word_count` akzeptiert ausschliesslich Ganzzahlen.
+- Flyway V11 normalisiert alle bestehenden Records deterministisch aus den zugehoerigen
+  Staging-Zeilen (mit der bisherigen Rohkopie nur als Fallback), protokolliert reparierte
+  Staging-Abweichungen und entfernt danach die vier `*_raw`-Spalten. Damit verwendet der
+  Backfill denselben Normalisierer wie der Neuimport.
+- ArticleSignal, REST-Contract, Debug-View und Postman-Tests liefern Arrays, typisierte Ortsobjekte
+  und nullable Tone-Felder. Reihenfolge, Pagination und Statuscodes bleiben unveraendert.
+- Reproduzierbare Parser-, Extractor-, Migrations-, Query-, Controller-, View- und Contract-Tests
+  decken leere Werte, Duplikate, nullable Koordinaten, fehlerhafte Einzelorte, alle Tone-Felder und
+  das Entfernen der Rohspalten ab. Die Migration vergleicht dabei den vollstaendigen Backfill gegen
+  die vorhandenen Staging-Zeilen; die getestete Realformat-Stichprobe enthaelt unter anderem den
+  siebenfeldrigen Ort `4#Exeter, Devon, United Kingdom#UK#UKD4#50.7#-3.53333#-2595805`.

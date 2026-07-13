@@ -1,6 +1,7 @@
 package com.example.globalnewsenginev1.articles.extraction;
 
 import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizer;
+import db.migration.V11__normalize_remaining_gkg_values;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,6 +45,7 @@ class ArticleExtractorServiceTests {
                     new ClassPathResource("db/migration/V9__normalize_gkg_themes.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
+            new V11__normalize_remaining_gkg_values().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -69,7 +71,8 @@ class ArticleExtractorServiceTests {
         insertStageEvent(eventRawId, later, "https://example.org/a?utm_source=wire", -1.25);
         insertStageMention(mentionRawId1, later, "https://example.org/a#paragraph", -1.5);
         insertStageMention(mentionRawId2, earlier, "https://EXAMPLE.org/a/", -2.5);
-        insertStageGkg(gkgRawId, later, "https://example.org/a?utm_source=x", "-3.5,2,3", "GDELT title");
+        insertStageGkg(gkgRawId, later, "https://example.org/a?utm_source=x",
+                "-3.5,2,3,5,6,7,321", "GDELT title");
         insertStageGkg(badGkgRawId, later, "not a url", "bad-tone", "Ignored title");
 
         ArticleExtractionResult firstRun = extractorService.extractArticles(100);
@@ -91,15 +94,29 @@ class ArticleExtractorServiceTests {
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT tone_value FROM gdelt_gkg_records
                 """, Double.class)).isEqualTo(-3.5);
+        assertThat(jdbcTemplate.queryForMap("""
+                SELECT tone_positive_score, tone_negative_score, tone_polarity,
+                       tone_activity_reference_density, tone_self_group_reference_density, tone_word_count
+                FROM gdelt_gkg_records
+                """))
+                .containsEntry("TONE_POSITIVE_SCORE", 2.0)
+                .containsEntry("TONE_NEGATIVE_SCORE", 3.0)
+                .containsEntry("TONE_POLARITY", 5.0)
+                .containsEntry("TONE_ACTIVITY_REFERENCE_DENSITY", 6.0)
+                .containsEntry("TONE_SELF_GROUP_REFERENCE_DENSITY", 7.0)
+                .containsEntry("TONE_WORD_COUNT", 321);
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT error_code FROM article_extraction_errors
                 """, String.class)).isEqualTo("INVALID_URL");
         assertThat(jdbcTemplate.queryForMap("""
-                SELECT page_title, persons_raw, organizations_raw, locations_raw
+                SELECT page_title, persons, organizations, locations
                 FROM gdelt_gkg_records
                 """))
-                .containsEntry("PAGE_TITLE", "GDELT title")
-                .containsEntry("PERSONS_RAW", "Jane Doe");
+                .containsEntry("PAGE_TITLE", "GDELT title");
+        assertThat(arrayValues("SELECT persons FROM gdelt_gkg_records"))
+                .containsExactly("Jane Doe");
+        assertThat(jdbcTemplate.queryForObject("SELECT CAST(locations AS VARCHAR) FROM gdelt_gkg_records",
+                String.class)).contains("Berlin").doesNotContain("malformed");
     }
 
     @Test
@@ -199,7 +216,8 @@ class ArticleExtractorServiceTests {
                      page_title, metadata_extracted)
                 SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
                        '20260705120000-' || id, ?, ' THEME ; ;OTHER;THEME ',
-                       'Jane Doe', 'Example Org', '1#Berlin', ?, ?, TRUE
+                       'Jane Doe; Jane Doe; ', ' Example Org ;Example Org',
+                       '1#Berlin#GM#GM16#52.5#13.4#-1746443;malformed', ?, ?, TRUE
                 FROM gdelt_raw_gkg WHERE id = ?
                 """, utc(sourceTimestamp), documentIdentifier, tone, pageTitle, rawId);
     }
@@ -210,7 +228,7 @@ class ArticleExtractorServiceTests {
 
     private java.util.List<String> arrayValues(String query) {
         return jdbcTemplate.queryForObject(query, (resultSet, rowNum) ->
-                java.util.Arrays.stream((Object[]) resultSet.getArray("themes").getArray())
+                java.util.Arrays.stream((Object[]) resultSet.getArray(1).getArray())
                         .map(Object::toString).toList());
     }
 

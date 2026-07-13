@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.articles;
 
+import db.migration.V11__normalize_remaining_gkg_values;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -37,13 +38,18 @@ class GkgThemeMigrationTests {
         Long articleId = jdbcTemplate.queryForObject("SELECT id FROM articles", Long.class);
         jdbcTemplate.update("""
                 INSERT INTO gdelt_gkg_records
-                    (source_id, article_id, source_timestamp, themes_raw, created_at)
-                VALUES (1, ?, ?, ' CLIMATE ; ;ENERGY;CLIMATE;CLIMATE_CHANGE ', ?)
+                    (source_id, article_id, source_timestamp, themes_raw, persons_raw,
+                     organizations_raw, locations_raw, tone_raw, created_at)
+                VALUES (1, ?, ?, ' CLIMATE ; ;ENERGY;CLIMATE;CLIMATE_CHANGE ',
+                        ' Jane Doe;;John Doe;Jane Doe ', ' Example Org;Example Org ',
+                        '4#Exeter, Devon, United Kingdom#UK#UKD4#50.7#-3.53333#-2595805;bad',
+                        '-3.5,2.0,5.5,7.5,1.25,0.75,420', ?)
                 """, articleId, timestamp, timestamp);
 
         try (Connection connection = dataSource.getConnection()) {
             execute(connection, "V9__normalize_gkg_themes.sql");
             execute(connection, "V10__store_gkg_themes_as_array.sql");
+            new V11__normalize_remaining_gkg_values().migrate(connection);
         }
 
         java.util.List<String> themes = jdbcTemplate.queryForObject("SELECT themes FROM gdelt_gkg_records",
@@ -59,6 +65,24 @@ class GkgThemeMigrationTests {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM information_schema.tables WHERE table_name = 'GDELT_GKG_THEMES'",
                 Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM information_schema.columns WHERE table_name = 'GDELT_GKG_RECORDS' "
+                        + "AND column_name IN ('PERSONS_RAW', 'ORGANIZATIONS_RAW', 'LOCATIONS_RAW', 'TONE_RAW')",
+                Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject("SELECT CARDINALITY(persons) FROM gdelt_gkg_records",
+                Integer.class)).isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject("SELECT CARDINALITY(organizations) FROM gdelt_gkg_records",
+                Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("SELECT CAST(locations AS VARCHAR) FROM gdelt_gkg_records",
+                String.class)).contains("Exeter").doesNotContain("bad");
+        assertThat(jdbcTemplate.queryForMap("""
+                SELECT tone_value, tone_positive_score, tone_negative_score, tone_polarity,
+                       tone_activity_reference_density, tone_self_group_reference_density, tone_word_count
+                FROM gdelt_gkg_records
+                """))
+                .containsEntry("TONE_VALUE", -3.5)
+                .containsEntry("TONE_POSITIVE_SCORE", 2.0)
+                .containsEntry("TONE_WORD_COUNT", 420);
     }
 
     private void execute(Connection connection, String migration) {

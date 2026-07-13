@@ -7,6 +7,7 @@ import com.example.globalnewsenginev1.articles.query.ArticleSignal;
 import com.example.globalnewsenginev1.articles.query.ArticleSummary;
 import com.example.globalnewsenginev1.articles.query.ArticleSearchCriteria;
 import com.example.globalnewsenginev1.articles.query.NamedCount;
+import com.example.globalnewsenginev1.articles.normalization.GkgLocation;
 import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealth;
 import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealthService;
 import org.springframework.http.ResponseEntity;
@@ -150,17 +151,25 @@ public class ArticleController {
             Long globalEventId,
             String eventCode,
             List<String> themes,
-            String persons,
-            String organizations,
-            String locations,
+            List<String> persons,
+            List<String> organizations,
+            List<GkgLocation> locations,
             Double toneValue,
-            String toneRaw
+            Double tonePositiveScore,
+            Double toneNegativeScore,
+            Double tonePolarity,
+            Double toneActivityReferenceDensity,
+            Double toneSelfGroupReferenceDensity,
+            Integer toneWordCount
     ) {
         static ArticleSignalResponse from(ArticleSignal signal) {
             return new ArticleSignalResponse(
                     signal.id(), signal.signalType(), signal.sourceId(), signal.sourceTimestamp(),
                     signal.globalEventId(), signal.eventCode(), signal.themes(), signal.persons(),
-                    signal.organizations(), signal.locations(), signal.toneValue(), signal.toneRaw());
+                    signal.organizations(), signal.locations(), signal.toneValue(),
+                    signal.tonePositiveScore(), signal.toneNegativeScore(), signal.tonePolarity(),
+                    signal.toneActivityReferenceDensity(), signal.toneSelfGroupReferenceDensity(),
+                    signal.toneWordCount());
         }
     }
 

@@ -1,5 +1,11 @@
 package com.example.globalnewsenginev1.articles.query;
 
+import com.example.globalnewsenginev1.articles.normalization.GkgLocation;
+import com.example.globalnewsenginev1.articles.normalization.GkgValueNormalizer;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowCallbackHandler;
 import org.springframework.stereotype.Service;
@@ -24,9 +30,12 @@ public class ArticleQueryService {
     public static final int MAX_AGGREGATE_LIMIT = 100;
 
     private final JdbcTemplate jdbcTemplate;
+    private final ObjectMapper objectMapper;
+    private final GkgValueNormalizer gkgValueNormalizer = new GkgValueNormalizer();
 
     public ArticleQueryService(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+        this.objectMapper = new ObjectMapper();
     }
 
     public ArticlePage latestArticles(int offset, int limit) {
@@ -190,14 +199,15 @@ public class ArticleQueryService {
                 nullableLong(resultSet, "global_event_id"),
                 resultSet.getString("event_code"),
                 normalizeThemes(resultSet.getString("themes")),
-                resultSet.getString("persons"),
-                resultSet.getString("organizations"),
-                resultSet.getString("locations"),
+                gkgValueNormalizer.normalizeNames(resultSet.getString("persons")),
+                gkgValueNormalizer.normalizeNames(resultSet.getString("organizations")),
+                gkgValueNormalizer.normalizeLocations(resultSet.getString("locations")).locations(),
                 nullableDouble(resultSet, "tone_value"),
-                resultSet.getString("tone_raw")), articleId));
+                null, null, null, null, null, null), articleId));
         signals.addAll(jdbcTemplate.query("""
-                SELECT id, source_id, source_timestamp, themes, persons_raw, organizations_raw,
-                       locations_raw, tone_value, tone_raw
+                SELECT id, source_id, source_timestamp, themes, persons, organizations, locations,
+                       tone_value, tone_positive_score, tone_negative_score, tone_polarity,
+                       tone_activity_reference_density, tone_self_group_reference_density, tone_word_count
                 FROM gdelt_gkg_records
                 WHERE article_id = ?
                 """, (resultSet, rowNum) -> new ArticleSignal(
@@ -208,11 +218,16 @@ public class ArticleQueryService {
                 null,
                 null,
                 arrayValues(resultSet, "themes"),
-                resultSet.getString("persons_raw"),
-                resultSet.getString("organizations_raw"),
-                resultSet.getString("locations_raw"),
+                arrayValues(resultSet, "persons"),
+                arrayValues(resultSet, "organizations"),
+                locations(resultSet.getString("locations")),
                 nullableDouble(resultSet, "tone_value"),
-                resultSet.getString("tone_raw")), articleId));
+                nullableDouble(resultSet, "tone_positive_score"),
+                nullableDouble(resultSet, "tone_negative_score"),
+                nullableDouble(resultSet, "tone_polarity"),
+                nullableDouble(resultSet, "tone_activity_reference_density"),
+                nullableDouble(resultSet, "tone_self_group_reference_density"),
+                nullableInteger(resultSet, "tone_word_count")), articleId));
         return signals.stream()
                 .sorted(Comparator.comparing(ArticleSignal::sourceTimestamp).thenComparingLong(ArticleSignal::id))
                 .toList();
@@ -230,6 +245,17 @@ public class ArticleQueryService {
         java.sql.Array sqlArray = resultSet.getArray(column);
         if (sqlArray == null) return List.of();
         return Arrays.stream((Object[]) sqlArray.getArray()).map(Object::toString).toList();
+    }
+
+    private List<GkgLocation> locations(String json) {
+        if (json == null || json.isBlank()) return List.of();
+        try {
+            JsonNode node = objectMapper.readTree(json);
+            if (node.isTextual()) node = objectMapper.readTree(node.textValue());
+            return objectMapper.convertValue(node, new TypeReference<>() { });
+        } catch (JsonProcessingException | IllegalArgumentException exception) {
+            throw new IllegalStateException("Stored GKG locations are not valid JSON", exception);
+        }
     }
 
     private void validatePagination(int offset, int limit) {
@@ -258,6 +284,11 @@ public class ArticleQueryService {
 
     private Double nullableDouble(ResultSet resultSet, String column) throws SQLException {
         double value = resultSet.getDouble(column);
+        return resultSet.wasNull() ? null : value;
+    }
+
+    private Integer nullableInteger(ResultSet resultSet, String column) throws SQLException {
+        int value = resultSet.getInt(column);
         return resultSet.wasNull() ? null : value;
     }
 

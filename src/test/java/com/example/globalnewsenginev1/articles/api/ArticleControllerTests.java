@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.articles.api;
 
+import com.example.globalnewsenginev1.articles.normalization.GkgLocation;
 import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealth;
 import com.example.globalnewsenginev1.articles.health.ArticleExtractionHealthService;
 import com.example.globalnewsenginev1.articles.health.SignalTypeExtractionHealth;
@@ -109,7 +110,8 @@ class ArticleControllerTests {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         ArticleSignal signal = new ArticleSignal(
                 7, "EVENTS", 9, timestamp, 123L, "042",
-                List.of(), null, null, null, -1.5, "-1.5");
+                List.of(), List.of(), List.of(), List.of(), -1.5,
+                null, null, null, null, null, null);
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
                 42, "https://example.org/article", "example.org", timestamp,
                 "A GKG headline", "GKG", timestamp, timestamp,
@@ -123,9 +125,36 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.title").value("A GKG headline"))
                 .andExpect(jsonPath("$.titleSource").value("GKG"))
                 .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"))
-                .andExpect(jsonPath("$.signals[0].themes").isArray());
+                .andExpect(jsonPath("$.signals[0].themes").isArray())
+                .andExpect(jsonPath("$.signals[0].persons").isArray())
+                .andExpect(jsonPath("$.signals[0].organizations").isArray())
+                .andExpect(jsonPath("$.signals[0].locations").isArray())
+                .andExpect(jsonPath("$.signals[0].toneRaw").doesNotExist());
         mockMvc.perform(get("/articles/99"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void returnsNormalizedGkgSignalContract() throws Exception {
+        Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
+        ArticleSignal signal = new ArticleSignal(
+                8, "GKG", 10, timestamp, null, null, List.of("CLIMATE"),
+                List.of("Jane Doe"), List.of("Example Org"),
+                List.of(new GkgLocation(4, "Exeter", "UK", "UKD4", 50.7, -3.53333, "-2595805")),
+                -3.5, 2.0, 5.5, 7.5, 1.25, 0.75, 420);
+        when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
+                42, "https://example.org/article", "example.org", timestamp,
+                null, null, timestamp, timestamp, List.of(signal))));
+
+        mockMvc.perform(get("/articles/42"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.signals[0].persons[0]").value("Jane Doe"))
+                .andExpect(jsonPath("$.signals[0].organizations[0]").value("Example Org"))
+                .andExpect(jsonPath("$.signals[0].locations[0].type").value(4))
+                .andExpect(jsonPath("$.signals[0].locations[0].latitude").value(50.7))
+                .andExpect(jsonPath("$.signals[0].tonePositiveScore").value(2.0))
+                .andExpect(jsonPath("$.signals[0].toneWordCount").value(420))
+                .andExpect(jsonPath("$.signals[0].toneRaw").doesNotExist());
     }
 
     @Test

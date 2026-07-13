@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "33af713d-e32f-4a3d-939e-5bb0bb90d003",
     "name": "Global News Engine - Article API",
-    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich Artikelsuche und Filter, nullable GKG-Titelmetadaten und Extraction Health.",
+    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich normalisierter GKG-Personen, Organisationen, Orte und Tone-Komponenten, Artikelsuche und Extraction Health.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -61,7 +61,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["articles", "{{articleId}}"]
             },
-            "description": "Verwendet articleId aus dem Environment. Der Listen-Request aktualisiert die Variable automatisch, wenn Artikel existieren."
+            "description": "Verwendet articleId aus dem Environment. GKG-Signale liefern Personen und Organisationen als Arrays, Orte als typisierte Objekte und Tone als sieben nullable Felder."
           },
           "event": [
             {
@@ -75,7 +75,21 @@
                   "  pm.expect(body.title).to.satisfy(value => value === null || typeof value === 'string');",
                   "  pm.expect(body.titleSource).to.satisfy(value => value === null || typeof value === 'string');",
                   "  pm.expect(body.signals).to.be.an('array');",
-                  "  body.signals.forEach(signal => pm.expect(signal.themes).to.be.an('array'));",
+                  "  body.signals.forEach(signal => {",
+                  "    pm.expect(signal).to.have.all.keys('id', 'signalType', 'sourceId', 'sourceTimestamp', 'globalEventId', 'eventCode', 'themes', 'persons', 'organizations', 'locations', 'toneValue', 'tonePositiveScore', 'toneNegativeScore', 'tonePolarity', 'toneActivityReferenceDensity', 'toneSelfGroupReferenceDensity', 'toneWordCount');",
+                  "    pm.expect(signal.themes).to.be.an('array');",
+                  "    pm.expect(signal.persons).to.be.an('array');",
+                  "    pm.expect(signal.organizations).to.be.an('array');",
+                  "    pm.expect(signal.locations).to.be.an('array');",
+                  "    signal.locations.forEach(location => {",
+                  "      pm.expect(location).to.have.all.keys('type', 'name', 'countryCode', 'adm1Code', 'latitude', 'longitude', 'featureId');",
+                  "      pm.expect(location.type).to.be.a('number');",
+                  "      pm.expect(location.latitude).to.satisfy(value => value === null || typeof value === 'number');",
+                  "      pm.expect(location.longitude).to.satisfy(value => value === null || typeof value === 'number');",
+                  "    });",
+                  "    ['toneValue', 'tonePositiveScore', 'toneNegativeScore', 'tonePolarity', 'toneActivityReferenceDensity', 'toneSelfGroupReferenceDensity', 'toneWordCount'].forEach(field =>",
+                  "      pm.expect(signal[field]).to.satisfy(value => value === null || typeof value === 'number'));",
+                  "  });",
                   "});"
                 ],
                 "type": "text/javascript"
