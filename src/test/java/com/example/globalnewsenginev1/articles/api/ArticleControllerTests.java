@@ -74,9 +74,10 @@ class ArticleControllerTests {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         when(queryService.searchArticles(ArticleSearchCriteria.defaults(), 0, 20)).thenReturn(new ArticlePage(List.of(
                 new ArticleSummary(42, "https://example.org/titled", "example.org", timestamp,
-                        "A GKG headline", "GKG", timestamp, "GKG_PAGE_PRECISE_PUB_TIMESTAMP"),
+                        "A GKG headline", "GKG", timestamp, "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
+                        "https://cdn.example.org/image.jpg", "GKG_SHARING_IMAGE"),
                 new ArticleSummary(43, "https://example.org/untitled", "example.org", timestamp,
-                        null, null, null, null)), 0, 20, 2));
+                        null, null, null, null, null, null)), 0, 20, 2));
 
         mockMvc.perform(get("/articles"))
                 .andExpect(status().isOk())
@@ -85,10 +86,15 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.articles[0].publishedAt").value("2026-07-01T10:00:00Z"))
                 .andExpect(jsonPath("$.articles[0].publishedAtSource")
                         .value("GKG_PAGE_PRECISE_PUB_TIMESTAMP"))
+                .andExpect(jsonPath("$.articles[0].mainImageUrl")
+                        .value("https://cdn.example.org/image.jpg"))
+                .andExpect(jsonPath("$.articles[0].mainImageSource").value("GKG_SHARING_IMAGE"))
                 .andExpect(jsonPath("$.articles[1].title").value((Object) null))
                 .andExpect(jsonPath("$.articles[1].titleSource").value((Object) null))
                 .andExpect(jsonPath("$.articles[1].publishedAt").value((Object) null))
-                .andExpect(jsonPath("$.articles[1].publishedAtSource").value((Object) null));
+                .andExpect(jsonPath("$.articles[1].publishedAtSource").value((Object) null))
+                .andExpect(jsonPath("$.articles[1].mainImageUrl").value((Object) null))
+                .andExpect(jsonPath("$.articles[1].mainImageSource").value((Object) null));
     }
 
     @Test
@@ -120,6 +126,7 @@ class ArticleControllerTests {
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
                 42, "https://example.org/article", "example.org", timestamp,
                 "A GKG headline", "GKG", timestamp, "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
+                "https://cdn.example.org/image.jpg", "GKG_SHARING_IMAGE",
                 timestamp, timestamp,
                 List.of(signal))));
         when(queryService.articleDetail(99)).thenReturn(Optional.empty());
@@ -132,6 +139,8 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.titleSource").value("GKG"))
                 .andExpect(jsonPath("$.publishedAt").value("2026-07-01T10:00:00Z"))
                 .andExpect(jsonPath("$.publishedAtSource").value("GKG_PAGE_PRECISE_PUB_TIMESTAMP"))
+                .andExpect(jsonPath("$.mainImageUrl").value("https://cdn.example.org/image.jpg"))
+                .andExpect(jsonPath("$.mainImageSource").value("GKG_SHARING_IMAGE"))
                 .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"))
                 .andExpect(jsonPath("$.signals[0].themes").isArray())
                 .andExpect(jsonPath("$.signals[0].persons").isArray())
@@ -152,7 +161,7 @@ class ArticleControllerTests {
                 -3.5, 2.0, 5.5, 7.5, 1.25, 0.75, 420);
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
                 42, "https://example.org/article", "example.org", timestamp,
-                null, null, null, null, timestamp, timestamp, List.of(signal))));
+                null, null, null, null, null, null, timestamp, timestamp, List.of(signal))));
 
         mockMvc.perform(get("/articles/42"))
                 .andExpect(status().isOk())

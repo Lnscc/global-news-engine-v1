@@ -13,6 +13,7 @@ public record GdeltStageGkg(
         String organizations,
         String locations,
         String tone,
+        String sharingImageUrl,
         String pageTitle,
         Instant pagePrecisePublicationTime
 ) {

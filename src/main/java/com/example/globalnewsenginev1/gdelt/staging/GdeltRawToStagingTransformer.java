@@ -128,13 +128,14 @@ public class GdeltRawToStagingTransformer {
                             (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
                              gkg_record_id, document_date, source_collection_identifier, source_common_name,
                              document_identifier, themes, persons, organizations, locations, tone,
-                             page_title, page_precise_pub_timestamp, metadata_extracted)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)
+                             sharing_image_url, page_title, page_precise_pub_timestamp, metadata_extracted)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)
                         """,
                         row.rawId(), row.importFileId(), row.sourceFile(), utc(row.sourceTimestamp()),
                         row.rowNumber(), utc(Instant.now()), gkg.gkgRecordId(), nullableUtc(gkg.documentDate()),
                         gkg.sourceCollectionIdentifier(), gkg.sourceCommonName(), gkg.documentIdentifier(),
                         gkg.themes(), gkg.persons(), gkg.organizations(), gkg.locations(), gkg.tone(),
+                        gkg.sharingImageUrl(),
                         gkg.pageTitle(), nullableUtc(gkg.pagePrecisePublicationTime()));
                 staged++;
             } catch (GdeltParseException exception) {
@@ -159,9 +160,10 @@ public class GdeltRawToStagingTransformer {
             GdeltStageGkg gkg = gkgParser.parse(row.rawTsv());
             jdbcTemplate.update("""
                     UPDATE gdelt_stage_gkg
-                    SET page_title = ?, page_precise_pub_timestamp = ?, metadata_extracted = TRUE
+                    SET sharing_image_url = ?, page_title = ?, page_precise_pub_timestamp = ?, metadata_extracted = TRUE
                     WHERE id = ?
-                    """, gkg.pageTitle(), nullableUtc(gkg.pagePrecisePublicationTime()), row.stageId());
+                    """, gkg.sharingImageUrl(), gkg.pageTitle(),
+                    nullableUtc(gkg.pagePrecisePublicationTime()), row.stageId());
         }
     }
 

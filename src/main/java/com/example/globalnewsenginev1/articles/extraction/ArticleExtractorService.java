@@ -126,7 +126,7 @@ public class ArticleExtractorService {
         Counters counters = new Counters();
         jdbcTemplate.query("""
                 SELECT stage.id, stage.source_timestamp, stage.document_identifier, stage.page_title,
-                       stage.page_precise_pub_timestamp,
+                       stage.page_precise_pub_timestamp, stage.sharing_image_url,
                        stage.themes, stage.persons, stage.organizations, stage.locations, stage.tone
                 FROM gdelt_stage_gkg stage
                 LEFT JOIN gdelt_gkg_records record ON record.source_id = stage.id
@@ -143,6 +143,7 @@ public class ArticleExtractorService {
                     resultSet.getString("document_identifier"),
                     resultSet.getString("page_title"),
                     nullableInstant(resultSet, "page_precise_pub_timestamp"),
+                    resultSet.getString("sharing_image_url"),
                     resultSet.getString("themes"),
                     resultSet.getString("persons"),
                     resultSet.getString("organizations"),
@@ -179,13 +180,15 @@ public class ArticleExtractorService {
                     INSERT INTO gdelt_gkg_records
                         (source_id, article_id, source_timestamp, document_identifier, page_title,
                          page_precise_pub_timestamp,
+                         main_image_url, main_image_source,
                          themes, persons, organizations, locations, tone_value,
                          tone_positive_score, tone_negative_score, tone_polarity,
                          tone_activity_reference_density, tone_self_group_reference_density,
                          tone_word_count, created_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, ?)
                     """, record.sourceId(), article.articleId(), utc(record.sourceTimestamp()),
                     record.documentIdentifier(), record.pageTitle(), nullableUtc(record.pagePrecisePublicationTime()),
+                    record.sharingImageUrl(), record.sharingImageUrl() == null ? null : "GKG_SHARING_IMAGE",
                     new SqlArrayValue("TEXT", themes.toArray()),
                     new SqlArrayValue("TEXT", values.persons().toArray()),
                     new SqlArrayValue("TEXT", values.organizations().toArray()),
@@ -315,6 +318,7 @@ public class ArticleExtractorService {
 
     private record GkgStageRecord(long sourceId, Instant sourceTimestamp, String documentIdentifier,
                                   String pageTitle, Instant pagePrecisePublicationTime,
+                                  String sharingImageUrl,
                                   String themesRaw, String personsRaw,
                                   String organizationsRaw, String locationsRaw, String toneRaw) { }
 

@@ -1,6 +1,6 @@
 # ART-017: GKG-Hauptbild am Artikel bereitstellen
 
-Status: offen
+Status: erledigt
 Bereich: articles, gdelt
 
 ## Kontext
@@ -67,3 +67,52 @@ transparenter Quelle am Artikel gespeichert und ueber die Article API ausgegeben
 Copyright-/Lizenzbewertung und externe Webseitenabrufe sind nicht Teil dieses Tickets. Falls die
 Qualitaetsanalyse zeigt, dass `V2.1SHARINGIMAGE` zu viele Logos oder Platzhalter enthaelt, wird vor
 der Persistenz eine begruendete Folgeentscheidung dokumentiert.
+
+## Implementierungskommentar
+
+Implementiert am 2026-07-14:
+
+- Die reproduzierbare lokale Stichprobe umfasst 32.072 GKG-Rohzeilen. Feld 19 war in 28.116 Zeilen
+  vorhanden (87,7 Prozent); 27.343 Kandidaten verwendeten HTTPS und 773 HTTP. Nach der
+  URI-Validierung wurden 28.108 Kandidaten akzeptiert. Acht Kandidaten wurden wegen ungueltiger
+  URI-Syntax verworfen, davon sieben mit einer eckigen Klammer und einer mit Whitespace.
+- Die akzeptierten URLs waren 27 bis 594 Zeichen lang (Median 108). Die zehn haeufigsten Hosts
+  begannen mit `i.iheart.com` (3.232), `image.chitra.live` (1.129), `townsquare.media` (812),
+  `bloximages.chicago2.vip.townnews.com` (754) und `npr-brightspot.s3.amazonaws.com` (550).
+  Zwoelf Rohkandidaten enthielten auffaellige Begriffe wie `logo`, `placeholder`, `default-image`
+  oder `no-image`. Sie werden nicht heuristisch verworfen, weil ein Dateiname allein keine
+  verlaessliche Qualitaetsentscheidung erlaubt; `mainImageSource` macht die begrenzte
+  GKG-Qualitaet transparent.
+- `GdeltGkgParser` liest `V2.1SHARINGIMAGE` aus der nullbasierten Spalte 18. Die Normalisierung
+  trimmt aeusseren Whitespace und akzeptiert ausschliesslich syntaktisch gueltige absolute HTTP-
+  oder HTTPS-URIs mit Authority und maximal 2.048 Zeichen. Ungueltige optionale Werte blockieren
+  das Staging nicht.
+- Migration V13 fuegt `sharing_image_url` im Staging sowie `main_image_url` und
+  `main_image_source` am dauerhaften GKG-Record hinzu und zieht vorhandene Raw-/Staging-Daten mit
+  demselben Parser deterministisch nach. Ein Constraint erlaubt nur das konsistente Paar aus URL
+  und `GKG_SHARING_IMAGE` beziehungsweise zwei `null`-Werten.
+- Entsprechend der Modellentscheidung aus ART-018 liegt das Bild am verursachenden GKG-Record und
+  nicht als zweite Wahrheit in `articles`. ArticleSummary und ArticleDetail projizieren den
+  fruehesten gueltigen Kandidaten nach `source_timestamp` und Record-ID. Spaetere Kandidaten
+  ersetzen ihn nicht; Artikel ohne Bild liefern fuer URL und Quelle `null`.
+- Parser-, Staging-, Migrations-, Extractor-, Query-, Controller- und Contract-Tests decken
+  gueltige, fehlende, ungueltige, ueberlange und konkurrierende Kandidaten sowie den Backfill ab.
+  Die Postman-Collection prueft die beiden nullable Felder und deren Quellenkopplung.
+
+Die Stichprobe ist auf einer lokalen Datenbank nach V13 mit folgender Abfrage reproduzierbar:
+
+```sql
+WITH images AS (
+    SELECT NULLIF(BTRIM(split_part(raw_tsv, chr(9), 19)), '') AS raw_url
+    FROM gdelt_raw_gkg
+)
+SELECT COUNT(*) AS total,
+       COUNT(raw_url) AS present,
+       COUNT(*) FILTER (WHERE raw_url ~* '^https://') AS https,
+       COUNT(*) FILTER (WHERE raw_url ~* '^http://') AS http,
+       COUNT(*) FILTER (WHERE length(raw_url) > 2048) AS too_long,
+       COUNT(*) FILTER (
+           WHERE raw_url ~* '(logo|placeholder|default[-_]?image|no[-_]?image)'
+       ) AS suspicious_name
+FROM images;
+```

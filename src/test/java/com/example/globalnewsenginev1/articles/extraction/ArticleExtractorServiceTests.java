@@ -3,6 +3,7 @@ package com.example.globalnewsenginev1.articles.extraction;
 import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizer;
 import db.migration.V11__normalize_remaining_gkg_values;
 import db.migration.V12__add_gkg_publication_time;
+import db.migration.V13__add_gkg_sharing_image;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,6 +49,7 @@ class ArticleExtractorServiceTests {
                     new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
             new V11__normalize_remaining_gkg_values().migrate(connection);
             new V12__add_gkg_publication_time().migrate(connection);
+            new V13__add_gkg_sharing_image().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -114,10 +116,12 @@ class ArticleExtractorServiceTests {
                 SELECT error_code FROM article_extraction_errors
                 """, String.class)).isEqualTo("INVALID_URL");
         assertThat(jdbcTemplate.queryForMap("""
-                SELECT page_title, persons, organizations, locations
+                SELECT page_title, main_image_url, main_image_source, persons, organizations, locations
                 FROM gdelt_gkg_records
                 """))
-                .containsEntry("PAGE_TITLE", "GDELT title");
+                .containsEntry("PAGE_TITLE", "GDELT title")
+                .containsEntry("MAIN_IMAGE_URL", "https://cdn.example.org/image.jpg")
+                .containsEntry("MAIN_IMAGE_SOURCE", "GKG_SHARING_IMAGE");
         assertThat(arrayValues("SELECT persons FROM gdelt_gkg_records"))
                 .containsExactly("Jane Doe");
         assertThat(jdbcTemplate.queryForObject("SELECT CAST(locations AS VARCHAR) FROM gdelt_gkg_records",
@@ -218,11 +222,12 @@ class ArticleExtractorServiceTests {
                 INSERT INTO gdelt_stage_gkg
                     (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
                      gkg_record_id, document_identifier, themes, persons, organizations, locations, tone,
-                     page_title, page_precise_pub_timestamp, metadata_extracted)
+                     sharing_image_url, page_title, page_precise_pub_timestamp, metadata_extracted)
                 SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
                        '20260705120000-' || id, ?, ' THEME ; ;OTHER;THEME ',
                        'Jane Doe; Jane Doe; ', ' Example Org ;Example Org',
-                       '1#Berlin#GM#GM16#52.5#13.4#-1746443;malformed', ?, ?, ?, TRUE
+                       '1#Berlin#GM#GM16#52.5#13.4#-1746443;malformed', ?,
+                       'https://cdn.example.org/image.jpg', ?, ?, TRUE
                 FROM gdelt_raw_gkg WHERE id = ?
                 """, utc(sourceTimestamp), documentIdentifier, tone, pageTitle,
                 utc(sourceTimestamp.minusSeconds(300)), rawId);

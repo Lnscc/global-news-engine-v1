@@ -2,6 +2,7 @@ package com.example.globalnewsenginev1.articles;
 
 import db.migration.V11__normalize_remaining_gkg_values;
 import db.migration.V12__add_gkg_publication_time;
+import db.migration.V13__add_gkg_sharing_image;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.Test;
@@ -83,6 +84,7 @@ class GkgThemeMigrationTests {
             execute(connection, "V10__store_gkg_themes_as_array.sql");
             new V11__normalize_remaining_gkg_values().migrate(connection);
             new V12__add_gkg_publication_time().migrate(connection);
+            new V13__add_gkg_sharing_image().migrate(connection);
         }
 
         java.util.List<String> themes = jdbcTemplate.queryForObject("SELECT themes FROM gdelt_gkg_records",
@@ -122,6 +124,13 @@ class GkgThemeMigrationTests {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT page_precise_pub_timestamp FROM gdelt_gkg_records", OffsetDateTime.class))
                 .isEqualTo(OffsetDateTime.parse("2026-07-05T11:55:00Z"));
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT sharing_image_url FROM gdelt_stage_gkg", String.class))
+                .isEqualTo("https://cdn.example.org/news/main.jpg?width=1200");
+        assertThat(jdbcTemplate.queryForMap(
+                "SELECT main_image_url, main_image_source FROM gdelt_gkg_records"))
+                .containsEntry("MAIN_IMAGE_URL", "https://cdn.example.org/news/main.jpg?width=1200")
+                .containsEntry("MAIN_IMAGE_SOURCE", "GKG_SHARING_IMAGE");
     }
 
     private void execute(Connection connection, String migration) {

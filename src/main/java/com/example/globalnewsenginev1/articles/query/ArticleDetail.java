@@ -12,6 +12,8 @@ public record ArticleDetail(
         String titleSource,
         Instant publishedAt,
         String publishedAtSource,
+        String mainImageUrl,
+        String mainImageSource,
         Instant createdAt,
         Instant updatedAt,
         List<ArticleSignal> signals

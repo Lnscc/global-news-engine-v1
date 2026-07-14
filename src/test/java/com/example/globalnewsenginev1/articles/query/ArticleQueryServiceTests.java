@@ -39,6 +39,7 @@ class ArticleQueryServiceTests {
                     source_id BIGINT NOT NULL UNIQUE, article_id BIGINT NOT NULL REFERENCES articles(id),
                     source_timestamp TIMESTAMP WITH TIME ZONE NOT NULL, document_identifier TEXT,
                     page_title VARCHAR(1000), page_precise_pub_timestamp TIMESTAMP WITH TIME ZONE,
+                    main_image_url VARCHAR(2048), main_image_source VARCHAR(32),
                     themes TEXT ARRAY NOT NULL,
                     persons TEXT ARRAY NOT NULL, organizations TEXT ARRAY NOT NULL,
                     locations JSON NOT NULL, tone_value DOUBLE PRECISION,
@@ -120,28 +121,37 @@ class ArticleQueryServiceTests {
         long untitledId = insertArticle("https://example.org/untitled", "example.org", "2026-07-01T10:00:00Z");
         insertGkgRecord(titledId, 1, "2026-07-02T10:01:00Z", "A GKG headline", null, null,
                 "2026-07-02T09:45:00Z");
+        jdbcTemplate.update("UPDATE gdelt_gkg_records SET main_image_url = ?, main_image_source = ? WHERE source_id = 1",
+                "https://cdn.example.org/first.jpg", "GKG_SHARING_IMAGE");
         insertGkgRecord(titledId, 2, "2026-07-02T10:02:00Z", null, null, null,
                 "2026-07-02T08:00:00Z");
+        jdbcTemplate.update("UPDATE gdelt_gkg_records SET main_image_url = ?, main_image_source = ? WHERE source_id = 2",
+                "https://cdn.example.org/later.jpg", "GKG_SHARING_IMAGE");
 
         assertThat(queryService.latestArticles(0, 20).articles())
                 .containsExactly(
                         new ArticleSummary(titledId, "https://example.org/titled", "example.org",
                                 Instant.parse("2026-07-02T10:00:00Z"), "A GKG headline", "GKG",
                                 Instant.parse("2026-07-02T09:45:00Z"),
-                                "GKG_PAGE_PRECISE_PUB_TIMESTAMP"),
+                                "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
+                                "https://cdn.example.org/first.jpg", "GKG_SHARING_IMAGE"),
                         new ArticleSummary(untitledId, "https://example.org/untitled", "example.org",
-                                Instant.parse("2026-07-01T10:00:00Z"), null, null, null, null));
+                                Instant.parse("2026-07-01T10:00:00Z"), null, null, null, null, null, null));
 
         ArticleDetail titled = queryService.articleDetail(titledId).orElseThrow();
         assertThat(titled.title()).isEqualTo("A GKG headline");
         assertThat(titled.titleSource()).isEqualTo("GKG");
         assertThat(titled.publishedAt()).isEqualTo(Instant.parse("2026-07-02T09:45:00Z"));
         assertThat(titled.publishedAtSource()).isEqualTo("GKG_PAGE_PRECISE_PUB_TIMESTAMP");
+        assertThat(titled.mainImageUrl()).isEqualTo("https://cdn.example.org/first.jpg");
+        assertThat(titled.mainImageSource()).isEqualTo("GKG_SHARING_IMAGE");
         ArticleDetail untitled = queryService.articleDetail(untitledId).orElseThrow();
         assertThat(untitled.title()).isNull();
         assertThat(untitled.titleSource()).isNull();
         assertThat(untitled.publishedAt()).isNull();
         assertThat(untitled.publishedAtSource()).isNull();
+        assertThat(untitled.mainImageUrl()).isNull();
+        assertThat(untitled.mainImageSource()).isNull();
     }
 
     @Test

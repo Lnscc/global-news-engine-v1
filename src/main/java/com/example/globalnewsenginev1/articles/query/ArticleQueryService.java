@@ -56,7 +56,10 @@ public class ArticleQueryService {
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS title,
                        (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg_records g
                         WHERE g.article_id = articles.id AND g.page_precise_pub_timestamp IS NOT NULL
-                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at,
+                       (SELECT g.main_image_url FROM gdelt_gkg_records g
+                        WHERE g.article_id = articles.id AND g.main_image_url IS NOT NULL
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS main_image_url
                 FROM articles
                 """ + whereClause + " ORDER BY first_seen_at " + direction + ", id " + direction + " " + """
                 LIMIT ? OFFSET ?
@@ -72,7 +75,9 @@ public class ArticleQueryService {
                 resultSet.getString("title") == null ? null : "GKG",
                 nullableInstant(resultSet, "published_at"),
                 resultSet.getTimestamp("published_at") == null
-                        ? null : "GKG_PAGE_PRECISE_PUB_TIMESTAMP"), parameters.toArray());
+                        ? null : "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
+                resultSet.getString("main_image_url"),
+                resultSet.getString("main_image_url") == null ? null : "GKG_SHARING_IMAGE"), parameters.toArray());
         parameters.remove(parameters.size() - 1);
         parameters.remove(parameters.size() - 1);
         long total = jdbcTemplate.queryForObject(
@@ -151,6 +156,9 @@ public class ArticleQueryService {
                        (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg_records g
                         WHERE g.article_id = articles.id AND g.page_precise_pub_timestamp IS NOT NULL
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at,
+                       (SELECT g.main_image_url FROM gdelt_gkg_records g
+                        WHERE g.article_id = articles.id AND g.main_image_url IS NOT NULL
+                        ORDER BY g.source_timestamp, g.id LIMIT 1) AS main_image_url,
                        created_at, updated_at
                 FROM articles
                 WHERE articles.id = ?
@@ -164,12 +172,15 @@ public class ArticleQueryService {
                 nullableInstant(resultSet, "published_at"),
                 resultSet.getTimestamp("published_at") == null
                         ? null : "GKG_PAGE_PRECISE_PUB_TIMESTAMP",
+                resultSet.getString("main_image_url"),
+                resultSet.getString("main_image_url") == null ? null : "GKG_SHARING_IMAGE",
                 instant(resultSet, "created_at"),
                 instant(resultSet, "updated_at")), articleId);
         return articles.stream().findFirst().map(article -> new ArticleDetail(
                 article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
                 article.title(), article.titleSource(),
                 article.publishedAt(), article.publishedAtSource(),
+                article.mainImageUrl(), article.mainImageSource(),
                 article.createdAt(), article.updatedAt(), signalsFor(articleId)));
     }
 
@@ -319,6 +330,8 @@ public class ArticleQueryService {
             String titleSource,
             java.time.Instant publishedAt,
             String publishedAtSource,
+            String mainImageUrl,
+            String mainImageSource,
             java.time.Instant createdAt,
             java.time.Instant updatedAt
     ) {

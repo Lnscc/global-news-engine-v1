@@ -10,6 +10,8 @@ public record ArticleSummary(
         String title,
         String titleSource,
         Instant publishedAt,
-        String publishedAtSource
+        String publishedAtSource,
+        String mainImageUrl,
+        String mainImageSource
 ) {
 }

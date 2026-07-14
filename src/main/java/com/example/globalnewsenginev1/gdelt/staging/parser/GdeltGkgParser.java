@@ -17,6 +17,7 @@ public class GdeltGkgParser {
 
     private static final int MINIMUM_COLUMNS = 16;
     private static final int EXTRAS_XML_COLUMN = 26;
+    private static final int SHARING_IMAGE_COLUMN = 18;
     private static final int MAX_TITLE_LENGTH = 1_000;
     private static final Duration MAX_PUBLICATION_TIME_FUTURE_SKEW = Duration.ofMinutes(15);
     private static final DateTimeFormatter PRECISE_PUBLICATION_TIME =
@@ -41,9 +42,15 @@ public class GdeltGkgParser {
                 GdeltTsv.text(columns, 13),
                 GdeltTsv.text(columns, 9),
                 GdeltTsv.text(columns, 15),
+                sharingImageUrl(columns),
                 pageTitle(columns),
                 pagePrecisePublicationTime(columns, documentDate)
         );
+    }
+
+    private String sharingImageUrl(String[] columns) {
+        if (columns.length <= SHARING_IMAGE_COLUMN) return null;
+        return GkgSharingImageNormalizer.normalize(columns[SHARING_IMAGE_COLUMN]);
     }
 
     private String pageTitle(String[] columns) {

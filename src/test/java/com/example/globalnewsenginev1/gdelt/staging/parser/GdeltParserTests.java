@@ -54,6 +54,7 @@ public class GdeltParserTests {
         assertThat(gkg.persons()).isEqualTo("Jane Doe");
         assertThat(gkg.organizations()).isEqualTo("Example Org");
         assertThat(gkg.locations()).isEqualTo("1#Berlin#GM#GM16#52.5#13.4#-1746443");
+        assertThat(gkg.sharingImageUrl()).isEqualTo("https://cdn.example.org/news/main.jpg?width=1200");
         assertThat(gkg.pagePrecisePublicationTime()).isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
         assertThat(gkg.pageTitle()).isEqualTo("First Rain Exposes Flaws In ₹28 Lakh & More");
     }
@@ -93,6 +94,24 @@ public class GdeltParserTests {
                 + "<PAGE_PRECISEPUBTIMESTAMP>20260705115500</PAGE_PRECISEPUBTIMESTAMP>";
         assertThat(new GdeltGkgParser().parse(joinNullable(repeated)).pagePrecisePublicationTime())
                 .isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
+    }
+
+    @Test
+    void acceptsOnlyAbsoluteHttpSharingImages() {
+        String[] whitespace = gkgColumns();
+        whitespace[18] = "  HTTPS://cdn.example.org/image.jpg  ";
+        assertThat(new GdeltGkgParser().parse(joinNullable(whitespace)).sharingImageUrl())
+                .isEqualTo("HTTPS://cdn.example.org/image.jpg");
+
+        for (String invalid : new String[]{"/relative.jpg", "ftp://example.org/image.jpg",
+                "https://", "https://example.org/image with space.jpg"}) {
+            String[] columns = gkgColumns();
+            columns[18] = invalid;
+            assertThat(new GdeltGkgParser().parse(joinNullable(columns)).sharingImageUrl()).isNull();
+        }
+        String[] tooLong = gkgColumns();
+        tooLong[18] = "https://example.org/" + "a".repeat(2_100);
+        assertThat(new GdeltGkgParser().parse(joinNullable(tooLong)).sharingImageUrl()).isNull();
     }
 
     @Test
@@ -146,6 +165,7 @@ public class GdeltParserTests {
         columns[11] = "Jane Doe";
         columns[13] = "Example Org";
         columns[15] = "-1.5,2,3,4,5,6";
+        columns[18] = "https://cdn.example.org/news/main.jpg?width=1200";
         columns[26] = "<PAGE_PRECISEPUBTIMESTAMP>20260705115500</PAGE_PRECISEPUBTIMESTAMP>"
                 + "<PAGE_TITLE> First Rain Exposes Flaws In &#x20B9;28 Lakh &amp; More </PAGE_TITLE>"
                 + "<PAGE_AUTHORS>Jane Doe</PAGE_AUTHORS>";

@@ -39,6 +39,8 @@ class GdeltRawToStagingTransformerTests {
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
             connection.createStatement().execute("ALTER TABLE gdelt_stage_gkg "
                     + "ADD COLUMN page_precise_pub_timestamp TIMESTAMP WITH TIME ZONE");
+            connection.createStatement().execute("ALTER TABLE gdelt_stage_gkg "
+                    + "ADD COLUMN sharing_image_url VARCHAR(2048)");
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -75,6 +77,9 @@ class GdeltRawToStagingTransformerTests {
                 "SELECT page_precise_pub_timestamp FROM gdelt_stage_gkg",
                 OffsetDateTime.class).toInstant()).isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
         assertThat(jdbcTemplate.queryForObject(
+                "SELECT sharing_image_url FROM gdelt_stage_gkg", String.class))
+                .isEqualTo("https://cdn.example.org/news/main.jpg?width=1200");
+        assertThat(jdbcTemplate.queryForObject(
                 "SELECT error_code FROM gdelt_stage_errors WHERE dataset_type = 'EVENTS'",
                 String.class)).isEqualTo("COLUMN_COUNT");
         assertThat(jdbcTemplate.queryForObject(
@@ -104,7 +109,9 @@ class GdeltRawToStagingTransformerTests {
         transformer.transformCompletedRawRows(100);
 
         assertThat(jdbcTemplate.queryForMap(
-                "SELECT page_title, page_precise_pub_timestamp, metadata_extracted FROM gdelt_stage_gkg"))
+                "SELECT sharing_image_url, page_title, page_precise_pub_timestamp, metadata_extracted "
+                        + "FROM gdelt_stage_gkg"))
+                .containsEntry("SHARING_IMAGE_URL", "https://cdn.example.org/news/main.jpg?width=1200")
                 .containsEntry("PAGE_TITLE", "First Rain Exposes Flaws In ₹28 Lakh & More")
                 .containsEntry("PAGE_PRECISE_PUB_TIMESTAMP", utc(Instant.parse("2026-07-05T11:55:00Z")))
                 .containsEntry("METADATA_EXTRACTED", true);

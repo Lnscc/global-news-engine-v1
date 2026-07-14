@@ -116,12 +116,15 @@ public class ArticleController {
             String title,
             String titleSource,
             Instant publishedAt,
-            String publishedAtSource
+            String publishedAtSource,
+            String mainImageUrl,
+            String mainImageSource
     ) {
         static ArticleSummaryResponse from(ArticleSummary article) {
             return new ArticleSummaryResponse(
                     article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
-                    article.title(), article.titleSource(), article.publishedAt(), article.publishedAtSource());
+                    article.title(), article.titleSource(), article.publishedAt(), article.publishedAtSource(),
+                    article.mainImageUrl(), article.mainImageSource());
         }
     }
 
@@ -134,6 +137,8 @@ public class ArticleController {
             String titleSource,
             Instant publishedAt,
             String publishedAtSource,
+            String mainImageUrl,
+            String mainImageSource,
             Instant createdAt,
             Instant updatedAt,
             List<ArticleSignalResponse> signals
@@ -143,6 +148,7 @@ public class ArticleController {
                     article.id(), article.canonicalUrl(), article.domain(), article.firstSeenAt(),
                     article.title(), article.titleSource(),
                     article.publishedAt(), article.publishedAtSource(),
+                    article.mainImageUrl(), article.mainImageSource(),
                     article.createdAt(), article.updatedAt(),
                     article.signals().stream().map(ArticleSignalResponse::from).toList());
         }
