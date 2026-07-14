@@ -2,6 +2,7 @@
 
 Status: offen
 Bereich: articles, gdelt
+Prioritaet: zurueckgestellt
 
 ## Kontext
 
@@ -47,4 +48,3 @@ normalisiertem Sprachcode am Artikel persistiert und ueber die API ausgegeben.
 
 Das Ticket kann unabhaengig von ART-014 analysiert werden. Eine spaetere Sprachfilterung in
 `GET /articles` baut auf dem Ergebnis dieses Tickets und ART-013 auf.
-
