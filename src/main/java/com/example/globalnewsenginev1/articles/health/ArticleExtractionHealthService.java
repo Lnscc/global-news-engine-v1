@@ -42,6 +42,8 @@ public class ArticleExtractionHealthService {
                     SELECT 'GKG', source_timestamp FROM gdelt_gkg_records
                     UNION ALL
                     SELECT signal_type, source_timestamp FROM article_extraction_errors
+                    UNION ALL
+                    SELECT dataset_type, source_timestamp FROM gdelt_processing_errors
                 ) processed
                 GROUP BY signal_type
                 """, (RowCallbackHandler) resultSet -> healthByType.get(resultSet.getString("signal_type"))
@@ -49,7 +51,13 @@ public class ArticleExtractionHealthService {
 
         jdbcTemplate.query("""
                 SELECT signal_type, error_code, COUNT(*) AS error_count
-                FROM article_extraction_errors
+                FROM (
+                    SELECT signal_type, error_code FROM article_extraction_errors
+                    UNION ALL
+                    SELECT dataset_type, error_code
+                    FROM gdelt_processing_errors
+                    WHERE resolved_at IS NULL
+                ) open_errors
                 GROUP BY signal_type, error_code
                 ORDER BY signal_type, error_code
                 """, (RowCallbackHandler) resultSet -> healthByType.get(resultSet.getString("signal_type")).errors.add(

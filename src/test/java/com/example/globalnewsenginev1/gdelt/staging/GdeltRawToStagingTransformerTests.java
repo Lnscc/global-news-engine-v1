@@ -1,7 +1,11 @@
 package com.example.globalnewsenginev1.gdelt.staging;
 
 import com.example.globalnewsenginev1.gdelt.staging.model.GdeltStagingResult;
+import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltEventParser;
+import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltGkgParser;
+import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltMentionParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
+import db.migration.V14__create_gdelt_processing_errors;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -13,6 +17,7 @@ import org.springframework.jdbc.datasource.init.ScriptUtils;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import java.sql.Connection;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -33,6 +38,7 @@ class GdeltRawToStagingTransformerTests {
                     new ClassPathResource("db/migration/V1__create_gdelt_raw_tables.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V2__create_gdelt_staging_tables.sql"));
+            new V14__create_gdelt_processing_errors().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
             ScriptUtils.executeSqlScript(connection,
@@ -50,7 +56,7 @@ class GdeltRawToStagingTransformerTests {
     }
 
     @Test
-    void stagesCompletedRawRowsAndRecordsParseErrorsIdempotently() {
+    void stagesCompletedRawRowsAndRecordsEveryFailedAttempt() {
         Instant sourceTimestamp = Instant.parse("2026-07-05T12:00:00Z");
         long eventImportId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", sourceTimestamp);
         long mentionImportId = insertImportFile("MENTIONS", "20260705120000.mentions.CSV.zip", sourceTimestamp);
@@ -68,11 +74,11 @@ class GdeltRawToStagingTransformerTests {
         GdeltStagingResult secondRun = transformer.transformCompletedRawRows(100);
 
         assertThat(firstRun).isEqualTo(new GdeltStagingResult(1, 1, 1, 1));
-        assertThat(secondRun).isEqualTo(new GdeltStagingResult(0, 0, 0, 0));
+        assertThat(secondRun).isEqualTo(new GdeltStagingResult(0, 0, 0, 1));
         assertThat(countRows("gdelt_stage_events")).isEqualTo(1);
         assertThat(countRows("gdelt_stage_mentions")).isEqualTo(1);
         assertThat(countRows("gdelt_stage_gkg")).isEqualTo(1);
-        assertThat(countRows("gdelt_stage_errors")).isEqualTo(1);
+        assertThat(countRows("gdelt_processing_errors")).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT page_precise_pub_timestamp FROM gdelt_stage_gkg",
                 OffsetDateTime.class).toInstant()).isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
@@ -80,14 +86,57 @@ class GdeltRawToStagingTransformerTests {
                 "SELECT sharing_image_url FROM gdelt_stage_gkg", String.class))
                 .isEqualTo("https://cdn.example.org/news/main.jpg?width=1200");
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT error_code FROM gdelt_stage_errors WHERE dataset_type = 'EVENTS'",
+                "SELECT error_code FROM gdelt_processing_errors WHERE dataset_type = 'EVENTS' LIMIT 1",
                 String.class)).isEqualTo("COLUMN_COUNT");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_processing_errors WHERE resolved_at IS NULL",
+                Integer.class)).isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_processing_errors WHERE error_message LIKE '%bad%'",
+                Integer.class)).isZero();
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT global_event_id FROM gdelt_stage_events",
                 Long.class)).isEqualTo(123L);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT page_title FROM gdelt_stage_gkg",
                 String.class)).isEqualTo("First Rain Exposes Flaws In ₹28 Lakh & More");
+    }
+
+    @Test
+    void resolvesHistoricalErrorsAfterARecordCanBeParsedSuccessfully() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        long importId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", timestamp);
+        long rawId = insertRaw("gdelt_raw_events", importId, "20260705120000.export.CSV.zip", timestamp, 1,
+                "bad\trow");
+
+        assertThat(transformer.transformCompletedRawRows(100).errors()).isEqualTo(1);
+        jdbcTemplate.update("UPDATE gdelt_raw_events SET raw_tsv = ? WHERE id = ?",
+                GdeltParserTests.eventRow(), rawId);
+        assertThat(transformer.transformCompletedRawRows(100).eventsStaged()).isEqualTo(1);
+
+        assertThat(countRows("gdelt_processing_errors")).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_processing_errors WHERE resolved_at IS NOT NULL",
+                Integer.class)).isEqualTo(1);
+        assertThat(countRows("gdelt_stage_events")).isEqualTo(1);
+    }
+
+    @Test
+    void waitsForRetryDelayBeforeTryingAnOpenErrorAgain() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        long importId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", timestamp);
+        insertRaw("gdelt_raw_events", importId, "20260705120000.export.CSV.zip", timestamp, 1, "bad\trow");
+        GdeltRawToStagingTransformer delayedTransformer = new GdeltRawToStagingTransformer(
+                jdbcTemplate,
+                new TransactionTemplate(new DataSourceTransactionManager(jdbcTemplate.getDataSource())),
+                new GdeltEventParser(),
+                new GdeltMentionParser(),
+                new GdeltGkgParser(),
+                Duration.ofMinutes(1));
+
+        assertThat(delayedTransformer.transformCompletedRawRows(100).errors()).isEqualTo(1);
+        assertThat(delayedTransformer.transformCompletedRawRows(100).errors()).isZero();
+        assertThat(countRows("gdelt_processing_errors")).isEqualTo(1);
     }
 
     @Test

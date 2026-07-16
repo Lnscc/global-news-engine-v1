@@ -259,7 +259,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["articles", "extraction", "health"]
             },
-            "description": "Liefert Pending-Zeilen, erfolgreiche Signale, gruppierte Extraction-Errors und den letzten verarbeiteten Timestamp je Signaltyp sowie die Gesamtzahl der Artikel."
+            "description": "Liefert Pending-Zeilen, erfolgreiche Signale, gruppierte offene Article-Extraction- und GDELT-Processing-Errors und den letzten verarbeiteten Timestamp je Signaltyp sowie die Gesamtzahl der Artikel."
           },
           "event": [
             {
@@ -281,6 +281,11 @@
                   "    pm.expect(item.pendingStageRows).to.be.a('number');",
                   "    pm.expect(item.articleSignals).to.be.a('number');",
                   "    pm.expect(item.extractionErrors).to.be.an('array');",
+                  "    item.extractionErrors.forEach(error => {",
+                  "      pm.expect(error).to.have.all.keys('errorCode', 'count');",
+                  "      pm.expect(error.errorCode).to.be.a('string').and.not.empty;",
+                  "      pm.expect(error.count).to.be.a('number').and.at.least(1);",
+                  "    });",
                   "  });",
                   "});"
                 ],

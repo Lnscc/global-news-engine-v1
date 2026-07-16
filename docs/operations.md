@@ -45,3 +45,31 @@ Import-Zusammenfassung:
 ```powershell
 docker compose exec postgres psql -U gne -d gne -c "select status, dataset_type, count(*) as files, sum(row_count) as rows from gdelt_import_files group by status, dataset_type order by status, dataset_type;"
 ```
+
+## Processing-Fehler
+
+Jeder fehlgeschlagene Parsing-Versuch wird dauerhaft in `gdelt_processing_errors` protokolliert.
+Die Rohzeile selbst bleibt ausschließlich in der jeweiligen Raw-Tabelle und wird nicht in der
+Fehlerhistorie dupliziert. Der Staging-Job versucht noch nicht erfolgreich gestagte Zeilen bei
+späteren Läufen erneut. Zwischen zwei Versuchen derselben fehlerhaften Quellzeile liegt mindestens
+`gdelt.staging.retry-delay` (Standard: `PT1M`), damit ein Scheduler-Lauf keine unmittelbare
+Retry-Schleife erzeugt. Bei Erfolg erhalten alle offenen Fehler derselben Kombination aus
+`dataset_type` und `source_row_id` einen Wert in `resolved_at`.
+
+Offene Fehler:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select dataset_type, failed_step, error_code, count(*) as attempts from gdelt_processing_errors where resolved_at is null group by dataset_type, failed_step, error_code order by dataset_type, failed_step, error_code;"
+```
+
+Fehlerhistorie einer Quellzeile:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select id, dataset_type, source_row_id, failed_step, error_code, occurred_at, resolved_at from gdelt_processing_errors where dataset_type = 'EVENTS' and source_row_id = 4711 order by occurred_at, id;"
+```
+
+Historische und weiterhin offene Versuche:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select dataset_type, resolved_at is null as open, count(*) as attempts from gdelt_processing_errors group by dataset_type, resolved_at is null order by dataset_type, open desc;"
+```

@@ -1,6 +1,6 @@
 # ART-021: Dauerhafte GDELT-Processing-Fehlerhistorie
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, architecture
 
 ## Kontext
@@ -107,3 +107,18 @@ Fehler bleibt dabei unveraendert erhalten.
 
 Payload- und Fachtabellen, automatische Payload-Loeschung, eine Retention fuer
 `gdelt_processing_errors` und Aenderungen am Article-REST-Contract sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Migration V14 ersetzt `gdelt_stage_errors` durch die dauerhafte, append-only Tabelle
+`gdelt_processing_errors`. Bestehende Fehler werden vor dem Entfernen der Alttabelle vollständig
+übernommen und anhand von Anzahl und Pflichtfeldern validiert; `raw_tsv` wird nicht dupliziert.
+
+Der Staging-Job schließt fehlgeschlagene Quellzeilen nicht mehr dauerhaft aus. Jeder erneute
+fehlgeschlagene Parsing-Versuch erzeugt eine eigene Fehlerzeile mit `failed_step = PARSING`.
+`gdelt.staging.retry-delay` verhindert unmittelbare Wiederholungen innerhalb desselben Job-Laufs.
+Ein später erfolgreicher Versuch setzt `resolved_at` für alle offenen Fehler derselben
+`dataset_type`/`source_row_id`-Kombination. Die bestehende Extraction-Health-Antwort berücksichtigt
+offene Processing-Fehler und historische Versuche beim letzten verarbeiteten Quellzeitpunkt, ohne
+ihren REST-Contract zu verändern. Migrations-, Retry-, Health- und PostgreSQL-Integrationstests
+decken Migration, mehrere Versuche und späteren Erfolg ab.

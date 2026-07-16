@@ -102,6 +102,12 @@ Artikel ueberfuehrt werden, zum Beispiel wegen einer leeren oder ungueltigen URL
 Auch hier verhindert ein Unique Key auf `(signal_type, source_id)` doppelte Fehlerzeilen bei
 erneuten Job-Laeufen.
 
+Parsing- und Normalisierungsfehler vor der Article-Extraktion werden getrennt und dauerhaft in
+`gdelt_processing_errors` geführt. Jeder fehlgeschlagene Versuch besitzt eine eigene Zeile; ein
+späterer Erfolg markiert offene Versuche über `resolved_at`, ohne die Historie zu löschen. Die
+Health-Ausgabe zählt unter `extractionErrors` weiterhin Article-Extraction-Fehler und zusätzlich
+offene GDELT-Processing-Fehler, ohne die bestehende REST-Struktur zu verändern.
+
 ## URL-Normalisierung
 
 Eine Komponente `ArticleUrlNormalizer` normalisiert URLs vor dem Upsert.

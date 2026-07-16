@@ -11,9 +11,11 @@ import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParseException;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
@@ -27,10 +29,21 @@ public class GdeltRawToStagingTransformer {
     private final GdeltEventParser eventParser;
     private final GdeltMentionParser mentionParser;
     private final GdeltGkgParser gkgParser;
+    private final Duration retryDelay;
 
     @Autowired
-    public GdeltRawToStagingTransformer(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
-        this(jdbcTemplate, transactionTemplate, new GdeltEventParser(), new GdeltMentionParser(), new GdeltGkgParser());
+    public GdeltRawToStagingTransformer(
+            JdbcTemplate jdbcTemplate,
+            TransactionTemplate transactionTemplate,
+            @Value("${gdelt.staging.retry-delay:PT1M}") Duration retryDelay
+    ) {
+        this(jdbcTemplate, transactionTemplate, new GdeltEventParser(), new GdeltMentionParser(),
+                new GdeltGkgParser(), retryDelay);
+    }
+
+    GdeltRawToStagingTransformer(JdbcTemplate jdbcTemplate, TransactionTemplate transactionTemplate) {
+        this(jdbcTemplate, transactionTemplate, new GdeltEventParser(), new GdeltMentionParser(),
+                new GdeltGkgParser(), Duration.ZERO);
     }
 
     GdeltRawToStagingTransformer(
@@ -38,13 +51,15 @@ public class GdeltRawToStagingTransformer {
             TransactionTemplate transactionTemplate,
             GdeltEventParser eventParser,
             GdeltMentionParser mentionParser,
-            GdeltGkgParser gkgParser
+            GdeltGkgParser gkgParser,
+            Duration retryDelay
     ) {
         this.jdbcTemplate = jdbcTemplate;
         this.transactionTemplate = transactionTemplate;
         this.eventParser = eventParser;
         this.mentionParser = mentionParser;
         this.gkgParser = gkgParser;
+        this.retryDelay = retryDelay;
     }
 
     public GdeltStagingResult transformCompletedRawRows(int batchSize) {
@@ -81,6 +96,7 @@ public class GdeltRawToStagingTransformer {
                         event.actor2Code(), event.actor2Name(), event.actor2CountryCode(),
                         event.eventCode(), event.quadClass(), event.goldsteinScale(),
                         event.avgTone(), event.sourceUrl());
+                resolveErrors("EVENTS", row.rawId());
                 staged++;
             } catch (GdeltParseException exception) {
                 insertError("EVENTS", row, exception);
@@ -108,6 +124,7 @@ public class GdeltRawToStagingTransformer {
                         nullableUtc(mention.eventTimeDate()), nullableUtc(mention.mentionTimeDate()),
                         mention.mentionType(), mention.mentionSourceName(), mention.mentionIdentifier(),
                         mention.confidence(), mention.mentionDocTone());
+                resolveErrors("MENTIONS", row.rawId());
                 staged++;
             } catch (GdeltParseException exception) {
                 insertError("MENTIONS", row, exception);
@@ -137,6 +154,7 @@ public class GdeltRawToStagingTransformer {
                         gkg.themes(), gkg.persons(), gkg.organizations(), gkg.locations(), gkg.tone(),
                         gkg.sharingImageUrl(),
                         gkg.pageTitle(), nullableUtc(gkg.pagePrecisePublicationTime()));
+                resolveErrors("GKG", row.rawId());
                 staged++;
             } catch (GdeltParseException exception) {
                 insertError("GKG", row, exception);
@@ -173,11 +191,16 @@ public class GdeltRawToStagingTransformer {
                 FROM %s raw
                 JOIN gdelt_import_files import_file ON import_file.id = raw.import_file_id
                 LEFT JOIN %s stage ON stage.raw_id = raw.id
-                LEFT JOIN gdelt_stage_errors error
-                    ON error.dataset_type = ? AND error.raw_id = raw.id
                 WHERE import_file.status = 'COMPLETED'
                   AND stage.raw_id IS NULL
-                  AND error.raw_id IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM gdelt_processing_errors error
+                      WHERE error.dataset_type = ?
+                        AND error.source_row_id = raw.id
+                        AND error.resolved_at IS NULL
+                        AND error.occurred_at > ?
+                  )
                 ORDER BY raw.id
                 LIMIT ?
                 """.formatted(rawTable, stageTable);
@@ -188,18 +211,26 @@ public class GdeltRawToStagingTransformer {
                 resultSet.getTimestamp("source_timestamp").toInstant(),
                 resultSet.getLong("row_number"),
                 resultSet.getString("raw_tsv")
-        ), datasetType, batchSize);
+        ), datasetType, utc(Instant.now().minus(retryDelay)), batchSize);
     }
 
     private void insertError(String datasetType, RawRow row, GdeltParseException exception) {
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_errors
-                    (dataset_type, raw_id, import_file_id, source_file, source_timestamp, row_number, raw_tsv,
-                     error_code, error_message, staged_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO gdelt_processing_errors
+                    (dataset_type, source_row_id, import_file_id, source_file, source_timestamp, row_number,
+                     failed_step, error_code, error_message, occurred_at)
+                VALUES (?, ?, ?, ?, ?, ?, 'PARSING', ?, ?, ?)
                 """,
                 datasetType, row.rawId(), row.importFileId(), row.sourceFile(), utc(row.sourceTimestamp()),
-                row.rowNumber(), row.rawTsv(), exception.code(), exception.getMessage(), utc(Instant.now()));
+                row.rowNumber(), exception.code(), exception.getMessage(), utc(Instant.now()));
+    }
+
+    private void resolveErrors(String datasetType, long sourceRowId) {
+        jdbcTemplate.update("""
+                UPDATE gdelt_processing_errors
+                SET resolved_at = ?
+                WHERE dataset_type = ? AND source_row_id = ? AND resolved_at IS NULL
+                """, utc(Instant.now()), datasetType, sourceRowId);
     }
 
     private OffsetDateTime utc(Instant instant) {

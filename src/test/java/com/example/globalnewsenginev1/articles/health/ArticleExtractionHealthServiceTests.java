@@ -1,5 +1,6 @@
 package com.example.globalnewsenginev1.articles.health;
 
+import db.migration.V14__create_gdelt_processing_errors;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ class ArticleExtractionHealthServiceTests {
                     new ClassPathResource("db/migration/V1__create_gdelt_raw_tables.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V2__create_gdelt_staging_tables.sql"));
+            new V14__create_gdelt_processing_errors().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
         }
@@ -53,15 +55,18 @@ class ArticleExtractionHealthServiceTests {
         long articleId = insertArticle(oldTimestamp);
         insertSignal(articleId, "EVENTS", processedEvent, oldTimestamp);
         insertError("MENTIONS", failedMention, newTimestamp, "INVALID_URL");
+        insertProcessingError("GKG", 99, newTimestamp, "COLUMN_COUNT", null);
+        insertProcessingError("EVENTS", 98, newTimestamp, "OLD_ERROR", newTimestamp);
 
         ArticleExtractionHealth health = healthService.health();
 
         assertThat(health.articlesCreatedTotal()).isEqualTo(1);
         assertThat(health.signalTypes()).containsExactly(
-                new SignalTypeExtractionHealth("EVENTS", 1, 1, oldTimestamp, java.util.List.of()),
+                new SignalTypeExtractionHealth("EVENTS", 1, 1, newTimestamp, java.util.List.of()),
                 new SignalTypeExtractionHealth("MENTIONS", 0, 0, newTimestamp,
                         java.util.List.of(new ExtractionErrorCount("INVALID_URL", 1))),
-                new SignalTypeExtractionHealth("GKG", 1, 0, null, java.util.List.of()));
+                new SignalTypeExtractionHealth("GKG", 1, 0, newTimestamp,
+                        java.util.List.of(new ExtractionErrorCount("COLUMN_COUNT", 1))));
     }
 
     private long insertStageEvent(Instant timestamp, long rowNumber) {
@@ -139,6 +144,24 @@ class ArticleExtractionHealthServiceTests {
                     (signal_type, source_id, source_timestamp, error_code, error_message, created_at)
                 VALUES (?, ?, ?, ?, 'broken URL', ?)
                 """, type, sourceId, utc(timestamp), code, utc(timestamp));
+    }
+
+    private void insertProcessingError(
+            String type,
+            long sourceId,
+            Instant timestamp,
+            String code,
+            Instant resolvedAt
+    ) {
+        Long importId = jdbcTemplate.queryForObject(
+                "SELECT id FROM gdelt_import_files ORDER BY id LIMIT 1", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_processing_errors
+                    (dataset_type, source_row_id, import_file_id, source_file, source_timestamp,
+                     row_number, failed_step, error_code, error_message, occurred_at, resolved_at)
+                VALUES (?, ?, ?, 'test.zip', ?, 1, 'PARSING', ?, 'broken row', ?, ?)
+                """, type, sourceId, importId, utc(timestamp), code, utc(timestamp),
+                resolvedAt == null ? null : utc(resolvedAt));
     }
 
     private OffsetDateTime utc(Instant instant) {

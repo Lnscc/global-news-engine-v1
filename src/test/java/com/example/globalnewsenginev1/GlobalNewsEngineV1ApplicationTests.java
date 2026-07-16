@@ -34,6 +34,9 @@ class GlobalNewsEngineV1ApplicationTests {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM \"flyway_schema_history\" WHERE \"version\" = '11' AND \"success\" = TRUE",
                 Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM \"flyway_schema_history\" WHERE \"version\" = '14' AND \"success\" = TRUE",
+                Integer.class)).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT COUNT(*) FROM information_schema.tables
                 WHERE lower(table_name) = 'article_enrichments'
@@ -42,6 +45,10 @@ class GlobalNewsEngineV1ApplicationTests {
                 SELECT COUNT(*) FROM information_schema.columns
                 WHERE table_name = 'GDELT_GKG_RECORDS'
                   AND column_name IN ('PERSONS_RAW', 'ORGANIZATIONS_RAW', 'LOCATIONS_RAW', 'TONE_RAW')
+                """, Integer.class)).isZero();
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT COUNT(*) FROM information_schema.tables
+                WHERE lower(table_name) = 'gdelt_stage_errors'
                 """, Integer.class)).isZero();
     }
 }
