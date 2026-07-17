@@ -1,13 +1,13 @@
 # Global News Engine
 
-Global News Engine is a Spring Boot service that turns [GDELT 2.0](https://www.gdeltproject.org/) data into a queryable article model. It periodically discovers and imports GDELT event, mention, and GKG files, stages their rows in PostgreSQL, normalizes and deduplicates article URLs, and exposes the resulting articles and signals through a REST API.
+Global News Engine is a Spring Boot service that turns [GDELT 2.0](https://www.gdeltproject.org/) data into a queryable article model. It periodically discovers and imports GDELT event, mention, and GKG files, parses their payloads into durable domain rows, normalizes and deduplicates article URLs, and exposes the resulting articles and signals through a REST API.
 
 The current implementation covers the first part of the intended analysis pipeline:
 
 ```text
-GDELT files -> raw data -> staging data -> articles -> REST API
-                                                |
-                                                +-> event, mention, and GKG signals
+GDELT files -> temporary payloads -> durable domain rows -> articles -> REST API
+                                                              |
+                                                              +-> event, mention, and GKG signals
 ```
 
 Story clustering, topics, themes, embeddings, and LLM-generated summaries are planned but are not part of the application yet.
@@ -99,7 +99,7 @@ Runtime defaults are defined in [`src/main/resources/application.properties`](sr
 | Prefix | Purpose |
 |---|---|
 | `gdelt.ingestion.*` | GDELT discovery, download, and polling |
-| `gdelt.staging.*` | Transformation from raw rows into staging tables |
+| `gdelt.staging.*` | Parsing payload rows into durable GDELT domain tables |
 | `articles.*` | Article extraction, normalization, and batching |
 
 Each job can be disabled with its corresponding `*.enabled=false` property. Spring Boot properties can be overridden with command-line arguments, environment variables, or an external configuration file. For example:
@@ -111,7 +111,7 @@ Each job can be disabled with its corresponding `*.enabled=false` property. Spri
 ## Project layout
 
 ```text
-src/main/java/.../gdelt       GDELT discovery, raw import, parsing, and staging
+src/main/java/.../gdelt       GDELT discovery, payload import, parsing, and persistence
 src/main/java/.../articles    URL normalization, extraction, queries, and REST API
 src/main/resources/db         Flyway database migrations
 docs/postman                  Postman collection and local environment

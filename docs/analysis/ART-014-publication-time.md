@@ -15,7 +15,7 @@ diesem Zeitpunkt lokal gestagten GKG-Zeilen aus der Web-Quellensammlung
 `source_collection_identifier = 1`.
 
 ```text
-Staging-Zeilen:                         17.232
+GKG-Fachzeilen:                        17.232
 PAGE_PRECISEPUBTIMESTAMP vorhanden:     9.148 (53,09 %)
 Format YYYYMMDDHHMMSS:                  9.148 (100 % der vorhandenen Werte)
 Andere nichtleere Formate:                  0
@@ -41,9 +41,8 @@ UTC-Normalisierung auf fehlerhafte Zeitzonenmetadaten der Quellseiten hindeutet.
 - Fuer alte Werte gibt es keine pauschale Untergrenze, weil GDELT auch erneut gefundene
   Archivartikel enthalten kann.
 - Fehlende, syntaktisch ungueltige und unplausible Werte werden als `null` behandelt und blockieren
-  weder Staging noch Artikel-Extraktion.
-- Der Kandidat bleibt am verursachenden `gdelt_gkg_record`. Die Article API projiziert den Wert des
+  weder GKG-Fachmodell noch Artikel-Extraktion.
+- Der Kandidat bleibt an der verursachenden Fachzeile in `gdelt_gkg`. Die Article API projiziert den Wert des
   fruehesten GKG-Records mit gueltigem Kandidaten nach `source_timestamp` und `id`.
 - `publishedAtSource` ist bei vorhandenem Wert `GKG_PAGE_PRECISE_PUB_TIMESTAMP`, sonst `null`.
 - `firstSeenAt` und die Standardsortierung von `GET /articles` bleiben unveraendert.
-

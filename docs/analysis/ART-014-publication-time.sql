@@ -30,7 +30,7 @@ WITH extracted AS (
     GROUP BY article_id
 )
 SELECT
-    COUNT(*) AS staging_rows,
+    COUNT(*) AS domain_rows,
     COUNT(*) FILTER (WHERE raw_value IS NOT NULL AND raw_value <> '') AS tagged_rows,
     ROUND(100.0 * COUNT(*) FILTER (WHERE raw_value IS NOT NULL AND raw_value <> '') / COUNT(*), 2)
         AS coverage_pct,
