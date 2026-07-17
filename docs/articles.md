@@ -81,9 +81,11 @@ und Tone persistiert. Mehrere
 GKG-Analysen desselben Artikels bleiben getrennt. `gdelt_gkg.id` entspricht
 `gdelt_gkg_payloads.id`; dadurch sind Neuimport, Parsing und Retry idempotent.
 
-Die unveraenderte Quellzeile bleibt in `gdelt_gkg_payloads.raw_tsv` zur Provenienz erhalten. Das Fachmodell
-speichert Themes, Personen und Organisationen als Arrays, Orte als typisierte JSON-Liste und Tone
-in einzelnen Messfeldern. Die API projiziert GKG-Records weiterhin als Signale.
+Die unveraenderte Quellzeile bleibt in `gdelt_gkg_payloads.raw_tsv` bis zum Ablauf der
+konfigurierten Payload-Retention erhalten. Danach darf sie nur geloescht werden, wenn die
+erfolgreich verarbeitete Fachzeile mit derselben ID existiert. Das Fachmodell speichert Themes,
+Personen und Organisationen als Arrays, Orte als typisierte JSON-Liste und Tone in einzelnen
+Messfeldern. Die API projiziert GKG-Records weiterhin als Signale.
 
 ### `article_extraction_errors`
 

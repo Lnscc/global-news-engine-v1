@@ -13,6 +13,40 @@ Der Import startet nach `gdelt.ingestion.initial-delay` und laeuft danach alle
 Fehlgeschlagene Zeitfenster werden bei spaeteren Polls erneut versucht. Die Anzahl wird ueber
 `gdelt.ingestion.max-failed-windows-per-poll` begrenzt.
 
+## Payload-Retention
+
+Der Retention-Job loescht erfolgreich verarbeitete Payloads standardmaessig sieben Tage nach
+`parsed_at`. Die dauerhafte Fachzeile mit derselben ID und die vollstaendige Fehlerhistorie in
+`gdelt_processing_errors` bleiben erhalten. Payloads ohne passende Fachzeile werden unabhaengig
+von ihrem Alter nicht geloescht.
+
+```properties
+gdelt.retention.enabled=true
+gdelt.retention.initial-delay=PT2M
+gdelt.retention.poll-interval=PT1H
+gdelt.retention.period=PT168H
+gdelt.retention.batch-size=1000
+gdelt.retention.max-batches-per-run=10
+```
+
+Ein Batch verarbeitet je Datensatztyp hoechstens `gdelt.retention.batch-size` Zeilen in der
+deterministischen Reihenfolge `parsed_at, id`. Jeder Datensatztyp wird in einer eigenen, begrenzten
+Transaktion geloescht. Pro Scheduler-Lauf werden maximal
+`gdelt.retention.max-batches-per-run` solcher Batches ausgefuehrt. Das Abschluss-Log weist die
+geloeschten EVENTS-, MENTIONS- und GKG-Payloads getrennt aus.
+
+Loeschbare und aufgrund der Frist oder fehlender Fachzeile zurueckgehaltene Payloads fuer die
+Standardfrist von sieben Tagen:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "with retention as (select current_timestamp - interval '7 days' as cutoff), payloads as (select 'EVENTS' as dataset_type, domain_row.parsed_at from gdelt_event_payloads payload left join gdelt_events domain_row on domain_row.id = payload.id union all select 'MENTIONS', domain_row.parsed_at from gdelt_mention_payloads payload left join gdelt_mentions domain_row on domain_row.id = payload.id union all select 'GKG', domain_row.parsed_at from gdelt_gkg_payloads payload left join gdelt_gkg domain_row on domain_row.id = payload.id) select dataset_type, count(*) filter (where parsed_at <= cutoff) as eligible_payload_rows, count(*) filter (where parsed_at is null or parsed_at > cutoff) as retained_payload_rows from payloads cross join retention group by dataset_type order by dataset_type;"
+```
+
+Nach dem Cleanup ist `raw_tsv` nicht mehr in der Datenbank vorhanden. Eine Wiederherstellung ist
+nur aus einem externen Datenbank-Backup oder durch erneuten Import der unveraenderten Quelldatei
+moeglich; Object-Storage-Archivierung ist nicht Bestandteil des Jobs. Vor einer Verkuerzung der
+Frist muessen deshalb Backup- und Reimport-Anforderungen betrieblich geprueft werden.
+
 ## Tests
 
 ```powershell
@@ -66,9 +100,10 @@ docker compose exec postgres psql -U gne -d gne -c "select dataset_type, payload
 ## Processing-Fehler
 
 Jeder fehlgeschlagene Parsing-Versuch wird dauerhaft in `gdelt_processing_errors` protokolliert.
-Die unveraenderte Quellzeile bleibt ausschliesslich in der jeweiligen Payload-Tabelle und wird nicht
-in der Fehlerhistorie dupliziert. Der Parser versucht Payloads ohne Fachzeile bei spaeteren Laeufen
-erneut. Zwischen zwei Versuchen derselben fehlerhaften Quellzeile liegt mindestens
+Die unveraenderte Quellzeile liegt bis zu einer erfolgreichen Verarbeitung und dem anschliessenden
+Ablauf der Retention ausschliesslich in der jeweiligen Payload-Tabelle; sie wird nicht in der
+Fehlerhistorie dupliziert. Der Parser versucht Payloads ohne Fachzeile bei spaeteren Laeufen erneut.
+Zwischen zwei Versuchen derselben fehlerhaften Quellzeile liegt mindestens
 `gdelt.staging.retry-delay` (Standard: `PT1M`), damit ein Scheduler-Lauf keine unmittelbare
 Retry-Schleife erzeugt. Bei Erfolg erhalten alle offenen Fehler derselben Kombination aus
 `dataset_type` und `source_row_id` einen Wert in `resolved_at`.

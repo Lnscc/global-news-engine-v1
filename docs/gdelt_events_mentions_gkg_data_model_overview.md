@@ -31,8 +31,10 @@ Alle drei Datensatztypen verwenden dasselbe Persistenzmuster:
 Nur die Payload-Tabellen enthalten `raw_tsv`. Fachzeilen enthalten ausschliesslich erfolgreich
 geparste und normalisierte Werte. Fehlversuche werden dauerhaft in `gdelt_processing_errors`
 historisiert. `gdelt_pipeline_health_view` zeigt je Datensatztyp die gesamte und ausstehende
-Payload-Menge, offene Fehler und vorhandene Fachzeilen. Damit kann Payload-Retention fuer alle drei
-Typen ohne Aenderung der Fachtabellen oder Fehlerhistorie umgesetzt werden.
+Payload-Menge, offene Fehler und vorhandene Fachzeilen. Die Payload-Retention loescht erfolgreich
+verarbeitete Quellzeilen nach einer konfigurierbaren, bei `parsed_at` beginnenden Frist in
+begrenzten Batches. Payloads ohne Fachzeile, alle Fachtabellen und die Fehlerhistorie bleiben
+dauerhaft erhalten.
 
 # 1. EVENTS
 

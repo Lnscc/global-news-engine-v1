@@ -1,6 +1,6 @@
 # ART-022: GDELT-Payload-Retention
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, operations
 
 ## Kontext
@@ -84,3 +84,28 @@ ART-026 muss das gemeinsame Modell und seine Betriebsmetriken zuvor abgeschlosse
 Die Archivierung von Payloads in Object Storage, Backups ausserhalb der Datenbank, eine Retention
 fuer `gdelt_processing_errors` sowie die Loeschung von Fachzeilen oder `gdelt_import_files` sind
 nicht Teil dieses Tickets.
+
+## Umsetzungskommentar
+
+Implementiert am 2026-07-17:
+
+- Ein konfigurierbarer Scheduler loescht EVENTS-, MENTIONS- und GKG-Payloads erst nach Ablauf der
+  Aufbewahrungsfrist ab `parsed_at`. Der Standard betraegt sieben Tage (`PT168H`).
+- Die Loeschbarkeit wird ausschliesslich ueber die Fachzeile mit derselben ID bestimmt. Payloads
+  ohne Fachzeile, alle Fachzeilen, `gdelt_import_files` und die vollstaendige Historie in
+  `gdelt_processing_errors` bleiben unveraendert erhalten.
+- Jeder Datensatztyp wird in einer eigenen Transaktion in stabiler Reihenfolge nach `parsed_at`
+  und Payload-ID verarbeitet. Batch-Groesse und maximale Batch-Anzahl pro Scheduler-Lauf sind
+  konfigurierbar; wiederholte Laeufe sind idempotent.
+- Der Job protokolliert die geloeschten Zeilen je Datensatztyp. Eine Retention-Health-Abfrage und
+  eine direkt nutzbare PostgreSQL-Betriebsabfrage weisen loeschbare und zurueckgehaltene Payloads
+  fuer dieselbe Frist aus.
+- Betriebs-, Architektur-, Article- und GDELT-Modell-Dokumentation beschreiben Konfiguration,
+  Loeschregeln und die Wiederherstellungsgrenze nach Entfernung von `raw_tsv`.
+- Jobtests und ein PostgreSQL-Integrationstest pruefen Frist, Batch-Grenze, Idempotenz, Schutz
+  unverarbeiteter Payloads sowie den Erhalt von Fachzeilen und Fehlerhistorie.
+- Die bestehende Article API und ihr REST-Vertrag wurden nicht geaendert. Daher ist keine
+  Anpassung der Postman-Collection erforderlich.
+- Verifiziert mit `.\mvnw.cmd verify`: 56 Unit-/Kontexttests und 6 PostgreSQL-
+  Integrationstests, jeweils ohne Fehler oder uebersprungene Tests. Die Postman-Collection wurde
+  zusaetzlich als valides JSON geprueft.

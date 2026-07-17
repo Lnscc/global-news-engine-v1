@@ -56,5 +56,14 @@ Download -> Payload-Import -> Parsing/Normalisierung -> Fachzeile -> Article-Ext
 ```
 
 `gdelt_pipeline_health_view` fasst Payload-Bestand, Payloads ohne Fachzeile, offene Processing-Fehler
-und Fachzeilen je Datensatztyp zusammen. Die Payload-Tabellen duerfen dadurch spaeter unabhaengig von
-den dauerhaften Fachzeilen und der Fehlerhistorie einer Retention unterzogen werden.
+und Fachzeilen je Datensatztyp zusammen. Der Retention-Job loescht Payloads nach einer
+konfigurierbaren Frist nur dann, wenn die Fachzeile mit derselben ID existiert. Die Frist beginnt
+bei `parsed_at`; Auswahl und Loeschung erfolgen je Datensatztyp in begrenzten, deterministischen
+Batches. Fachzeilen, Payloads ohne Fachzeile und `gdelt_processing_errors` werden nicht geloescht.
+
+```text
+Payload ohne Fachzeile -> dauerhaft fuer Retry und Diagnose behalten
+Payload mit Fachzeile  -> bis parsed_at + Retention behalten -> Payload loeschen
+Fachzeile              -> dauerhaft behalten
+Processing-Fehler      -> dauerhaft behalten
+```
