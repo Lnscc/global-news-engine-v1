@@ -47,7 +47,7 @@ gdelt_event_payloads.id
 -> Parsing
 gdelt_events.id (identisch zur Payload-ID)
 -> Article-Extraktion
-article_signals.source_id
+gdelt_events.article_id -> articles.id
 ```
 
 `gdelt_event_payloads` enthaelt die unveraenderte Quellzeile in `raw_tsv` und die
@@ -129,6 +129,7 @@ erneut verarbeitet werden. Historische Parsing-Fehler liegen dauerhaft in
 
 MENTIONS verwenden `gdelt_mention_payloads.id` als stabile Identitaet der unveraenderten
 Quellzeile und derselben erfolgreich geparsten Fachzeile in `gdelt_mentions.id`.
+Die Article-Extraktion setzt anschliessend die nullable `gdelt_mentions.article_id`.
 
 # Mention-Felder
 

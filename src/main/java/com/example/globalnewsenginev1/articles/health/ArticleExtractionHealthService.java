@@ -27,7 +27,8 @@ public class ArticleExtractionHealthService {
 
         jdbcTemplate.query("""
                 SELECT signal_type, COUNT(*) AS signal_count FROM (
-                    SELECT signal_type FROM article_signals
+                    SELECT 'EVENTS' AS signal_type FROM gdelt_events WHERE article_id IS NOT NULL
+                    UNION ALL SELECT 'MENTIONS' FROM gdelt_mentions WHERE article_id IS NOT NULL
                     UNION ALL SELECT 'GKG' FROM gdelt_gkg WHERE article_id IS NOT NULL
                 ) signals
                 GROUP BY signal_type
@@ -37,9 +38,11 @@ public class ArticleExtractionHealthService {
         jdbcTemplate.query("""
                 SELECT signal_type, MAX(source_timestamp) AS latest_processed
                 FROM (
-                    SELECT signal_type, source_timestamp FROM article_signals
+                    SELECT 'EVENTS' AS signal_type, source_timestamp FROM gdelt_events WHERE article_id IS NOT NULL
                     UNION ALL
-                    SELECT 'GKG', source_timestamp FROM gdelt_gkg
+                    SELECT 'MENTIONS', source_timestamp FROM gdelt_mentions WHERE article_id IS NOT NULL
+                    UNION ALL
+                    SELECT 'GKG', source_timestamp FROM gdelt_gkg WHERE article_id IS NOT NULL
                     UNION ALL
                     SELECT signal_type, source_timestamp FROM article_extraction_errors
                     UNION ALL
@@ -75,21 +78,16 @@ public class ArticleExtractionHealthService {
     }
 
     private void pending(String signalType, String stageTable, Map<String, MutableHealth> healthByType) {
-        String processedTable = "article_signals";
-        String typePredicate = "signal.signal_type = ? AND ";
         String query = """
                 SELECT COUNT(*)
                 FROM %s stage
-                WHERE NOT EXISTS (
-                    SELECT 1 FROM %s signal
-                    WHERE %ssignal.source_id = stage.id
-                )
+                WHERE stage.article_id IS NULL
                 AND NOT EXISTS (
                     SELECT 1 FROM article_extraction_errors error
                     WHERE error.signal_type = ? AND error.source_id = stage.id
                 )
-                """.formatted(stageTable, processedTable, typePredicate);
-        Long count = jdbcTemplate.queryForObject(query, Long.class, signalType, signalType);
+                """.formatted(stageTable);
+        Long count = jdbcTemplate.queryForObject(query, Long.class, signalType);
         healthByType.get(signalType).pendingStageRows = count;
     }
 

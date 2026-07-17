@@ -53,7 +53,8 @@ Navigation/Tracking statt als Content-Identifier klassifiziert sein.
 
 Vor einer Regelaenderung wird die neue kanonische URL fuer alle Roh-URLs in einer separaten
 Mapping-Tabelle berechnet und auf Hash-Kollisionen sowie unerwartet grosse Merge-Gruppen
-geprueft. Danach werden in einer Transaktion neue Zielartikel angelegt, alle `article_signals`
+geprueft. Danach werden in einer Transaktion neue Zielartikel angelegt und alle `article_id`-Werte
+in `gdelt_events`, `gdelt_mentions` und `gdelt_gkg`
 auf den jeweiligen Zielartikel umgehaengt und `first_seen_at` als Minimum der Quellartikel
 gesetzt. Erst nach Mengen-, FK- und Unique-Key-Pruefungen werden alte Artikel entfernt und die
 neuen `canonical_url`-/`url_hash`-Werte aktiviert. Alternativ kann bei reproduzierbar vorhandenem

@@ -1,6 +1,6 @@
 # ART-027: Article-Zuordnungen in Fachmodelle verschieben
 
-Status: offen
+Status: erledigt
 Bereich: articles, gdelt, architecture
 
 ## Kontext
@@ -128,3 +128,18 @@ asymmetrischen Zwischenmodell aufgebaut werden.
 Neue Signalmetriken, Relevanzbewertung, Story-Clustering, externe Webseitenabrufe und eine
 fachliche Erweiterung der GDELT-Daten sind nicht Teil dieses Tickets. ART-016 implementiert die
 Listenaggregate anschliessend auf dem vereinheitlichten Modell.
+
+## Implementierungskommentar
+
+Umgesetzt am 2026-07-17. Migration V20 ergaenzt die nullable, indizierten Fremdschluessel
+`gdelt_events.article_id` und `gdelt_mentions.article_id`, validiert Quellreferenzen sowie
+abweichende Vorbelegungen, uebernimmt alle bestehenden Zuordnungen und entfernt
+`article_signals` erst nach Mengen- und Zuordnungspruefung. Summary- und Detail-View werden aus
+EVENTS, MENTIONS und GKG neu aufgebaut.
+
+Extraktion, Article-Detail, Signaltyp-Filter und Extraction-Health lesen und schreiben nun direkt
+in den drei Fachmodellen. Der REST-Vertrag bleibt strukturell unveraendert; `id` und `sourceId`
+werden fuer jeden Signaltyp aus derselben stabilen Fachzeilen-ID projiziert. Migration-,
+Extractor-, Query-, Controller-, Health- und View-Tests sowie Postman-Vertragstests decken das
+vereinheitlichte Modell und die Abbruchfaelle der Migration ab. Dokumentation und das
+URL-Normalisierungs-Analyseskript wurden auf die drei `article_id`-Zuordnungen umgestellt.

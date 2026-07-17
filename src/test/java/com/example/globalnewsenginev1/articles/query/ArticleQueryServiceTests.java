@@ -34,6 +34,18 @@ class ArticleQueryServiceTests {
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
         jdbcTemplate.execute("""
+                CREATE TABLE gdelt_events (
+                    id BIGINT PRIMARY KEY, article_id BIGINT REFERENCES articles(id),
+                    source_timestamp TIMESTAMP WITH TIME ZONE NOT NULL, global_event_id BIGINT NOT NULL,
+                    event_code VARCHAR(32), avg_tone DOUBLE PRECISION)
+                """);
+        jdbcTemplate.execute("""
+                CREATE TABLE gdelt_mentions (
+                    id BIGINT PRIMARY KEY, article_id BIGINT REFERENCES articles(id),
+                    source_timestamp TIMESTAMP WITH TIME ZONE NOT NULL, global_event_id BIGINT NOT NULL,
+                    mention_doc_tone DOUBLE PRECISION)
+                """);
+        jdbcTemplate.execute("""
                 CREATE TABLE gdelt_gkg (
                     id BIGINT PRIMARY KEY, article_id BIGINT REFERENCES articles(id),
                     source_timestamp TIMESTAMP WITH TIME ZONE NOT NULL, document_identifier TEXT,
@@ -178,6 +190,7 @@ class ArticleQueryServiceTests {
         assertThat(detail.id()).isEqualTo(articleId);
         assertThat(detail.signals()).extracting(ArticleSignal::signalType)
                 .containsExactly("EVENTS", "MENTIONS", "GKG");
+        assertThat(detail.signals()).allSatisfy(signal -> assertThat(signal.id()).isEqualTo(signal.sourceId()));
         assertThat(detail.signals().getFirst().globalEventId()).isEqualTo(123L);
         assertThat(detail.signals().getLast().themes()).containsExactly("THEME_B", "THEME_A");
         assertThat(detail.signals().getLast().persons()).containsExactly("Jane Doe");
@@ -238,13 +251,19 @@ class ArticleQueryServiceTests {
             Double tone
     ) {
         Instant timestamp = Instant.parse(sourceTimestamp);
-        jdbcTemplate.update("""
-                INSERT INTO article_signals
-                    (article_id, signal_type, source_id, source_timestamp, global_event_id, event_code,
-                     themes, tone_value, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, articleId, signalType, sourceId, utc(timestamp), globalEventId,
-                "EVENTS".equals(signalType) ? "042" : null, themes, tone, utc(timestamp));
+        if ("EVENTS".equals(signalType)) {
+            jdbcTemplate.update("""
+                    INSERT INTO gdelt_events
+                        (id, article_id, source_timestamp, global_event_id, event_code, avg_tone)
+                    VALUES (?, ?, ?, ?, '042', ?)
+                    """, sourceId, articleId, utc(timestamp), globalEventId, tone);
+        } else {
+            jdbcTemplate.update("""
+                    INSERT INTO gdelt_mentions
+                        (id, article_id, source_timestamp, global_event_id, mention_doc_tone)
+                    VALUES (?, ?, ?, ?, ?)
+                    """, sourceId, articleId, utc(timestamp), globalEventId, tone);
+        }
     }
 
     private void insertGkgRecord(long articleId, long sourceId, String sourceTimestamp,

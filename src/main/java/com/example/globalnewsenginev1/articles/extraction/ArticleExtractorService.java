@@ -47,11 +47,9 @@ public class ArticleExtractorService {
                 SELECT event.id, event.source_timestamp, event.source_url, event.global_event_id,
                        event.event_code, event.avg_tone
                 FROM gdelt_events event
-                LEFT JOIN article_signals signal
-                    ON signal.signal_type = 'EVENTS' AND signal.source_id = event.id
                 LEFT JOIN article_extraction_errors error
                     ON error.signal_type = 'EVENTS' AND error.source_id = event.id
-                WHERE signal.source_id IS NULL
+                WHERE event.article_id IS NULL
                   AND error.source_id IS NULL
                 ORDER BY event.id
                 LIMIT ?
@@ -80,11 +78,9 @@ public class ArticleExtractorService {
                 SELECT mention.id, mention.source_timestamp, mention.mention_identifier, mention.global_event_id,
                        mention.mention_doc_tone
                 FROM gdelt_mentions mention
-                LEFT JOIN article_signals signal
-                    ON signal.signal_type = 'MENTIONS' AND signal.source_id = mention.id
                 LEFT JOIN article_extraction_errors error
                     ON error.signal_type = 'MENTIONS' AND error.source_id = mention.id
-                WHERE signal.source_id IS NULL
+                WHERE mention.article_id IS NULL
                   AND error.source_id IS NULL
                 ORDER BY mention.id
                 LIMIT ?
@@ -132,7 +128,7 @@ public class ArticleExtractorService {
         try {
             NormalizedArticleUrl normalizedUrl = urlNormalizer.normalize(signal.rawUrl());
             ArticleUpsert article = upsertArticle(normalizedUrl, signal.sourceTimestamp());
-            insertSignal(article.articleId(), signal);
+            assignArticle(article.articleId(), signal);
             counters.signalsCreated++;
             if (article.created()) {
                 counters.articlesCreated++;
@@ -193,17 +189,14 @@ public class ArticleExtractorService {
         }
     }
 
-    private void insertSignal(long articleId, StageSignal signal) {
-        jdbcTemplate.update("""
-                INSERT INTO article_signals
-                    (article_id, signal_type, source_id, source_timestamp, global_event_id, event_code,
-                     themes, persons, organizations, locations, tone_value, tone_raw, created_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
-                articleId, signal.signalType(), signal.sourceId(), utc(signal.sourceTimestamp()),
-                signal.globalEventId(), signal.eventCode(), signal.themes(), signal.persons(),
-                signal.organizations(), signal.locations(), signal.toneValue(), signal.toneRaw(),
-                utc(Instant.now()));
+    private void assignArticle(long articleId, StageSignal signal) {
+        String table = switch (signal.signalType()) {
+            case "EVENTS" -> "gdelt_events";
+            case "MENTIONS" -> "gdelt_mentions";
+            default -> throw new IllegalArgumentException("Unsupported signal type: " + signal.signalType());
+        };
+        jdbcTemplate.update("UPDATE " + table + " SET article_id = ? WHERE id = ? AND article_id IS NULL",
+                articleId, signal.sourceId());
     }
 
     private void insertExtractionError(StageSignal signal, String errorCode, String errorMessage) {

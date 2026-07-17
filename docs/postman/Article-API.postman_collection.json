@@ -93,6 +93,8 @@
                   "    pm.expect(signal.persons).to.be.an('array');",
                   "    pm.expect(signal.organizations).to.be.an('array');",
                   "    pm.expect(signal.locations).to.be.an('array');",
+                  "    pm.expect(signal.signalType).to.be.oneOf(['EVENTS', 'MENTIONS', 'GKG']);",
+                  "    pm.expect(signal.id).to.eql(signal.sourceId);",
                   "    signal.locations.forEach(location => {",
                   "      pm.expect(location).to.have.all.keys('type', 'name', 'countryCode', 'adm1Code', 'latitude', 'longitude', 'featureId');",
                   "      pm.expect(location.type).to.be.a('number');",
@@ -102,6 +104,8 @@
                   "    ['toneValue', 'tonePositiveScore', 'toneNegativeScore', 'tonePolarity', 'toneActivityReferenceDensity', 'toneSelfGroupReferenceDensity', 'toneWordCount'].forEach(field =>",
                   "      pm.expect(signal[field]).to.satisfy(value => value === null || typeof value === 'number'));",
                   "  });",
+                  "  const identities = body.signals.map(signal => `${signal.signalType}:${signal.sourceId}`);",
+                  "  pm.expect(new Set(identities).size).to.eql(identities.length);",
                   "});"
                 ],
                 "type": "text/javascript"

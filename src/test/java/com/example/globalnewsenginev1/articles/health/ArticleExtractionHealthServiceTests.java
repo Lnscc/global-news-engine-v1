@@ -37,6 +37,8 @@ class ArticleExtractionHealthServiceTests {
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
             new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
+            connection.createStatement().execute("ALTER TABLE gdelt_events ADD COLUMN article_id BIGINT REFERENCES articles(id)");
+            connection.createStatement().execute("ALTER TABLE gdelt_mentions ADD COLUMN article_id BIGINT REFERENCES articles(id)");
             connection.createStatement().execute("ALTER TABLE gdelt_raw_gkg RENAME TO gdelt_gkg_payloads");
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -57,7 +59,7 @@ class ArticleExtractionHealthServiceTests {
         long failedMention = insertStageMention(newTimestamp, 1);
         insertStageGkg(newTimestamp, 1);
         long articleId = insertArticle(oldTimestamp);
-        insertSignal(articleId, "EVENTS", processedEvent, oldTimestamp);
+        jdbcTemplate.update("UPDATE gdelt_events SET article_id = ? WHERE id = ?", articleId, processedEvent);
         insertError("MENTIONS", failedMention, newTimestamp, "INVALID_URL");
         insertProcessingError("GKG", 99, newTimestamp, "COLUMN_COUNT", null);
         insertProcessingError("EVENTS", 98, newTimestamp, "OLD_ERROR", newTimestamp);
@@ -134,14 +136,6 @@ class ArticleExtractionHealthServiceTests {
                 VALUES ('https://example.org/a', 'hash', 'example.org', ?, ?, ?)
                 """, utc(timestamp), utc(timestamp), utc(timestamp));
         return jdbcTemplate.queryForObject("SELECT id FROM articles", Long.class);
-    }
-
-    private void insertSignal(long articleId, String type, long sourceId, Instant timestamp) {
-        jdbcTemplate.update("""
-                INSERT INTO article_signals
-                    (article_id, signal_type, source_id, source_timestamp, created_at)
-                VALUES (?, ?, ?, ?, ?)
-                """, articleId, type, sourceId, utc(timestamp), utc(timestamp));
     }
 
     private void insertError(String type, long sourceId, Instant timestamp, String code) {

@@ -1,7 +1,6 @@
 package com.example.globalnewsenginev1.articles.query;
 
 import com.example.globalnewsenginev1.articles.normalization.GkgLocation;
-import com.example.globalnewsenginev1.articles.normalization.GkgValueNormalizer;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -18,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -31,7 +29,6 @@ public class ArticleQueryService {
 
     private final JdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
-    private final GkgValueNormalizer gkgValueNormalizer = new GkgValueNormalizer();
 
     public ArticleQueryService(JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
@@ -111,13 +108,13 @@ public class ArticleQueryService {
             parameters.add(criteria.theme());
         }
         if (criteria.signalType() != null) {
-            if ("GKG".equals(criteria.signalType())) {
-                predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg g WHERE g.article_id = articles.id)");
-            } else {
-                predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
-                        + "AND s.signal_type = ?)");
-                parameters.add(criteria.signalType());
-            }
+            String table = switch (criteria.signalType()) {
+                case "EVENTS" -> "gdelt_events";
+                case "MENTIONS" -> "gdelt_mentions";
+                case "GKG" -> "gdelt_gkg";
+                default -> throw new IllegalStateException("Unexpected signal type: " + criteria.signalType());
+            };
+            predicates.add("EXISTS (SELECT 1 FROM " + table + " signal WHERE signal.article_id = articles.id)");
         }
         return predicates.isEmpty() ? "" : " WHERE " + String.join(" AND ", predicates);
     }
@@ -211,22 +208,27 @@ public class ArticleQueryService {
 
     private List<ArticleSignal> signalsFor(long articleId) {
         List<ArticleSignal> signals = new ArrayList<>(jdbcTemplate.query("""
-                SELECT id, signal_type, source_id, source_timestamp, global_event_id, event_code,
-                       themes, persons, organizations, locations, tone_value, tone_raw
-                FROM article_signals
+                SELECT id, source_timestamp, global_event_id, event_code, avg_tone
+                FROM gdelt_events
                 WHERE article_id = ?
                 """, (resultSet, rowNum) -> new ArticleSignal(
                 resultSet.getLong("id"),
-                resultSet.getString("signal_type"),
-                resultSet.getLong("source_id"),
+                "EVENTS",
+                resultSet.getLong("id"),
                 instant(resultSet, "source_timestamp"),
                 nullableLong(resultSet, "global_event_id"),
                 resultSet.getString("event_code"),
-                normalizeThemes(resultSet.getString("themes")),
-                gkgValueNormalizer.normalizeNames(resultSet.getString("persons")),
-                gkgValueNormalizer.normalizeNames(resultSet.getString("organizations")),
-                gkgValueNormalizer.normalizeLocations(resultSet.getString("locations")).locations(),
-                nullableDouble(resultSet, "tone_value"),
+                List.of(), List.of(), List.of(), List.of(), nullableDouble(resultSet, "avg_tone"),
+                null, null, null, null, null, null), articleId));
+        signals.addAll(jdbcTemplate.query("""
+                SELECT id, source_timestamp, global_event_id, mention_doc_tone
+                FROM gdelt_mentions
+                WHERE article_id = ?
+                """, (resultSet, rowNum) -> new ArticleSignal(
+                resultSet.getLong("id"), "MENTIONS", resultSet.getLong("id"),
+                instant(resultSet, "source_timestamp"), nullableLong(resultSet, "global_event_id"),
+                null, List.of(), List.of(), List.of(), List.of(),
+                nullableDouble(resultSet, "mention_doc_tone"),
                 null, null, null, null, null, null), articleId));
         signals.addAll(jdbcTemplate.query("""
                 SELECT id, source_timestamp, themes, persons, organizations, locations,
@@ -255,14 +257,6 @@ public class ArticleQueryService {
         return signals.stream()
                 .sorted(Comparator.comparing(ArticleSignal::sourceTimestamp).thenComparingLong(ArticleSignal::id))
                 .toList();
-    }
-
-    private List<String> normalizeThemes(String themes) {
-        if (themes == null || themes.isBlank()) return List.of();
-        LinkedHashSet<String> normalized = new LinkedHashSet<>();
-        Arrays.stream(themes.split(";", -1)).map(String::trim)
-                .filter(theme -> !theme.isEmpty()).forEach(normalized::add);
-        return List.copyOf(normalized);
     }
 
     private List<String> arrayValues(ResultSet resultSet, String column) throws SQLException {

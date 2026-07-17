@@ -135,7 +135,10 @@ class GdeltPipelinePostgresIT {
             assertThat(number(row, "domain_rows")).isEqualTo(1);
         });
         assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles", Integer.class)).isEqualTo(1);
-        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM article_signals", Integer.class)).isEqualTo(2);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_events WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_mentions WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM gdelt_gkg WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(1);
     }

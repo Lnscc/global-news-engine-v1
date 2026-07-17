@@ -43,34 +43,27 @@ und dient als Unique Key fuer idempotente Upserts. `first_seen_at` ist der frueh
 GKG-Metadaten werden nicht am Artikel dupliziert. Die Article API projiziert `title` und
 `titleSource` aus dem fruehesten nicht leeren GKG-Record nach `source_timestamp` und `id`.
 
-### `article_signals`
+### Artikelzuordnung der Fachmodelle
 
 ```text
-id
-article_id
-signal_type        EVENTS | MENTIONS
-source_id
-source_timestamp
-global_event_id nullable
-event_code nullable
-tone_value nullable
-tone_raw nullable
-created_at
+gdelt_events.article_id   nullable -> articles.id
+gdelt_mentions.article_id nullable -> articles.id
+gdelt_gkg.article_id      nullable -> articles.id
 ```
 
-`articles` bleibt dedupliziert und stabil. `article_signals` speichert EVENTS- und
-MENTIONS-Hinweise. GKG besitzt ein eigenes Record-Modell.
-
-`source_id` referenziert die jeweilige verarbeitete Quellzeile:
+`articles` bleibt dedupliziert und stabil. Alle drei Fachmodelle speichern ihre Zuordnung direkt;
+mehrere Fachzeilen duerfen auf denselben Artikel zeigen. In der REST-Projektion entsprechen `id`
+und `sourceId` jeweils der stabilen Fachzeilen-ID:
 
 ```text
 EVENTS   -> gdelt_events.id
 MENTIONS -> gdelt_mentions.id
+GKG      -> gdelt_gkg.id
 ```
 
-Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. Dadurch kann
-derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Fachzeile wird
-bei erneuten Job-Laeufen nicht doppelt eingefuegt.
+Die Signalidentitaet ist das Paar `(signalType, sourceId)`, weil IDs nur innerhalb eines
+Fachmodells eindeutig sind. Eine Fachzeile gilt als bearbeitet, sobald `article_id` gesetzt ist
+oder ein passender Eintrag in `article_extraction_errors` existiert.
 
 ### `gdelt_gkg`
 
@@ -174,7 +167,7 @@ GDELT-Fachzeilen
 -> URL extrahieren
 -> canonical URL berechnen
 -> article upsert
--> EVENTS/MENTIONS als article_signal einfuegen oder GKG mit dem Artikel verknuepfen
+-> article_id an der jeweiligen Fachzeile setzen
 ```
 
 Quellen:

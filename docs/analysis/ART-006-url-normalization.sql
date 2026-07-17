@@ -8,7 +8,13 @@ SELECT count(*) AS articles,
 FROM articles;
 
 SELECT count(*) AS signals
-FROM article_signals;
+FROM (
+    SELECT id FROM gdelt_events WHERE article_id IS NOT NULL
+    UNION ALL
+    SELECT id FROM gdelt_mentions WHERE article_id IS NOT NULL
+    UNION ALL
+    SELECT id FROM gdelt_gkg WHERE article_id IS NOT NULL
+) article_links;
 
 -- Exact HTTP/HTTPS variants. A result is only a candidate: matching text does
 -- not prove that both schemes resolve to the same representation.

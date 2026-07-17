@@ -96,8 +96,8 @@ class GdeltProcessingErrorPostgresIT {
                 "SELECT COUNT(*) FROM gdelt_events WHERE id = ?",
                 Integer.class, sourceRowId)).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("""
-                SELECT COUNT(*) FROM article_signals
-                WHERE signal_type = 'EVENTS' AND source_id = ?
+                SELECT COUNT(*) FROM gdelt_events
+                WHERE id = ? AND article_id IS NOT NULL
                 """, Integer.class, sourceRowId)).isEqualTo(1);
     }
 
@@ -127,8 +127,8 @@ class GdeltProcessingErrorPostgresIT {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM gdelt_mentions WHERE id = ?", Integer.class, sourceRowId)).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("""
-                SELECT COUNT(*) FROM article_signals
-                WHERE signal_type = 'MENTIONS' AND source_id = ?
+                SELECT COUNT(*) FROM gdelt_mentions
+                WHERE id = ? AND article_id IS NOT NULL
                 """, Integer.class, sourceRowId)).isEqualTo(1);
     }
 

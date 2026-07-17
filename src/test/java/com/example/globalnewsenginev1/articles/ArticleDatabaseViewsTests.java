@@ -1,6 +1,12 @@
 package com.example.globalnewsenginev1.articles;
 
 import db.migration.V11__normalize_remaining_gkg_values;
+import db.migration.V12__add_gkg_publication_time;
+import db.migration.V13__add_gkg_sharing_image;
+import db.migration.V16__migrate_events_to_payload_and_domain_model;
+import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
+import db.migration.V18__migrate_gkg_to_payload_and_domain_model;
+import db.migration.V20__move_article_links_to_domain_models;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,6 +48,12 @@ class ArticleDatabaseViewsTests {
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
             new V11__normalize_remaining_gkg_values().migrate(connection);
+            new V12__add_gkg_publication_time().migrate(connection);
+            new V13__add_gkg_sharing_image().migrate(connection);
+            new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
+            new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
+            new V18__migrate_gkg_to_payload_and_domain_model().migrate(connection);
+            new V20__move_article_links_to_domain_models().migrate(connection);
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
     }
@@ -59,17 +71,31 @@ class ArticleDatabaseViewsTests {
         Long articleId = jdbcTemplate.queryForObject(
                 "SELECT id FROM articles WHERE url_hash = 'hash-one'", Long.class);
         jdbcTemplate.update("""
-                INSERT INTO article_signals
-                    (article_id, signal_type, source_id, source_timestamp, global_event_id,
-                     event_code, themes, tone_value, created_at)
-                VALUES (?, 'EVENT', 101, ?, 9001, '010', 'THEME_A', -1.5, ?)
-                """, articleId, timestamp, timestamp);
+                INSERT INTO gdelt_import_files
+                    (dataset_type, source_file, source_url, source_timestamp, status, started_at, completed_at)
+                VALUES ('EVENTS', 'event.zip', 'https://example.com/event.zip', ?, 'COMPLETED', ?, ?),
+                       ('GKG', 'gkg.zip', 'https://example.com/gkg.zip', ?, 'COMPLETED', ?, ?)
+                """, timestamp, timestamp, timestamp, timestamp, timestamp, timestamp);
+        Long eventImportId = jdbcTemplate.queryForObject(
+                "SELECT id FROM gdelt_import_files WHERE dataset_type = 'EVENTS'", Long.class);
+        Long gkgImportId = jdbcTemplate.queryForObject(
+                "SELECT id FROM gdelt_import_files WHERE dataset_type = 'GKG'", Long.class);
         jdbcTemplate.update("""
-                INSERT INTO gdelt_gkg_records
-                    (source_id, article_id, source_timestamp, document_identifier, themes,
-                     persons, organizations, locations, tone_value, created_at)
-                VALUES (102, ?, ?, 'https://example.com/one', ?, ?, ?, CAST('[]' AS JSON), 2.5, ?)
-                """, articleId, timestamp.plusMinutes(5),
+                INSERT INTO gdelt_events
+                    (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
+                     global_event_id, event_code, avg_tone, source_url, article_id)
+                VALUES (101, ?, 'event.zip', ?, 1, ?, ?, 9001, '010', -1.5,
+                        'https://example.com/one', ?)
+                """, eventImportId, timestamp, timestamp, timestamp, articleId);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_gkg
+                    (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
+                     gkg_record_id, document_identifier, themes_raw, persons_raw, organizations_raw,
+                     locations_raw, tone_raw, article_id, themes, persons, organizations, locations,
+                     tone_value, created_at)
+                VALUES (102, ?, 'gkg.zip', ?, 1, ?, ?, 'record-102', 'https://example.com/one',
+                        'THEME_B', '', '', '', '2.5', ?, ?, ?, ?, CAST('[]' AS JSON), 2.5, ?)
+                """, gkgImportId, timestamp.plusMinutes(5), timestamp, timestamp, articleId,
                 new SqlArrayValue("TEXT", "THEME_B"), new SqlArrayValue("TEXT"),
                 new SqlArrayValue("TEXT"), timestamp);
 
@@ -91,7 +117,7 @@ class ArticleDatabaseViewsTests {
                 """, articleId))
                 .hasSize(2)
                 .extracting(row -> row.get("SIGNAL_TYPE"))
-                .containsExactly("EVENT", "GKG");
+                .containsExactly("EVENTS", "GKG");
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT COUNT(*) FROM article_detail_view
                 WHERE canonical_url = 'https://example.com/two' AND signal_id IS NULL

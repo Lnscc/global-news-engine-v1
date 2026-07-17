@@ -120,7 +120,7 @@ class ArticleControllerTests {
     void returnsArticleDetailAndNotFound() throws Exception {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         ArticleSignal signal = new ArticleSignal(
-                7, "EVENTS", 9, timestamp, 123L, "042",
+                9, "EVENTS", 9, timestamp, 123L, "042",
                 List.of(), List.of(), List.of(), List.of(), -1.5,
                 null, null, null, null, null, null);
         when(queryService.articleDetail(42)).thenReturn(Optional.of(new ArticleDetail(
@@ -142,6 +142,8 @@ class ArticleControllerTests {
                 .andExpect(jsonPath("$.mainImageUrl").value("https://cdn.example.org/image.jpg"))
                 .andExpect(jsonPath("$.mainImageSource").value("GKG_SHARING_IMAGE"))
                 .andExpect(jsonPath("$.signals[0].signalType").value("EVENTS"))
+                .andExpect(jsonPath("$.signals[0].id").value(9))
+                .andExpect(jsonPath("$.signals[0].sourceId").value(9))
                 .andExpect(jsonPath("$.signals[0].themes").isArray())
                 .andExpect(jsonPath("$.signals[0].persons").isArray())
                 .andExpect(jsonPath("$.signals[0].organizations").isArray())
@@ -155,7 +157,7 @@ class ArticleControllerTests {
     void returnsNormalizedGkgSignalContract() throws Exception {
         Instant timestamp = Instant.parse("2026-07-01T10:00:00Z");
         ArticleSignal signal = new ArticleSignal(
-                8, "GKG", 10, timestamp, null, null, List.of("CLIMATE"),
+                10, "GKG", 10, timestamp, null, null, List.of("CLIMATE"),
                 List.of("Jane Doe"), List.of("Example Org"),
                 List.of(new GkgLocation(4, "Exeter", "UK", "UKD4", 50.7, -3.53333, "-2595805")),
                 -3.5, 2.0, 5.5, 7.5, 1.25, 0.75, 420);

@@ -7,6 +7,7 @@ import db.migration.V13__add_gkg_sharing_image;
 import db.migration.V16__migrate_events_to_payload_and_domain_model;
 import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
 import db.migration.V18__migrate_gkg_to_payload_and_domain_model;
+import db.migration.V20__move_article_links_to_domain_models;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,6 +57,7 @@ class ArticleExtractorServiceTests {
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
             new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
             new V18__migrate_gkg_to_payload_and_domain_model().migrate(connection);
+            new V20__move_article_links_to_domain_models().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -91,7 +93,10 @@ class ArticleExtractorServiceTests {
         assertThat(firstRun).isEqualTo(new ArticleExtractionResult(1, 4, 1));
         assertThat(secondRun).isEqualTo(new ArticleExtractionResult(0, 0, 0));
         assertThat(countRows("articles")).isEqualTo(1);
-        assertThat(countRows("article_signals")).isEqualTo(3);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_events WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_mentions WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM gdelt_gkg WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(1);
         assertThat(arrayValues("SELECT themes FROM gdelt_gkg WHERE article_id IS NOT NULL"))
                 .containsExactly("THEME", "OTHER");
@@ -102,7 +107,7 @@ class ArticleExtractorServiceTests {
                 "SELECT page_precise_pub_timestamp FROM gdelt_gkg WHERE article_id IS NOT NULL", OffsetDateTime.class).toInstant())
                 .isEqualTo(later.minusSeconds(300));
         assertThat(jdbcTemplate.queryForObject("""
-                SELECT COUNT(*) FROM article_signals WHERE signal_type = 'MENTIONS'
+                SELECT COUNT(*) FROM gdelt_mentions WHERE article_id IS NOT NULL
                 """, Integer.class)).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT tone_value FROM gdelt_gkg WHERE article_id IS NOT NULL
