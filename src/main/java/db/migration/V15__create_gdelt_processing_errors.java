@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
-public class V14__create_gdelt_processing_errors extends BaseJavaMigration {
+public class V15__create_gdelt_processing_errors extends BaseJavaMigration {
 
     @Override
     public void migrate(Context context) throws Exception {

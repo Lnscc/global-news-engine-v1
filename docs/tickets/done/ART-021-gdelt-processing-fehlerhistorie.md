@@ -110,9 +110,12 @@ Payload- und Fachtabellen, automatische Payload-Loeschung, eine Retention fuer
 
 ## Implementierungskommentar
 
-Migration V14 ersetzt `gdelt_stage_errors` durch die dauerhafte, append-only Tabelle
+Migration V15 ersetzt `gdelt_stage_errors` durch die dauerhafte, append-only Tabelle
 `gdelt_processing_errors`. Bestehende Fehler werden vor dem Entfernen der Alttabelle vollständig
 übernommen und anhand von Anzahl und Pflichtfeldern validiert; `raw_tsv` wird nicht dupliziert.
+V14 bleibt als arbeitslose Kompatibilitätsmigration unter ihrer historisch bereits angewendeten
+Identität `add gkg article language` reserviert. Dadurch validieren bestehende Datenbanken korrekt,
+während neue Installationen direkt mit V15 in das aktuelle Schema migrieren.
 
 Der Staging-Job schließt fehlgeschlagene Quellzeilen nicht mehr dauerhaft aus. Jeder erneute
 fehlgeschlagene Parsing-Versuch erzeugt eine eigene Fehlerzeile mit `failed_step = PARSING`.

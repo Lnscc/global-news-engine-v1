@@ -1,6 +1,6 @@
 package com.example.globalnewsenginev1.articles.health;
 
-import db.migration.V14__create_gdelt_processing_errors;
+import db.migration.V15__create_gdelt_processing_errors;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -30,7 +30,7 @@ class ArticleExtractionHealthServiceTests {
                     new ClassPathResource("db/migration/V1__create_gdelt_raw_tables.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V2__create_gdelt_staging_tables.sql"));
-            new V14__create_gdelt_processing_errors().migrate(connection);
+            new V15__create_gdelt_processing_errors().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
         }

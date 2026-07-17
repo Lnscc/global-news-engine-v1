@@ -42,7 +42,7 @@ class GdeltProcessingErrorMigrationTests {
                 """, importId, timestamp, timestamp);
 
         try (Connection connection = dataSource.getConnection()) {
-            new V14__create_gdelt_processing_errors().migrate(connection);
+            new V15__create_gdelt_processing_errors().migrate(connection);
         }
 
         assertThat(jdbcTemplate.queryForMap("SELECT * FROM gdelt_processing_errors"))
