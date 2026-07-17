@@ -25,7 +25,7 @@ weder eine allgemeine Gleichwertigkeit noch ein Bedarf fuer eine neue Regel.
 
 ### Trailing Slash und Query
 
-Die 59.339 Roh-URLs der drei Staging-Quellen enthalten 24.782 Pfade mit und 34.557 ohne
+Die 59.339 Roh-URLs der drei verarbeiteten GDELT-Quellen enthalten 24.782 Pfade mit und 34.557 ohne
 abschliessenden Slash. Der bestehende Normalizer entfernt bereits abschliessende Slashes bei
 Nicht-Root-Pfaden; im Artikelbestand entstehen dadurch keine getrennten Varianten. Root-Pfade
 bleiben korrekt erhalten.

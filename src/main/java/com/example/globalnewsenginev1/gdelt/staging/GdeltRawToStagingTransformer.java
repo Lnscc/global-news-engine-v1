@@ -79,19 +79,21 @@ public class GdeltRawToStagingTransformer {
     private DatasetResult stageEvents(int batchSize) {
         long staged = 0;
         long errors = 0;
-        for (RawRow row : loadPendingRows("gdelt_raw_events", "gdelt_stage_events", "EVENTS", batchSize)) {
+        for (RawRow row : loadPendingRows(
+                "gdelt_event_payloads", "gdelt_events", "id", "EVENTS", batchSize)) {
             try {
                 GdeltStageEvent event = eventParser.parse(row.rawTsv());
                 jdbcTemplate.update("""
-                        INSERT INTO gdelt_stage_events
-                            (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                        INSERT INTO gdelt_events
+                            (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
                              global_event_id, event_date, actor1_code, actor1_name, actor1_country_code,
                              actor2_code, actor2_name, actor2_country_code, event_code, quad_class,
                              goldstein_scale, avg_tone, source_url)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         row.rawId(), row.importFileId(), row.sourceFile(), utc(row.sourceTimestamp()),
-                        row.rowNumber(), utc(Instant.now()), event.globalEventId(), event.eventDate(),
+                        row.rowNumber(), utc(row.ingestedAt()), utc(Instant.now()),
+                        event.globalEventId(), event.eventDate(),
                         event.actor1Code(), event.actor1Name(), event.actor1CountryCode(),
                         event.actor2Code(), event.actor2Name(), event.actor2CountryCode(),
                         event.eventCode(), event.quadClass(), event.goldsteinScale(),
@@ -109,7 +111,8 @@ public class GdeltRawToStagingTransformer {
     private DatasetResult stageMentions(int batchSize) {
         long staged = 0;
         long errors = 0;
-        for (RawRow row : loadPendingRows("gdelt_raw_mentions", "gdelt_stage_mentions", "MENTIONS", batchSize)) {
+        for (RawRow row : loadPendingRows(
+                "gdelt_raw_mentions", "gdelt_stage_mentions", "raw_id", "MENTIONS", batchSize)) {
             try {
                 GdeltStageMention mention = mentionParser.parse(row.rawTsv());
                 jdbcTemplate.update("""
@@ -137,7 +140,8 @@ public class GdeltRawToStagingTransformer {
     private DatasetResult stageGkg(int batchSize) {
         long staged = 0;
         long errors = 0;
-        for (RawRow row : loadPendingRows("gdelt_raw_gkg", "gdelt_stage_gkg", "GKG", batchSize)) {
+        for (RawRow row : loadPendingRows(
+                "gdelt_raw_gkg", "gdelt_stage_gkg", "raw_id", "GKG", batchSize)) {
             try {
                 GdeltStageGkg gkg = gkgParser.parse(row.rawTsv());
                 jdbcTemplate.update("""
@@ -185,14 +189,21 @@ public class GdeltRawToStagingTransformer {
         }
     }
 
-    private List<RawRow> loadPendingRows(String rawTable, String stageTable, String datasetType, int batchSize) {
+    private List<RawRow> loadPendingRows(
+            String rawTable,
+            String stageTable,
+            String sourceIdColumn,
+            String datasetType,
+            int batchSize
+    ) {
         String sql = """
-                SELECT raw.id, raw.import_file_id, raw.source_file, raw.source_timestamp, raw.row_number, raw.raw_tsv
+                SELECT raw.id, raw.import_file_id, raw.source_file, raw.source_timestamp, raw.row_number,
+                       raw.raw_tsv, raw.ingested_at
                 FROM %s raw
                 JOIN gdelt_import_files import_file ON import_file.id = raw.import_file_id
-                LEFT JOIN %s stage ON stage.raw_id = raw.id
+                LEFT JOIN %s stage ON stage.%s = raw.id
                 WHERE import_file.status = 'COMPLETED'
-                  AND stage.raw_id IS NULL
+                  AND stage.%s IS NULL
                   AND NOT EXISTS (
                       SELECT 1
                       FROM gdelt_processing_errors error
@@ -203,14 +214,15 @@ public class GdeltRawToStagingTransformer {
                   )
                 ORDER BY raw.id
                 LIMIT ?
-                """.formatted(rawTable, stageTable);
+                """.formatted(rawTable, stageTable, sourceIdColumn, sourceIdColumn);
         return jdbcTemplate.query(sql, (resultSet, rowNum) -> new RawRow(
                 resultSet.getLong("id"),
                 resultSet.getLong("import_file_id"),
                 resultSet.getString("source_file"),
                 resultSet.getTimestamp("source_timestamp").toInstant(),
                 resultSet.getLong("row_number"),
-                resultSet.getString("raw_tsv")
+                resultSet.getString("raw_tsv"),
+                resultSet.getTimestamp("ingested_at").toInstant()
         ), datasetType, utc(Instant.now().minus(retryDelay)), batchSize);
     }
 
@@ -247,7 +259,8 @@ public class GdeltRawToStagingTransformer {
             String sourceFile,
             Instant sourceTimestamp,
             long rowNumber,
-            String rawTsv
+            String rawTsv,
+            Instant ingestedAt
     ) {
     }
 

@@ -63,7 +63,7 @@ public class ArticleExtractionHealthService {
                 """, (RowCallbackHandler) resultSet -> healthByType.get(resultSet.getString("signal_type")).errors.add(
                 new ExtractionErrorCount(resultSet.getString("error_code"), resultSet.getLong("error_count"))));
 
-        pending("EVENTS", "gdelt_stage_events", healthByType);
+        pending("EVENTS", "gdelt_events", healthByType);
         pending("MENTIONS", "gdelt_stage_mentions", healthByType);
         pending("GKG", "gdelt_stage_gkg", healthByType);
 

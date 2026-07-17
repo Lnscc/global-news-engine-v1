@@ -3,8 +3,9 @@
 ## Ziel
 
 Die Artikel-Schicht ist der erste Schritt vom GDELT-Import zum produktnahen Modell.
-Aus `gdelt_stage_events`, `gdelt_stage_mentions` und `gdelt_stage_gkg` werden deduplizierte
-Artikel abgeleitet.
+Aus `gdelt_events`, `gdelt_stage_mentions` und `gdelt_stage_gkg` werden deduplizierte Artikel
+abgeleitet. EVENTS sind bereits dauerhafte Fachzeilen; MENTIONS und GKG folgen derzeit noch dem
+Staging-Modell.
 
 Ein Artikel ist in dieser Phase primaer eine kanonische URL mit Metadaten und Signalen aus GDELT.
 Fulltext-Crawling, Embeddings, LLM-Zusammenfassungen und Story-Clustering kommen spaeter.
@@ -12,7 +13,7 @@ Fulltext-Crawling, Embeddings, LLM-Zusammenfassungen und Story-Clustering kommen
 ## Rolle im Zielbild
 
 ```text
-GDELT staging rows
+GDELT-Fach- und Staging-Zeilen
 -> Artikel
 -> Stories
 -> Topics
@@ -61,16 +62,16 @@ created_at
 `articles` bleibt dedupliziert und stabil. `article_signals` speichert EVENTS- und
 MENTIONS-Hinweise. GKG besitzt ein eigenes Record-Modell.
 
-`source_id` referenziert die jeweilige Staging-Zeile:
+`source_id` referenziert die jeweilige verarbeitete Quellzeile:
 
 ```text
-EVENTS   -> gdelt_stage_events.id
+EVENTS   -> gdelt_events.id
 MENTIONS -> gdelt_stage_mentions.id
 ```
 
 Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. Dadurch kann
-derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Staging-Zeile wird bei
-erneuten Job-Laeufen nicht doppelt eingefuegt.
+derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Fach- oder Staging-Zeile wird
+bei erneuten Job-Laeufen nicht doppelt eingefuegt.
 
 ### `gdelt_gkg_records`
 
@@ -97,7 +98,7 @@ error_message
 created_at
 ```
 
-Fehler in dieser Tabelle bedeuten: Die Staging-Zeile war gueltig, konnte aber nicht in einen
+Fehler in dieser Tabelle bedeuten: Die Fach- oder Staging-Zeile war gueltig, konnte aber nicht in einen
 Artikel ueberfuehrt werden, zum Beispiel wegen einer leeren oder ungueltigen URL.
 Auch hier verhindert ein Unique Key auf `(signal_type, source_id)` doppelte Fehlerzeilen bei
 erneuten Job-Laeufen.
@@ -132,7 +133,7 @@ nachgezogen werden, wenn reale Daten zeigen, welche Domains sich sicher zusammen
 
 ## Quellenmatrix fuer Enrichment
 
-Die strukturierten Staging-Felder liefern URLs, Beobachtungszeitpunkte und Signale. Die vollstaendig
+Die strukturierten Fach- und Staging-Felder liefern URLs, Beobachtungszeitpunkte und Signale. Die vollstaendig
 gespeicherten GKG-Rohzeilen enthalten darueber hinaus in Feld 27 (`V2EXTRASXML`) nahezu immer einen
 `PAGE_TITLE` und optional weitere Seitenmetadaten. Details und Messwerte stehen in
 `docs/analysis/ART-011-gkg-xml-extras.md`. Signalzeiten werden nicht als Publikationszeitpunkt
@@ -165,10 +166,10 @@ aus `article_signals` und entfernt `articles.title` sowie `articles.title_source
 
 ## Article-Extractor-Job
 
-Der Job verarbeitet fertig gestagte GDELT-Zeilen und erzeugt Artikel plus Signale.
+Der Job verarbeitet erfolgreich geparste GDELT-Fach- und Staging-Zeilen und erzeugt Artikel plus Signale.
 
 ```text
-GDELT staging rows
+GDELT-Fach- und Staging-Zeilen
 -> URL extrahieren
 -> canonical URL berechnen
 -> article upsert
@@ -178,12 +179,12 @@ GDELT staging rows
 Quellen:
 
 ```text
-gdelt_stage_events.source_url
+gdelt_events.source_url
 gdelt_stage_mentions.mention_identifier
 gdelt_stage_gkg.document_identifier
 ```
 
-Der Job muss idempotent sein. Ein zweiter Lauf ueber dieselben Staging-Zeilen darf keine
+Der Job muss idempotent sein. Ein zweiter Lauf ueber dieselben Fach- oder Staging-Zeilen darf keine
 doppelten Artikel oder Signale erzeugen.
 
 ## Tests

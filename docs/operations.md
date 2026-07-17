@@ -48,6 +48,11 @@ docker compose exec postgres psql -U gne -d gne -c "select status, dataset_type,
 
 ## Processing-Fehler
 
+EVENTS verwenden `gdelt_event_payloads` als Rohdatenspeicher und `gdelt_events` als dauerhafte
+Fachtabelle. Eine erfolgreich geparste EVENTS-Zeile besitzt in beiden Tabellen dieselbe ID;
+`gdelt_events` enthaelt kein `raw_tsv` und keinen technischen Verarbeitungsstatus. MENTIONS und
+GKG verwenden bis zu ihren jeweiligen Modellmigrationen weiterhin die Raw-/Staging-Tabellen.
+
 Jeder fehlgeschlagene Parsing-Versuch wird dauerhaft in `gdelt_processing_errors` protokolliert.
 Die Rohzeile selbst bleibt ausschließlich in der jeweiligen Raw-Tabelle und wird nicht in der
 Fehlerhistorie dupliziert. Der Staging-Job versucht noch nicht erfolgreich gestagte Zeilen bei
@@ -72,4 +77,10 @@ Historische und weiterhin offene Versuche:
 
 ```powershell
 docker compose exec postgres psql -U gne -d gne -c "select dataset_type, resolved_at is null as open, count(*) as attempts from gdelt_processing_errors group by dataset_type, resolved_at is null order by dataset_type, open desc;"
+```
+
+EVENTS-Payloads ohne Fachzeile:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select payload.id, payload.source_file, payload.row_number, payload.ingested_at from gdelt_event_payloads payload left join gdelt_events event on event.id = payload.id where event.id is null order by payload.id limit 100;"
 ```

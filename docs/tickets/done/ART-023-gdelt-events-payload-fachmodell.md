@@ -1,6 +1,6 @@
 # ART-023: GDELT EVENTS auf Payload- und Fachmodell umstellen
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, architecture
 
 ## Kontext
@@ -107,3 +107,19 @@ Das Ticket baut auf `gdelt_processing_errors` aus ART-021 auf.
 
 MENTIONS, GKG, Payload-Retention, weitere fachliche Event-Normalisierung und Aenderungen am
 Article-REST-Contract sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Migration V16 ueberfuehrt `gdelt_raw_events` ID-erhaltend nach `gdelt_event_payloads` und erzeugt
+aus jeder bisherigen `gdelt_stage_events`-Zeile genau eine `gdelt_events`-Fachzeile mit der ID der
+zugehoerigen Payload. EVENTS-Referenzen in `article_signals` und `article_extraction_errors` werden
+von der bisherigen Stage-ID auf diese stabile ID umgesetzt. Mengen- und Referenzpruefungen laufen
+vor dem Entfernen der beiden Alttabellen; die Payload-Identity wird anschliessend oberhalb des
+migrierten Maximalwerts fortgesetzt.
+
+Neue EVENTS-Imports schreiben direkt nach `gdelt_event_payloads`. Der Parser liest offene
+Payloads, legt `gdelt_events` idempotent mit `ingested_at` und `parsed_at` an und loest bestehende
+Processing-Fehler bei einem erfolgreichen Retry auf. Article-Extraktion, Health-Abfragen,
+Dokumentation und URL-Analyseskripte verwenden fuer EVENTS das neue Fachmodell. Migrations-,
+Importer-, Parser/Retry-, Extraktions- und Health-Tests decken ID-Erhalt, Referenzmigration,
+Neuimport, Wiederholung und unveraenderten Article-Contract ab.

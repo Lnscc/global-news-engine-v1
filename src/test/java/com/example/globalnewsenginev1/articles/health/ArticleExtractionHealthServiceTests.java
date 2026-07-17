@@ -1,6 +1,7 @@
 package com.example.globalnewsenginev1.articles.health;
 
 import db.migration.V15__create_gdelt_processing_errors;
+import db.migration.V16__migrate_events_to_payload_and_domain_model;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,6 +34,7 @@ class ArticleExtractionHealthServiceTests {
             new V15__create_gdelt_processing_errors().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
+            new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
         jdbcTemplate.execute("""
@@ -48,8 +50,8 @@ class ArticleExtractionHealthServiceTests {
     void reportsPendingProcessedAndErrorRowsPerSignalType() {
         Instant oldTimestamp = Instant.parse("2026-07-05T11:45:00Z");
         Instant newTimestamp = Instant.parse("2026-07-05T12:00:00Z");
-        long processedEvent = insertStageEvent(oldTimestamp, 1);
-        insertStageEvent(newTimestamp, 2);
+        long processedEvent = insertEvent(oldTimestamp, 1);
+        insertEvent(newTimestamp, 2);
         long failedMention = insertStageMention(newTimestamp, 1);
         insertStageGkg(newTimestamp, 1);
         long articleId = insertArticle(oldTimestamp);
@@ -69,15 +71,17 @@ class ArticleExtractionHealthServiceTests {
                         java.util.List.of(new ExtractionErrorCount("COLUMN_COUNT", 1))));
     }
 
-    private long insertStageEvent(Instant timestamp, long rowNumber) {
-        long rawId = insertRaw("EVENTS", "gdelt_raw_events", timestamp, rowNumber);
+    private long insertEvent(Instant timestamp, long rowNumber) {
+        long payloadId = insertRaw("EVENTS", "gdelt_event_payloads", timestamp, rowNumber);
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_events
-                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at, global_event_id)
-                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?, ?
-                FROM gdelt_raw_events WHERE id = ?
-                """, utc(timestamp), rowNumber, rawId);
-        return jdbcTemplate.queryForObject("SELECT id FROM gdelt_stage_events WHERE raw_id = ?", Long.class, rawId);
+                INSERT INTO gdelt_events
+                    (id, import_file_id, source_file, source_timestamp, row_number,
+                     ingested_at, parsed_at, global_event_id)
+                SELECT id, import_file_id, source_file, source_timestamp, row_number,
+                       ingested_at, ?, ?
+                FROM gdelt_event_payloads WHERE id = ?
+                """, utc(timestamp), rowNumber, payloadId);
+        return payloadId;
     }
 
     private long insertStageMention(Instant timestamp, long rowNumber) {

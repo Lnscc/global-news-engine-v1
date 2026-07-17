@@ -4,6 +4,7 @@ import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalize
 import db.migration.V11__normalize_remaining_gkg_values;
 import db.migration.V12__add_gkg_publication_time;
 import db.migration.V13__add_gkg_sharing_image;
+import db.migration.V16__migrate_events_to_payload_and_domain_model;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,6 +51,7 @@ class ArticleExtractorServiceTests {
             new V11__normalize_remaining_gkg_values().migrate(connection);
             new V12__add_gkg_publication_time().migrate(connection);
             new V13__add_gkg_sharing_image().migrate(connection);
+            new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -72,7 +74,7 @@ class ArticleExtractorServiceTests {
         long gkgRawId = insertRawGkg(later, "https://example.org/a?utm_source=x");
         long badGkgRawId = insertRawGkg(later, "not a url");
 
-        insertStageEvent(eventRawId, later, "https://example.org/a?utm_source=wire", -1.25);
+        insertEvent(eventRawId, later, "https://example.org/a?utm_source=wire", -1.25);
         insertStageMention(mentionRawId1, later, "https://example.org/a#paragraph", -1.5);
         insertStageMention(mentionRawId2, earlier, "https://EXAMPLE.org/a/", -2.5);
         insertStageGkg(gkgRawId, later, "https://example.org/a?utm_source=x",
@@ -148,7 +150,8 @@ class ArticleExtractorServiceTests {
 
     private long insertRawEvent(Instant sourceTimestamp) {
         long importFileId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", sourceTimestamp);
-        return insertRaw("gdelt_raw_events", importFileId, "20260705120000.export.CSV.zip", sourceTimestamp, 1);
+        return insertRaw("gdelt_event_payloads", importFileId,
+                "20260705120000.export.CSV.zip", sourceTimestamp, 1);
     }
 
     private long insertRawMention(Instant sourceTimestamp, long rowNumber) {
@@ -195,14 +198,15 @@ class ArticleExtractorServiceTests {
                 """.formatted(tableName), Long.class, sourceFile, rowNumber);
     }
 
-    private void insertStageEvent(long rawId, Instant sourceTimestamp, String sourceUrl, double avgTone) {
+    private void insertEvent(long payloadId, Instant sourceTimestamp, String sourceUrl, double avgTone) {
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_events
-                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                INSERT INTO gdelt_events
+                    (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
                      global_event_id, event_code, avg_tone, source_url)
-                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?, 123, '042', ?, ?
-                FROM gdelt_raw_events WHERE id = ?
-                """, utc(sourceTimestamp), avgTone, sourceUrl, rawId);
+                SELECT id, import_file_id, source_file, source_timestamp, row_number, ingested_at, ?,
+                       123, '042', ?, ?
+                FROM gdelt_event_payloads WHERE id = ?
+                """, utc(sourceTimestamp), avgTone, sourceUrl, payloadId);
     }
 
     private void insertStageMention(long rawId, Instant sourceTimestamp, String mentionIdentifier, double tone) {

@@ -40,3 +40,11 @@ GDELT liefert Signale
 ```
 
 Events, Mentions und GKG bleiben wichtig, aber sie sind nicht das zentrale Produktobjekt. Das zentrale Produktobjekt ist die Story.
+
+## Aktuelle GDELT-Persistenz
+
+EVENTS trennen die unveraenderte, temporaere Quellzeile in `gdelt_event_payloads` von der
+dauerhaften, erfolgreich geparsten Fachzeile in `gdelt_events`. Beide verwenden dieselbe stabile
+ID. Article-Signale referenzieren `gdelt_events.id`; Parsing-Fehler werden unabhaengig davon in
+`gdelt_processing_errors` historisiert. MENTIONS und GKG werden in nachfolgenden Migrationen auf
+dasselbe Muster umgestellt.

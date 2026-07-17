@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum GdeltDataset {
-    EVENTS("export.CSV.zip", "gdelt_raw_events"),
+    EVENTS("export.CSV.zip", "gdelt_event_payloads"),
     MENTIONS("mentions.CSV.zip", "gdelt_raw_mentions"),
     GKG("gkg.csv.zip", "gdelt_raw_gkg");
 

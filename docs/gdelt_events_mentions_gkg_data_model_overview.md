@@ -22,6 +22,25 @@ GKG      → Worum geht es semantisch?
 
 # 1. EVENTS
 
+## Persistenzmodell
+
+EVENTS werden mit einer stabilen Identitaet verarbeitet:
+
+```text
+gdelt_event_payloads.id
+-> Parsing
+gdelt_events.id (identisch zur Payload-ID)
+-> Article-Extraktion
+article_signals.source_id
+```
+
+`gdelt_event_payloads` enthaelt die unveraenderte Quellzeile in `raw_tsv` und die
+Import-Provenienz. `gdelt_events` enthaelt ausschliesslich erfolgreich geparste, typisierte
+Felder sowie `ingested_at` und `parsed_at`; `raw_tsv` und ein technischer Verarbeitungsstatus
+werden dort nicht gespeichert. Fehlerhafte Payloads bleiben ohne Fachzeile erhalten und koennen
+erneut verarbeitet werden. Historische Parsing-Fehler liegen dauerhaft in
+`gdelt_processing_errors`.
+
 # Event-Felder
 
 | Feld                 | Bedeutung                    |
@@ -153,4 +172,3 @@ GKG      → Worum geht es semantisch?
 | Amounts                    | Geld/Zahlen              |
 | TranslationInfo            | Übersetzungen            |
 | ExtrasXML                  | Zusatzinformationen      |
-

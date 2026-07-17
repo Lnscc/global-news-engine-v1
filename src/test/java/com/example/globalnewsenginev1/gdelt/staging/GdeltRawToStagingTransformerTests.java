@@ -6,6 +6,7 @@ import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltGkgParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltMentionParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
 import db.migration.V15__create_gdelt_processing_errors;
+import db.migration.V16__migrate_events_to_payload_and_domain_model;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,6 +42,7 @@ class GdeltRawToStagingTransformerTests {
             new V15__create_gdelt_processing_errors().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
+            new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
             connection.createStatement().execute("ALTER TABLE gdelt_stage_gkg "
@@ -61,9 +63,9 @@ class GdeltRawToStagingTransformerTests {
         long eventImportId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", sourceTimestamp);
         long mentionImportId = insertImportFile("MENTIONS", "20260705120000.mentions.CSV.zip", sourceTimestamp);
         long gkgImportId = insertImportFile("GKG", "20260705120000.gkg.csv.zip", sourceTimestamp);
-        insertRaw("gdelt_raw_events", eventImportId, "20260705120000.export.CSV.zip", sourceTimestamp, 1,
+        insertRaw("gdelt_event_payloads", eventImportId, "20260705120000.export.CSV.zip", sourceTimestamp, 1,
                 GdeltParserTests.eventRow());
-        insertRaw("gdelt_raw_events", eventImportId, "20260705120000.export.CSV.zip", sourceTimestamp, 2,
+        insertRaw("gdelt_event_payloads", eventImportId, "20260705120000.export.CSV.zip", sourceTimestamp, 2,
                 "bad\trow");
         insertRaw("gdelt_raw_mentions", mentionImportId, "20260705120000.mentions.CSV.zip", sourceTimestamp, 1,
                 GdeltParserTests.mentionRow());
@@ -75,7 +77,7 @@ class GdeltRawToStagingTransformerTests {
 
         assertThat(firstRun).isEqualTo(new GdeltStagingResult(1, 1, 1, 1));
         assertThat(secondRun).isEqualTo(new GdeltStagingResult(0, 0, 0, 1));
-        assertThat(countRows("gdelt_stage_events")).isEqualTo(1);
+        assertThat(countRows("gdelt_events")).isEqualTo(1);
         assertThat(countRows("gdelt_stage_mentions")).isEqualTo(1);
         assertThat(countRows("gdelt_stage_gkg")).isEqualTo(1);
         assertThat(countRows("gdelt_processing_errors")).isEqualTo(2);
@@ -95,7 +97,7 @@ class GdeltRawToStagingTransformerTests {
                 "SELECT COUNT(*) FROM gdelt_processing_errors WHERE error_message LIKE '%bad%'",
                 Integer.class)).isZero();
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT global_event_id FROM gdelt_stage_events",
+                "SELECT global_event_id FROM gdelt_events",
                 Long.class)).isEqualTo(123L);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT page_title FROM gdelt_stage_gkg",
@@ -106,26 +108,29 @@ class GdeltRawToStagingTransformerTests {
     void resolvesHistoricalErrorsAfterARecordCanBeParsedSuccessfully() {
         Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
         long importId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", timestamp);
-        long rawId = insertRaw("gdelt_raw_events", importId, "20260705120000.export.CSV.zip", timestamp, 1,
+        long rawId = insertRaw("gdelt_event_payloads", importId, "20260705120000.export.CSV.zip", timestamp, 1,
                 "bad\trow");
 
         assertThat(transformer.transformCompletedRawRows(100).errors()).isEqualTo(1);
-        jdbcTemplate.update("UPDATE gdelt_raw_events SET raw_tsv = ? WHERE id = ?",
+        jdbcTemplate.update("UPDATE gdelt_event_payloads SET raw_tsv = ? WHERE id = ?",
                 GdeltParserTests.eventRow(), rawId);
+        jdbcTemplate.update("UPDATE gdelt_processing_errors SET occurred_at = ? WHERE source_row_id = ?",
+                utc(timestamp), rawId);
         assertThat(transformer.transformCompletedRawRows(100).eventsStaged()).isEqualTo(1);
 
         assertThat(countRows("gdelt_processing_errors")).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM gdelt_processing_errors WHERE resolved_at IS NOT NULL",
                 Integer.class)).isEqualTo(1);
-        assertThat(countRows("gdelt_stage_events")).isEqualTo(1);
+        assertThat(countRows("gdelt_events")).isEqualTo(1);
     }
 
     @Test
     void waitsForRetryDelayBeforeTryingAnOpenErrorAgain() {
         Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
         long importId = insertImportFile("EVENTS", "20260705120000.export.CSV.zip", timestamp);
-        insertRaw("gdelt_raw_events", importId, "20260705120000.export.CSV.zip", timestamp, 1, "bad\trow");
+        insertRaw("gdelt_event_payloads", importId,
+                "20260705120000.export.CSV.zip", timestamp, 1, "bad\trow");
         GdeltRawToStagingTransformer delayedTransformer = new GdeltRawToStagingTransformer(
                 jdbcTemplate,
                 new TransactionTemplate(new DataSourceTransactionManager(jdbcTemplate.getDataSource())),

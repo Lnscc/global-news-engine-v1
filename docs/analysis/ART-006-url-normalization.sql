@@ -62,7 +62,7 @@ ORDER BY variants DESC, base_url;
 
 -- Most frequent raw query parameter names in all three staging sources.
 WITH source_urls AS (
-    SELECT source_url AS raw_url FROM gdelt_stage_events
+    SELECT source_url AS raw_url FROM gdelt_events
     UNION ALL
     SELECT mention_identifier FROM gdelt_stage_mentions
     UNION ALL
@@ -83,7 +83,7 @@ ORDER BY occurrences DESC, name;
 -- Raw trailing-slash prevalence. The current normalizer already removes a
 -- non-root trailing slash, so articles cannot reveal pre-normalization form.
 WITH source_urls AS (
-    SELECT source_url AS raw_url FROM gdelt_stage_events
+    SELECT source_url AS raw_url FROM gdelt_events
     UNION ALL
     SELECT mention_identifier FROM gdelt_stage_mentions
     UNION ALL

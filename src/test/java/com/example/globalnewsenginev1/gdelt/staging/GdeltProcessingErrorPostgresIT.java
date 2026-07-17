@@ -1,5 +1,7 @@
 package com.example.globalnewsenginev1.gdelt.staging;
 
+import com.example.globalnewsenginev1.articles.extraction.ArticleExtractorService;
+import com.example.globalnewsenginev1.articles.normalization.ArticleUrlNormalizer;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.AfterEach;
@@ -26,6 +28,7 @@ class GdeltProcessingErrorPostgresIT {
     private String schemaName;
     private JdbcTemplate jdbcTemplate;
     private GdeltRawToStagingTransformer transformer;
+    private ArticleExtractorService articleExtractor;
 
     @BeforeEach
     void setUp() {
@@ -44,8 +47,11 @@ class GdeltProcessingErrorPostgresIT {
                 .load()
                 .migrate();
         jdbcTemplate = new JdbcTemplate(dataSource);
-        transformer = new GdeltRawToStagingTransformer(
-                jdbcTemplate, new TransactionTemplate(new DataSourceTransactionManager(dataSource)));
+        TransactionTemplate transactionTemplate =
+                new TransactionTemplate(new DataSourceTransactionManager(dataSource));
+        transformer = new GdeltRawToStagingTransformer(jdbcTemplate, transactionTemplate);
+        articleExtractor = new ArticleExtractorService(
+                jdbcTemplate, transactionTemplate, new ArticleUrlNormalizer());
     }
 
     @AfterEach
@@ -67,17 +73,18 @@ class GdeltProcessingErrorPostgresIT {
                 """, databaseTimestamp, databaseTimestamp, databaseTimestamp);
         Long importId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_import_files", Long.class);
         jdbcTemplate.update("""
-                INSERT INTO gdelt_raw_events
+                INSERT INTO gdelt_event_payloads
                     (import_file_id, source_file, source_timestamp, row_number, raw_tsv, ingested_at)
                 VALUES (?, 'events.zip', ?, 1, 'bad row', ?)
                 """, importId, databaseTimestamp, databaseTimestamp);
-        Long sourceRowId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_raw_events", Long.class);
+        Long sourceRowId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_event_payloads", Long.class);
 
         assertThat(transformer.transformCompletedRawRows(100).errors()).isEqualTo(1);
         assertThat(transformer.transformCompletedRawRows(100).errors()).isEqualTo(1);
-        jdbcTemplate.update("UPDATE gdelt_raw_events SET raw_tsv = ? WHERE id = ?",
+        jdbcTemplate.update("UPDATE gdelt_event_payloads SET raw_tsv = ? WHERE id = ?",
                 GdeltParserTests.eventRow(), sourceRowId);
         assertThat(transformer.transformCompletedRawRows(100).eventsStaged()).isEqualTo(1);
+        assertThat(articleExtractor.extractArticles(100).signalsCreated()).isEqualTo(1);
 
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM gdelt_processing_errors WHERE source_row_id = ?",
@@ -86,8 +93,12 @@ class GdeltProcessingErrorPostgresIT {
                 "SELECT COUNT(*) FROM gdelt_processing_errors WHERE source_row_id = ? AND resolved_at IS NOT NULL",
                 Integer.class, sourceRowId)).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM gdelt_stage_events WHERE raw_id = ?",
+                "SELECT COUNT(*) FROM gdelt_events WHERE id = ?",
                 Integer.class, sourceRowId)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT COUNT(*) FROM article_signals
+                WHERE signal_type = 'EVENTS' AND source_id = ?
+                """, Integer.class, sourceRowId)).isEqualTo(1);
     }
 
     private DataSource adminDataSource() {

@@ -59,16 +59,16 @@ public class ArticleExtractorService {
     private ArticleExtractionResult extractEvents(int batchSize) {
         Counters counters = new Counters();
         jdbcTemplate.query("""
-                SELECT stage.id, stage.source_timestamp, stage.source_url, stage.global_event_id,
-                       stage.event_code, stage.avg_tone
-                FROM gdelt_stage_events stage
+                SELECT event.id, event.source_timestamp, event.source_url, event.global_event_id,
+                       event.event_code, event.avg_tone
+                FROM gdelt_events event
                 LEFT JOIN article_signals signal
-                    ON signal.signal_type = 'EVENTS' AND signal.source_id = stage.id
+                    ON signal.signal_type = 'EVENTS' AND signal.source_id = event.id
                 LEFT JOIN article_extraction_errors error
-                    ON error.signal_type = 'EVENTS' AND error.source_id = stage.id
+                    ON error.signal_type = 'EVENTS' AND error.source_id = event.id
                 WHERE signal.source_id IS NULL
                   AND error.source_id IS NULL
-                ORDER BY stage.id
+                ORDER BY event.id
                 LIMIT ?
                 """, resultSet -> {
             StageSignal signal = new StageSignal(
