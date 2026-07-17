@@ -111,6 +111,9 @@ erneut verarbeitet werden. Historische Parsing-Fehler liegen dauerhaft in
 
 # 2. MENTIONS
 
+MENTIONS verwenden `gdelt_mention_payloads.id` als stabile Identitaet der unveraenderten
+Quellzeile und derselben erfolgreich geparsten Fachzeile in `gdelt_mentions.id`.
+
 # Mention-Felder
 
 | Feld                      | Bedeutung               |
@@ -135,6 +138,10 @@ erneut verarbeitet werden. Historische Parsing-Fehler liegen dauerhaft in
 ---
 
 # 3. GKG – GLOBAL KNOWLEDGE GRAPH
+
+GKG verwendet `gdelt_gkg_payloads.id` als stabile Identitaet. Parsing und Normalisierung legen
+dieselbe ID in `gdelt_gkg` an. Die Article-Extraktion ergaenzt danach die nullable `article_id`;
+fehlerhafte Payloads bleiben ohne Fachzeile erneut verarbeitbar.
 
 # GKG-Felder
 

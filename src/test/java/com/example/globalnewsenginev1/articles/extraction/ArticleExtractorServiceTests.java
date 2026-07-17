@@ -6,6 +6,7 @@ import db.migration.V12__add_gkg_publication_time;
 import db.migration.V13__add_gkg_sharing_image;
 import db.migration.V16__migrate_events_to_payload_and_domain_model;
 import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
+import db.migration.V18__migrate_gkg_to_payload_and_domain_model;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -54,6 +55,7 @@ class ArticleExtractorServiceTests {
             new V13__add_gkg_sharing_image().migrate(connection);
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
             new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
+            new V18__migrate_gkg_to_payload_and_domain_model().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -90,25 +92,25 @@ class ArticleExtractorServiceTests {
         assertThat(secondRun).isEqualTo(new ArticleExtractionResult(0, 0, 0));
         assertThat(countRows("articles")).isEqualTo(1);
         assertThat(countRows("article_signals")).isEqualTo(3);
-        assertThat(countRows("gdelt_gkg_records")).isEqualTo(1);
-        assertThat(arrayValues("SELECT themes FROM gdelt_gkg_records"))
+        assertThat(jdbcTemplate.queryForObject("SELECT COUNT(*) FROM gdelt_gkg WHERE article_id IS NOT NULL", Integer.class)).isEqualTo(1);
+        assertThat(arrayValues("SELECT themes FROM gdelt_gkg WHERE article_id IS NOT NULL"))
                 .containsExactly("THEME", "OTHER");
         assertThat(countRows("article_extraction_errors")).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("SELECT first_seen_at FROM articles", OffsetDateTime.class).toInstant())
                 .isEqualTo(earlier);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT page_precise_pub_timestamp FROM gdelt_gkg_records", OffsetDateTime.class).toInstant())
+                "SELECT page_precise_pub_timestamp FROM gdelt_gkg WHERE article_id IS NOT NULL", OffsetDateTime.class).toInstant())
                 .isEqualTo(later.minusSeconds(300));
         assertThat(jdbcTemplate.queryForObject("""
                 SELECT COUNT(*) FROM article_signals WHERE signal_type = 'MENTIONS'
                 """, Integer.class)).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject("""
-                SELECT tone_value FROM gdelt_gkg_records
+                SELECT tone_value FROM gdelt_gkg WHERE article_id IS NOT NULL
                 """, Double.class)).isEqualTo(-3.5);
         assertThat(jdbcTemplate.queryForMap("""
                 SELECT tone_positive_score, tone_negative_score, tone_polarity,
                        tone_activity_reference_density, tone_self_group_reference_density, tone_word_count
-                FROM gdelt_gkg_records
+                FROM gdelt_gkg WHERE article_id IS NOT NULL
                 """))
                 .containsEntry("TONE_POSITIVE_SCORE", 2.0)
                 .containsEntry("TONE_NEGATIVE_SCORE", 3.0)
@@ -121,14 +123,14 @@ class ArticleExtractorServiceTests {
                 """, String.class)).isEqualTo("INVALID_URL");
         assertThat(jdbcTemplate.queryForMap("""
                 SELECT page_title, main_image_url, main_image_source, persons, organizations, locations
-                FROM gdelt_gkg_records
+                FROM gdelt_gkg WHERE article_id IS NOT NULL
                 """))
                 .containsEntry("PAGE_TITLE", "GDELT title")
                 .containsEntry("MAIN_IMAGE_URL", "https://cdn.example.org/image.jpg")
                 .containsEntry("MAIN_IMAGE_SOURCE", "GKG_SHARING_IMAGE");
-        assertThat(arrayValues("SELECT persons FROM gdelt_gkg_records"))
+        assertThat(arrayValues("SELECT persons FROM gdelt_gkg WHERE article_id IS NOT NULL"))
                 .containsExactly("Jane Doe");
-        assertThat(jdbcTemplate.queryForObject("SELECT CAST(locations AS VARCHAR) FROM gdelt_gkg_records",
+        assertThat(jdbcTemplate.queryForObject("SELECT CAST(locations AS VARCHAR) FROM gdelt_gkg WHERE article_id IS NOT NULL",
                 String.class)).contains("Berlin").doesNotContain("malformed");
     }
 
@@ -144,10 +146,10 @@ class ArticleExtractorServiceTests {
         extractorService.extractArticles(100);
 
         assertThat(jdbcTemplate.queryForObject("""
-                SELECT page_title FROM gdelt_gkg_records ORDER BY source_timestamp, id LIMIT 1
+                SELECT page_title FROM gdelt_gkg ORDER BY source_timestamp, id LIMIT 1
                 """, String.class))
                 .isEqualTo("First title");
-        assertThat(countRows("gdelt_gkg_records")).isEqualTo(2);
+        assertThat(countRows("gdelt_gkg")).isEqualTo(2);
     }
 
     private long insertRawEvent(Instant sourceTimestamp) {
@@ -166,7 +168,7 @@ class ArticleExtractorServiceTests {
     private long insertRawGkg(Instant sourceTimestamp, String suffix) {
         String sourceFile = "20260705120000.%s.gkg.csv.zip".formatted(Math.abs(suffix.hashCode()));
         long importFileId = insertImportFile("GKG", sourceFile, sourceTimestamp);
-        return insertRaw("gdelt_raw_gkg", importFileId, sourceFile, sourceTimestamp, 1);
+        return insertRaw("gdelt_gkg_payloads", importFileId, sourceFile, sourceTimestamp, 1);
     }
 
     private long insertImportFile(String datasetType, String sourceFile, Instant sourceTimestamp) {
@@ -225,18 +227,26 @@ class ArticleExtractorServiceTests {
             long rawId, Instant sourceTimestamp, String documentIdentifier, String tone, String pageTitle
     ) {
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_gkg
-                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
-                     gkg_record_id, document_identifier, themes, persons, organizations, locations, tone,
-                     sharing_image_url, page_title, page_precise_pub_timestamp, metadata_extracted)
-                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
+                INSERT INTO gdelt_gkg
+                    (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
+                     gkg_record_id, document_identifier, themes_raw, persons_raw, organizations_raw,
+                     locations_raw, tone_raw, sharing_image_url, page_title, page_precise_pub_timestamp,
+                     themes, persons, organizations, locations, tone_value, tone_positive_score,
+                     tone_negative_score, tone_polarity, tone_activity_reference_density,
+                     tone_self_group_reference_density, tone_word_count, main_image_url, main_image_source, created_at)
+                SELECT id, import_file_id, source_file, source_timestamp, row_number, ingested_at, ?,
                        '20260705120000-' || id, ?, ' THEME ; ;OTHER;THEME ',
                        'Jane Doe; Jane Doe; ', ' Example Org ;Example Org',
                        '1#Berlin#GM#GM16#52.5#13.4#-1746443;malformed', ?,
-                       'https://cdn.example.org/image.jpg', ?, ?, TRUE
-                FROM gdelt_raw_gkg WHERE id = ?
+                       'https://cdn.example.org/image.jpg', ?, ?,
+                       ARRAY['THEME', 'OTHER'], ARRAY['Jane Doe'], ARRAY['Example Org'],
+                       CAST('[{"type":1,"name":"Berlin","countryCode":"GM","adm1Code":"GM16","latitude":52.5,"longitude":13.4,"featureId":"-1746443"}]' AS JSON),
+                       ?, 2.0, 3.0, 5.0, 6.0, 7.0, 321,
+                       'https://cdn.example.org/image.jpg', 'GKG_SHARING_IMAGE', ?
+                FROM gdelt_gkg_payloads WHERE id = ?
                 """, utc(sourceTimestamp), documentIdentifier, tone, pageTitle,
-                utc(sourceTimestamp.minusSeconds(300)), rawId);
+                utc(sourceTimestamp.minusSeconds(300)), tone.startsWith("-") ? -3.5 : 0.0,
+                utc(sourceTimestamp), rawId);
     }
 
     private int countRows(String tableName) {

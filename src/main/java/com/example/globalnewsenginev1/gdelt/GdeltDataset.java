@@ -6,7 +6,7 @@ import java.util.Optional;
 public enum GdeltDataset {
     EVENTS("export.CSV.zip", "gdelt_event_payloads"),
     MENTIONS("mentions.CSV.zip", "gdelt_mention_payloads"),
-    GKG("gkg.csv.zip", "gdelt_raw_gkg");
+    GKG("gkg.csv.zip", "gdelt_gkg_payloads");
 
     private final String fileSuffix;
     private final String tableName;

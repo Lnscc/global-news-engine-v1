@@ -8,7 +8,7 @@ hat diese Annahme widerlegt.
 
 ## Technischer Befund
 
-`gdelt_raw_gkg.raw_tsv` speichert jede heruntergeladene GKG-Zeile unverkuerzt. In der untersuchten
+`gdelt_gkg_payloads.raw_tsv` speichert jede heruntergeladene GKG-Zeile unverkuerzt. In der untersuchten
 lokalen Datenbank hatten alle 3.235 Zeilen genau 27 TSV-Felder. Feld 27 ist `V2EXTRASXML` und war in
 allen Zeilen befuellt. 3.233 Zeilen enthielten einen nicht leeren `<PAGE_TITLE>`-Block; das entspricht
 einer Abdeckung von rund 99,94 Prozent.
@@ -63,7 +63,7 @@ duerfen weiterhin nicht pauschal als Publikationszeitpunkt verwendet werden.
 
 ```sql
 SELECT array_length(string_to_array(raw_tsv, chr(9)), 1) AS column_count, count(*)
-FROM gdelt_raw_gkg
+FROM gdelt_gkg_payloads
 GROUP BY 1;
 
 SELECT count(*) AS total,
@@ -71,7 +71,7 @@ SELECT count(*) AS total,
            WHERE nullif(substring(split_part(raw_tsv, chr(9), 27)
                                   FROM '<PAGE_TITLE>(.*?)</PAGE_TITLE>'), '') IS NOT NULL
        ) AS title_present
-FROM gdelt_raw_gkg;
+FROM gdelt_gkg_payloads;
 ```
 
 Die Zahlen sind eine Momentaufnahme der lokalen Datenbank und keine Garantie fuer historische oder

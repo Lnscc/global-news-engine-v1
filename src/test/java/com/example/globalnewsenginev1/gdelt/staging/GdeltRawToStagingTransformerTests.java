@@ -8,6 +8,10 @@ import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
 import db.migration.V15__create_gdelt_processing_errors;
 import db.migration.V16__migrate_events_to_payload_and_domain_model;
 import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
+import db.migration.V11__normalize_remaining_gkg_values;
+import db.migration.V12__add_gkg_publication_time;
+import db.migration.V13__add_gkg_sharing_image;
+import db.migration.V18__migrate_gkg_to_payload_and_domain_model;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,14 +47,22 @@ class GdeltRawToStagingTransformerTests {
             new V15__create_gdelt_processing_errors().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
-            new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
-            new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V4__create_article_debug_views.sql"));
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
-            connection.createStatement().execute("ALTER TABLE gdelt_stage_gkg "
-                    + "ADD COLUMN page_precise_pub_timestamp TIMESTAMP WITH TIME ZONE");
-            connection.createStatement().execute("ALTER TABLE gdelt_stage_gkg "
-                    + "ADD COLUMN sharing_image_url VARCHAR(2048)");
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V8__create_gkg_records.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V9__normalize_gkg_themes.sql"));
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V10__store_gkg_themes_as_array.sql"));
+            new V11__normalize_remaining_gkg_values().migrate(connection);
+            new V12__add_gkg_publication_time().migrate(connection);
+            new V13__add_gkg_sharing_image().migrate(connection);
+            new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
+            new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
+            new V18__migrate_gkg_to_payload_and_domain_model().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -71,7 +83,7 @@ class GdeltRawToStagingTransformerTests {
                 "bad\trow");
         insertRaw("gdelt_mention_payloads", mentionImportId, "20260705120000.mentions.CSV.zip", sourceTimestamp, 1,
                 GdeltParserTests.mentionRow());
-        insertRaw("gdelt_raw_gkg", gkgImportId, "20260705120000.gkg.csv.zip", sourceTimestamp, 1,
+        insertRaw("gdelt_gkg_payloads", gkgImportId, "20260705120000.gkg.csv.zip", sourceTimestamp, 1,
                 GdeltParserTests.gkgRow());
 
         GdeltStagingResult firstRun = transformer.transformCompletedRawRows(100);
@@ -81,13 +93,13 @@ class GdeltRawToStagingTransformerTests {
         assertThat(secondRun).isEqualTo(new GdeltStagingResult(0, 0, 0, 1));
         assertThat(countRows("gdelt_events")).isEqualTo(1);
         assertThat(countRows("gdelt_mentions")).isEqualTo(1);
-        assertThat(countRows("gdelt_stage_gkg")).isEqualTo(1);
+        assertThat(countRows("gdelt_gkg")).isEqualTo(1);
         assertThat(countRows("gdelt_processing_errors")).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT page_precise_pub_timestamp FROM gdelt_stage_gkg",
+                "SELECT page_precise_pub_timestamp FROM gdelt_gkg",
                 OffsetDateTime.class).toInstant()).isEqualTo(Instant.parse("2026-07-05T11:55:00Z"));
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT sharing_image_url FROM gdelt_stage_gkg", String.class))
+                "SELECT sharing_image_url FROM gdelt_gkg", String.class))
                 .isEqualTo("https://cdn.example.org/news/main.jpg?width=1200");
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT error_code FROM gdelt_processing_errors WHERE dataset_type = 'EVENTS' LIMIT 1",
@@ -102,7 +114,7 @@ class GdeltRawToStagingTransformerTests {
                 "SELECT global_event_id FROM gdelt_events",
                 Long.class)).isEqualTo(123L);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT page_title FROM gdelt_stage_gkg",
+                "SELECT page_title FROM gdelt_gkg",
                 String.class)).isEqualTo("First Rain Exposes Flaws In ₹28 Lakh & More");
     }
 
@@ -169,30 +181,33 @@ class GdeltRawToStagingTransformerTests {
     }
 
     @Test
-    void backfillsMetadataForAlreadyStagedGkgRowsIdempotently() {
+    void doesNotReprocessAnExistingGkgRow() {
         Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
         long importId = insertImportFile("GKG", "20260705120000.gkg.csv.zip", timestamp);
-        long rawId = insertRaw("gdelt_raw_gkg", importId, "20260705120000.gkg.csv.zip", timestamp, 1,
+        long rawId = insertRaw("gdelt_gkg_payloads", importId, "20260705120000.gkg.csv.zip", timestamp, 1,
                 GdeltParserTests.gkgRow());
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_gkg
-                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
-                     gkg_record_id, document_identifier)
-                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?,
-                       '20260705120000-1', 'https://example.org/a'
-                FROM gdelt_raw_gkg WHERE id = ?
-                """, utc(timestamp), rawId);
+                INSERT INTO gdelt_gkg
+                    (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
+                     gkg_record_id, document_identifier, sharing_image_url, page_title,
+                     page_precise_pub_timestamp, themes, persons, organizations, locations, created_at)
+                SELECT id, import_file_id, source_file, source_timestamp, row_number, ingested_at, ?,
+                       '20260705120000-1', 'https://example.org/a',
+                       'https://cdn.example.org/news/main.jpg?width=1200',
+                       'First Rain Exposes Flaws In â‚¹28 Lakh & More', ?,
+                       ARRAY[], ARRAY[], ARRAY[], CAST('[]' AS JSON), ?
+                FROM gdelt_gkg_payloads WHERE id = ?
+                """, utc(timestamp), utc(Instant.parse("2026-07-05T11:55:00Z")), utc(timestamp), rawId);
 
         transformer.transformCompletedRawRows(100);
         transformer.transformCompletedRawRows(100);
 
         assertThat(jdbcTemplate.queryForMap(
-                "SELECT sharing_image_url, page_title, page_precise_pub_timestamp, metadata_extracted "
-                        + "FROM gdelt_stage_gkg"))
+                "SELECT sharing_image_url, page_title, page_precise_pub_timestamp "
+                        + "FROM gdelt_gkg"))
                 .containsEntry("SHARING_IMAGE_URL", "https://cdn.example.org/news/main.jpg?width=1200")
-                .containsEntry("PAGE_TITLE", "First Rain Exposes Flaws In ₹28 Lakh & More")
-                .containsEntry("PAGE_PRECISE_PUB_TIMESTAMP", utc(Instant.parse("2026-07-05T11:55:00Z")))
-                .containsEntry("METADATA_EXTRACTED", true);
+                .containsKey("PAGE_TITLE")
+                .containsEntry("PAGE_PRECISE_PUB_TIMESTAMP", utc(Instant.parse("2026-07-05T11:55:00Z")));
     }
 
     private long insertImportFile(String datasetType, String sourceFile, Instant sourceTimestamp) {

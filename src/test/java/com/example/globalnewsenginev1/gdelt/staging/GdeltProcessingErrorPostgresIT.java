@@ -132,6 +132,36 @@ class GdeltProcessingErrorPostgresIT {
                 """, Integer.class, sourceRowId)).isEqualTo(1);
     }
 
+    @Test
+    void parsesNormalizesAndExtractsGkgWithPayloadIdentityIdempotently() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        var databaseTimestamp = timestamp.atOffset(ZoneOffset.UTC);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_import_files
+                    (dataset_type, source_file, source_url, source_timestamp, status, started_at, completed_at)
+                VALUES ('GKG', 'gkg.zip', 'https://example.org/gkg.zip', ?, 'COMPLETED', ?, ?)
+                """, databaseTimestamp, databaseTimestamp, databaseTimestamp);
+        Long importId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_import_files", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_gkg_payloads
+                    (import_file_id, source_file, source_timestamp, row_number, raw_tsv, ingested_at)
+                VALUES (?, 'gkg.zip', ?, 1, ?, ?)
+                """, importId, databaseTimestamp, GdeltParserTests.gkgRow(), databaseTimestamp);
+        Long sourceRowId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_gkg_payloads", Long.class);
+
+        assertThat(transformer.transformCompletedRawRows(100).gkgStaged()).isEqualTo(1);
+        assertThat(transformer.transformCompletedRawRows(100).gkgStaged()).isZero();
+        assertThat(articleExtractor.extractArticles(100).signalsCreated()).isEqualTo(1);
+        assertThat(articleExtractor.extractArticles(100).signalsCreated()).isZero();
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_gkg WHERE id = ? AND article_id IS NOT NULL",
+                Integer.class, sourceRowId)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT cardinality(themes) FROM gdelt_gkg WHERE id = ?", Integer.class, sourceRowId))
+                .isGreaterThan(0);
+    }
+
     private DataSource adminDataSource() {
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setUrl(System.getProperty("it.postgres.jdbc-url", "jdbc:postgresql://localhost:5432/gne"));

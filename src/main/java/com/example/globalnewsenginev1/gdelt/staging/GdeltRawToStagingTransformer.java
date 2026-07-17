@@ -1,5 +1,7 @@
 package com.example.globalnewsenginev1.gdelt.staging;
 
+import com.example.globalnewsenginev1.articles.normalization.GkgValueNormalizer;
+import com.example.globalnewsenginev1.articles.normalization.NormalizedGkgValues;
 import com.example.globalnewsenginev1.gdelt.staging.model.GdeltStageEvent;
 import com.example.globalnewsenginev1.gdelt.staging.model.GdeltStageGkg;
 import com.example.globalnewsenginev1.gdelt.staging.model.GdeltStageMention;
@@ -8,10 +10,13 @@ import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltEventParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltGkgParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltMentionParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.SqlArrayValue;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
@@ -30,6 +35,8 @@ public class GdeltRawToStagingTransformer {
     private final GdeltMentionParser mentionParser;
     private final GdeltGkgParser gkgParser;
     private final Duration retryDelay;
+    private final GkgValueNormalizer gkgValueNormalizer = new GkgValueNormalizer();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Autowired
     public GdeltRawToStagingTransformer(
@@ -64,7 +71,6 @@ public class GdeltRawToStagingTransformer {
 
     public GdeltStagingResult transformCompletedRawRows(int batchSize) {
         return transactionTemplate.execute(status -> {
-            backfillGkgMetadata(batchSize);
             DatasetResult events = stageEvents(batchSize);
             DatasetResult mentions = stageMentions(batchSize);
             DatasetResult gkg = stageGkg(batchSize);
@@ -141,23 +147,39 @@ public class GdeltRawToStagingTransformer {
         long staged = 0;
         long errors = 0;
         for (RawRow row : loadPendingRows(
-                "gdelt_raw_gkg", "gdelt_stage_gkg", "raw_id", "GKG", batchSize)) {
+                "gdelt_gkg_payloads", "gdelt_gkg", "id", "GKG", batchSize)) {
             try {
                 GdeltStageGkg gkg = gkgParser.parse(row.rawTsv());
+                NormalizedGkgValues normalized = gkgValueNormalizer.normalize(
+                        gkg.persons(), gkg.organizations(), gkg.locations(), gkg.tone());
                 jdbcTemplate.update("""
-                        INSERT INTO gdelt_stage_gkg
-                            (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                        INSERT INTO gdelt_gkg
+                            (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
                              gkg_record_id, document_date, source_collection_identifier, source_common_name,
-                             document_identifier, themes, persons, organizations, locations, tone,
-                             sharing_image_url, page_title, page_precise_pub_timestamp, metadata_extracted)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, TRUE)
+                             document_identifier, themes_raw, persons_raw, organizations_raw, locations_raw, tone_raw,
+                             sharing_image_url, page_title, page_precise_pub_timestamp,
+                             themes, persons, organizations, locations, tone_value, tone_positive_score,
+                             tone_negative_score, tone_polarity, tone_activity_reference_density,
+                             tone_self_group_reference_density, tone_word_count,
+                             main_image_url, main_image_source, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                                CAST(? AS JSON), ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         row.rawId(), row.importFileId(), row.sourceFile(), utc(row.sourceTimestamp()),
-                        row.rowNumber(), utc(Instant.now()), gkg.gkgRecordId(), nullableUtc(gkg.documentDate()),
+                        row.rowNumber(), utc(row.ingestedAt()), utc(Instant.now()),
+                        gkg.gkgRecordId(), nullableUtc(gkg.documentDate()),
                         gkg.sourceCollectionIdentifier(), gkg.sourceCommonName(), gkg.documentIdentifier(),
                         gkg.themes(), gkg.persons(), gkg.organizations(), gkg.locations(), gkg.tone(),
                         gkg.sharingImageUrl(),
-                        gkg.pageTitle(), nullableUtc(gkg.pagePrecisePublicationTime()));
+                        gkg.pageTitle(), nullableUtc(gkg.pagePrecisePublicationTime()),
+                        new SqlArrayValue("TEXT", normalizeThemes(gkg.themes())),
+                        new SqlArrayValue("TEXT", normalized.persons().toArray()),
+                        new SqlArrayValue("TEXT", normalized.organizations().toArray()),
+                        locationsJson(normalized), normalized.tone().value(), normalized.tone().positiveScore(),
+                        normalized.tone().negativeScore(), normalized.tone().polarity(),
+                        normalized.tone().activityReferenceDensity(), normalized.tone().selfGroupReferenceDensity(),
+                        normalized.tone().wordCount(), gkg.sharingImageUrl(),
+                        gkg.sharingImageUrl() == null ? null : "GKG_SHARING_IMAGE", utc(Instant.now()));
                 resolveErrors("GKG", row.rawId());
                 staged++;
             } catch (GdeltParseException exception) {
@@ -166,27 +188,6 @@ public class GdeltRawToStagingTransformer {
             }
         }
         return new DatasetResult(staged, errors);
-    }
-
-    private void backfillGkgMetadata(int batchSize) {
-        List<GkgMetadataRow> rows = jdbcTemplate.query("""
-                SELECT stage.id, raw.raw_tsv
-                FROM gdelt_stage_gkg stage
-                JOIN gdelt_raw_gkg raw ON raw.id = stage.raw_id
-                WHERE stage.metadata_extracted = FALSE
-                ORDER BY stage.id
-                LIMIT ?
-                """, (resultSet, rowNum) -> new GkgMetadataRow(
-                resultSet.getLong("id"), resultSet.getString("raw_tsv")), batchSize);
-        for (GkgMetadataRow row : rows) {
-            GdeltStageGkg gkg = gkgParser.parse(row.rawTsv());
-            jdbcTemplate.update("""
-                    UPDATE gdelt_stage_gkg
-                    SET sharing_image_url = ?, page_title = ?, page_precise_pub_timestamp = ?, metadata_extracted = TRUE
-                    WHERE id = ?
-                    """, gkg.sharingImageUrl(), gkg.pageTitle(),
-                    nullableUtc(gkg.pagePrecisePublicationTime()), row.stageId());
-        }
     }
 
     private List<RawRow> loadPendingRows(
@@ -267,6 +268,17 @@ public class GdeltRawToStagingTransformer {
     private record DatasetResult(long staged, long errors) {
     }
 
-    private record GkgMetadataRow(long stageId, String rawTsv) {
+    private Object[] normalizeThemes(String themes) {
+        if (themes == null || themes.isBlank()) return new Object[0];
+        return java.util.Arrays.stream(themes.split(";", -1)).map(String::trim)
+                .filter(value -> !value.isEmpty()).distinct().toArray();
+    }
+
+    private String locationsJson(NormalizedGkgValues normalized) {
+        try {
+            return objectMapper.writeValueAsString(normalized.locations());
+        } catch (JsonProcessingException exception) {
+            throw new IllegalStateException("Could not serialize normalized GKG locations", exception);
+        }
     }
 }

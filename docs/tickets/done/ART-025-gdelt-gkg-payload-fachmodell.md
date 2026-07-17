@@ -1,6 +1,6 @@
 # ART-025: GDELT GKG auf Payload- und Fachmodell umstellen
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, architecture
 
 ## Kontext
@@ -117,3 +117,20 @@ ART-018 bis ART-020 sowie den spaeter ergaenzten Publikationszeit- und Bildmetad
 
 EVENTS, MENTIONS, Payload-Retention, weitere fachliche GKG-Normalisierung und Aenderungen am
 Article-REST-Contract sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Implementiert am 2026-07-17. Migration V18 uebernimmt jede `gdelt_raw_gkg`-Zeile mit
+unveraenderter ID nach `gdelt_gkg_payloads` und bildet jede vorhandene Staging-Zeile unter ihrer
+Raw-ID als `gdelt_gkg`-Fachzeile ab. Bestehende normalisierte Werte und Artikelbeziehungen aus
+`gdelt_gkg_records` werden wertgleich uebernommen; Payloads ohne erfolgreiches Parsing bleiben
+ohne Fachzeile erhalten. Nach der validierten Migration werden die drei ersetzten Tabellen
+entfernt und die Payload-Identity auf den naechsten freien Wert gesetzt.
+
+Importer, Parser/Normalisierer, Article-Extraktion, Article-Queries, Health-Abfragen und Debug-Views
+verwenden das neue Modell direkt. Parsing legt die vollstaendige normalisierte Fachzeile mit der
+Payload-ID idempotent an; die nachgelagerte Article-Extraktion setzt nur noch `article_id`.
+H2-Migrations- und Service-Tests sowie PostgreSQL-Integrationstests pruefen Identitaet,
+Wertuebernahme, Retry, Idempotenz, Query-/View-Verhalten und den Pfad bis zur Article-Extraktion.
+Der Article-REST-Contract blieb unveraendert, daher war keine Anpassung der Postman-Collection
+erforderlich.

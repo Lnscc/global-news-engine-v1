@@ -51,13 +51,13 @@ public class ArticleQueryService {
         String direction = criteria.direction().toUpperCase(java.util.Locale.ROOT);
         String query = """
                 SELECT articles.id, canonical_url, domain, first_seen_at,
-                       (SELECT g.page_title FROM gdelt_gkg_records g
+                       (SELECT g.page_title FROM gdelt_gkg g
                         WHERE g.article_id = articles.id AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> ''
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS title,
-                       (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg_records g
+                       (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg g
                         WHERE g.article_id = articles.id AND g.page_precise_pub_timestamp IS NOT NULL
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at,
-                       (SELECT g.main_image_url FROM gdelt_gkg_records g
+                       (SELECT g.main_image_url FROM gdelt_gkg g
                         WHERE g.article_id = articles.id AND g.main_image_url IS NOT NULL
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS main_image_url
                 FROM articles
@@ -88,7 +88,7 @@ public class ArticleQueryService {
     private String whereClause(ArticleSearchCriteria criteria, List<Object> parameters) {
         List<String> predicates = new ArrayList<>();
         if (hasText(criteria.query())) {
-            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g WHERE g.article_id = articles.id "
+            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg g WHERE g.article_id = articles.id "
                     + "AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> '' "
                     + "AND LOWER(g.page_title) LIKE ? ESCAPE '!')");
             parameters.add("%" + escapeLike(criteria.query().toLowerCase(java.util.Locale.ROOT)) + "%");
@@ -106,13 +106,13 @@ public class ArticleQueryService {
             parameters.add(Timestamp.from(criteria.firstSeenTo()));
         }
         if (hasText(criteria.theme())) {
-            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g "
+            predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg g "
                     + "WHERE g.article_id = articles.id AND ? = ANY(g.themes))");
             parameters.add(criteria.theme());
         }
         if (criteria.signalType() != null) {
             if ("GKG".equals(criteria.signalType())) {
-                predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg_records g WHERE g.article_id = articles.id)");
+                predicates.add("EXISTS (SELECT 1 FROM gdelt_gkg g WHERE g.article_id = articles.id)");
             } else {
                 predicates.add("EXISTS (SELECT 1 FROM article_signals s WHERE s.article_id = articles.id "
                         + "AND s.signal_type = ?)");
@@ -150,13 +150,13 @@ public class ArticleQueryService {
     public Optional<ArticleDetail> articleDetail(long articleId) {
         List<ArticleDetailRow> articles = jdbcTemplate.query("""
                 SELECT articles.id, canonical_url, domain, first_seen_at,
-                       (SELECT g.page_title FROM gdelt_gkg_records g
+                       (SELECT g.page_title FROM gdelt_gkg g
                         WHERE g.article_id = articles.id AND g.page_title IS NOT NULL AND TRIM(g.page_title) <> ''
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS title,
-                       (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg_records g
+                       (SELECT g.page_precise_pub_timestamp FROM gdelt_gkg g
                         WHERE g.article_id = articles.id AND g.page_precise_pub_timestamp IS NOT NULL
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS published_at,
-                       (SELECT g.main_image_url FROM gdelt_gkg_records g
+                       (SELECT g.main_image_url FROM gdelt_gkg g
                         WHERE g.article_id = articles.id AND g.main_image_url IS NOT NULL
                         ORDER BY g.source_timestamp, g.id LIMIT 1) AS main_image_url,
                        created_at, updated_at
@@ -199,7 +199,7 @@ public class ArticleQueryService {
     public List<NamedCount> topThemes(int limit) {
         validateAggregateLimit(limit);
         Map<String, Long> counts = new LinkedHashMap<>();
-        jdbcTemplate.query("SELECT themes FROM gdelt_gkg_records", (RowCallbackHandler) resultSet ->
+        jdbcTemplate.query("SELECT themes FROM gdelt_gkg", (RowCallbackHandler) resultSet ->
                 arrayValues(resultSet, "themes").forEach(theme -> counts.merge(theme, 1L, Long::sum)));
         return counts.entrySet().stream()
                 .map(entry -> new NamedCount(entry.getKey(), entry.getValue()))
@@ -229,15 +229,15 @@ public class ArticleQueryService {
                 nullableDouble(resultSet, "tone_value"),
                 null, null, null, null, null, null), articleId));
         signals.addAll(jdbcTemplate.query("""
-                SELECT id, source_id, source_timestamp, themes, persons, organizations, locations,
+                SELECT id, source_timestamp, themes, persons, organizations, locations,
                        tone_value, tone_positive_score, tone_negative_score, tone_polarity,
                        tone_activity_reference_density, tone_self_group_reference_density, tone_word_count
-                FROM gdelt_gkg_records
+                FROM gdelt_gkg
                 WHERE article_id = ?
                 """, (resultSet, rowNum) -> new ArticleSignal(
                 resultSet.getLong("id"),
                 "GKG",
-                resultSet.getLong("source_id"),
+                resultSet.getLong("id"),
                 instant(resultSet, "source_timestamp"),
                 null,
                 null,

@@ -3,9 +3,8 @@
 ## Ziel
 
 Die Artikel-Schicht ist der erste Schritt vom GDELT-Import zum produktnahen Modell.
-Aus `gdelt_events`, `gdelt_mentions` und `gdelt_stage_gkg` werden deduplizierte Artikel
-abgeleitet. EVENTS und MENTIONS sind dauerhafte Fachzeilen; GKG folgt derzeit noch dem
-Staging-Modell.
+Aus `gdelt_events`, `gdelt_mentions` und `gdelt_gkg` werden deduplizierte Artikel abgeleitet.
+Alle drei Quellen sind dauerhafte Fachzeilen mit derselben stabilen ID wie ihre jeweilige Payload.
 
 Ein Artikel ist in dieser Phase primaer eine kanonische URL mit Metadaten und Signalen aus GDELT.
 Fulltext-Crawling, Embeddings, LLM-Zusammenfassungen und Story-Clustering kommen spaeter.
@@ -73,15 +72,16 @@ Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. 
 derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Fach- oder Staging-Zeile wird
 bei erneuten Job-Laeufen nicht doppelt eingefuegt.
 
-### `gdelt_gkg_records`
+### `gdelt_gkg`
 
-Jede GKG-Staging-Zeile wird als eigener Record mit `source_id`, `article_id`, Zeitstempel,
+Jede erfolgreich geparste GKG-Payload wird als eigene Fachzeile mit stabiler `id`, nullable
+`article_id`, Zeitstempel,
 Dokumentkennung, Seitentitel, nullablem `page_precise_pub_timestamp`, normalisierten Mehrfachwerten
 und Tone persistiert. Mehrere
-GKG-Analysen desselben Artikels bleiben getrennt. `source_id` ist eindeutig und referenziert
-`gdelt_stage_gkg.id`; dadurch sind Neuimport und Backfill idempotent.
+GKG-Analysen desselben Artikels bleiben getrennt. `gdelt_gkg.id` entspricht
+`gdelt_gkg_payloads.id`; dadurch sind Neuimport, Parsing und Retry idempotent.
 
-Die unveraenderten Rohwerte bleiben in Raw und Staging zur Provenienz erhalten. Das Produktmodell
+Die unveraenderte Quellzeile bleibt in `gdelt_gkg_payloads.raw_tsv` zur Provenienz erhalten. Das Fachmodell
 speichert Themes, Personen und Organisationen als Arrays, Orte als typisierte JSON-Liste und Tone
 in einzelnen Messfeldern. Die API projiziert GKG-Records weiterhin als Signale.
 
@@ -159,10 +159,9 @@ Ungueltige sowie mehr als 15 Minuten nach `document_date` liegende Werte werden 
 `PAGE_AUTHORS` wird bewusst noch nicht persistiert; ein normalisiertes Autorenmodell muss separat
 geklaert werden.
 
-Migration V7 markiert bestehende Staging-Zeilen mit `metadata_extracted = false`. Der Staging-Job
-parst diese Zeilen kontrolliert aus dem unveraenderten Raw-TSV nach und setzt die Markierung. Der
-Migration V8 ueberfuehrt vorhandene GKG-Signale in `gdelt_gkg_records`, entfernt die GKG-Kopien
-aus `article_signals` und entfernt `articles.title` sowie `articles.title_source`.
+Migration V18 fuehrt die historischen Raw-, Staging- und Record-Tabellen in
+`gdelt_gkg_payloads` und `gdelt_gkg` zusammen. Der Parser schreibt geparste und normalisierte
+Werte direkt in die Fachzeile; die Article-Extraktion setzt anschliessend nur `article_id`.
 
 ## Article-Extractor-Job
 
@@ -181,7 +180,7 @@ Quellen:
 ```text
 gdelt_events.source_url
 gdelt_mentions.mention_identifier
-gdelt_stage_gkg.document_identifier
+gdelt_gkg.document_identifier
 ```
 
 Der Job muss idempotent sein. Ein zweiter Lauf ueber dieselben Fach- oder Staging-Zeilen darf keine

@@ -66,7 +66,7 @@ WITH source_urls AS (
     UNION ALL
     SELECT mention_identifier FROM gdelt_mentions
     UNION ALL
-    SELECT document_identifier FROM gdelt_stage_gkg
+    SELECT document_identifier FROM gdelt_gkg
 ), parameters AS (
     SELECT lower(split_part(parameter, '=', 1)) AS name
     FROM source_urls
@@ -87,7 +87,7 @@ WITH source_urls AS (
     UNION ALL
     SELECT mention_identifier FROM gdelt_mentions
     UNION ALL
-    SELECT document_identifier FROM gdelt_stage_gkg
+    SELECT document_identifier FROM gdelt_gkg
 ), paths AS (
     SELECT split_part(split_part(raw_url, '#', 1), '?', 1) AS path_url
     FROM source_urls

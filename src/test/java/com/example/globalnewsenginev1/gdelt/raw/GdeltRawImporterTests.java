@@ -42,6 +42,8 @@ class GdeltRawImporterTests {
                     "ALTER TABLE gdelt_raw_events RENAME TO gdelt_event_payloads");
             connection.createStatement().execute(
                     "ALTER TABLE gdelt_raw_mentions RENAME TO gdelt_mention_payloads");
+            connection.createStatement().execute(
+                    "ALTER TABLE gdelt_raw_gkg RENAME TO gdelt_gkg_payloads");
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
 
@@ -77,7 +79,7 @@ class GdeltRawImporterTests {
         assertThat(secondImport).allMatch(result -> result.rowCount() == 2 && result.skipped());
         assertThat(countRows("gdelt_event_payloads")).isEqualTo(2);
         assertThat(countRows("gdelt_mention_payloads")).isEqualTo(2);
-        assertThat(countRows("gdelt_raw_gkg")).isEqualTo(2);
+        assertThat(countRows("gdelt_gkg_payloads")).isEqualTo(2);
         assertThat(countRows("gdelt_import_files")).isEqualTo(3);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM gdelt_import_files WHERE status = 'COMPLETED' AND checksum_sha256 IS NOT NULL",

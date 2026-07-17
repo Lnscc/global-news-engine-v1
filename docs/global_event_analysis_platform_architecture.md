@@ -5,7 +5,7 @@ Diese Datei ist der Einstiegspunkt fuer die Architekturplanung. Die Details sind
 Weitere Planungsdokumente:
 
 ```text
-- articles.md: Artikel-Schicht zwischen GDELT-Staging und Stories
+- articles.md: Artikel-Schicht zwischen GDELT-Fachmodell und Stories
 ```
 
 ## Zielbild
@@ -43,8 +43,8 @@ Events, Mentions und GKG bleiben wichtig, aber sie sind nicht das zentrale Produ
 
 ## Aktuelle GDELT-Persistenz
 
-EVENTS trennen die unveraenderte, temporaere Quellzeile in `gdelt_event_payloads` von der
-dauerhaften, erfolgreich geparsten Fachzeile in `gdelt_events`. Beide verwenden dieselbe stabile
-ID. Article-Signale referenzieren `gdelt_events.id`; Parsing-Fehler werden unabhaengig davon in
-`gdelt_processing_errors` historisiert. MENTIONS und GKG werden in nachfolgenden Migrationen auf
-dasselbe Muster umgestellt.
+EVENTS, MENTIONS und GKG trennen die unveraenderte, temporaere Quellzeile in
+`gdelt_event_payloads`, `gdelt_mention_payloads` und `gdelt_gkg_payloads` von den dauerhaften,
+erfolgreich geparsten Fachzeilen in `gdelt_events`, `gdelt_mentions` und `gdelt_gkg`. Payload und
+Fachzeile verwenden dieselbe stabile ID. Parsing-Fehler werden unabhaengig davon dauerhaft in
+`gdelt_processing_errors` historisiert.

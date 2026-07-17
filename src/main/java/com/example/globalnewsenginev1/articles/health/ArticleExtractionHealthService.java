@@ -28,7 +28,7 @@ public class ArticleExtractionHealthService {
         jdbcTemplate.query("""
                 SELECT signal_type, COUNT(*) AS signal_count FROM (
                     SELECT signal_type FROM article_signals
-                    UNION ALL SELECT 'GKG' FROM gdelt_gkg_records
+                    UNION ALL SELECT 'GKG' FROM gdelt_gkg WHERE article_id IS NOT NULL
                 ) signals
                 GROUP BY signal_type
                 """, (RowCallbackHandler) resultSet -> healthByType.get(resultSet.getString("signal_type"))
@@ -39,7 +39,7 @@ public class ArticleExtractionHealthService {
                 FROM (
                     SELECT signal_type, source_timestamp FROM article_signals
                     UNION ALL
-                    SELECT 'GKG', source_timestamp FROM gdelt_gkg_records
+                    SELECT 'GKG', source_timestamp FROM gdelt_gkg
                     UNION ALL
                     SELECT signal_type, source_timestamp FROM article_extraction_errors
                     UNION ALL
@@ -65,7 +65,7 @@ public class ArticleExtractionHealthService {
 
         pending("EVENTS", "gdelt_events", healthByType);
         pending("MENTIONS", "gdelt_mentions", healthByType);
-        pending("GKG", "gdelt_stage_gkg", healthByType);
+        pendingGkg(healthByType);
 
         long articlesCreatedTotal = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles", Long.class);
         List<SignalTypeExtractionHealth> signalTypes = healthByType.entrySet().stream()
@@ -75,8 +75,8 @@ public class ArticleExtractionHealthService {
     }
 
     private void pending(String signalType, String stageTable, Map<String, MutableHealth> healthByType) {
-        String processedTable = "GKG".equals(signalType) ? "gdelt_gkg_records" : "article_signals";
-        String typePredicate = "GKG".equals(signalType) ? "" : "signal.signal_type = ? AND ";
+        String processedTable = "article_signals";
+        String typePredicate = "signal.signal_type = ? AND ";
         String query = """
                 SELECT COUNT(*)
                 FROM %s stage
@@ -89,10 +89,20 @@ public class ArticleExtractionHealthService {
                     WHERE error.signal_type = ? AND error.source_id = stage.id
                 )
                 """.formatted(stageTable, processedTable, typePredicate);
-        Long count = "GKG".equals(signalType)
-                ? jdbcTemplate.queryForObject(query, Long.class, signalType)
-                : jdbcTemplate.queryForObject(query, Long.class, signalType, signalType);
+        Long count = jdbcTemplate.queryForObject(query, Long.class, signalType, signalType);
         healthByType.get(signalType).pendingStageRows = count;
+    }
+
+    private void pendingGkg(Map<String, MutableHealth> healthByType) {
+        Long count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*) FROM gdelt_gkg gkg
+                WHERE gkg.article_id IS NULL
+                  AND NOT EXISTS (
+                      SELECT 1 FROM article_extraction_errors error
+                      WHERE error.signal_type = 'GKG' AND error.source_id = gkg.id
+                  )
+                """, Long.class);
+        healthByType.get("GKG").pendingStageRows = count;
     }
 
     private Instant instant(Timestamp timestamp) {

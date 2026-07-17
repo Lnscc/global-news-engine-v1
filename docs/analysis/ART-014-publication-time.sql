@@ -1,17 +1,16 @@
 WITH extracted AS (
     SELECT
-        stage.id AS stage_id,
-        stage.source_collection_identifier,
-        stage.document_date,
-        stage.source_timestamp,
-        record.article_id,
+        gkg.id AS gkg_id,
+        gkg.source_collection_identifier,
+        gkg.document_date,
+        gkg.source_timestamp,
+        gkg.article_id,
         btrim(substring(
             split_part(raw.raw_tsv, E'\t', 27)
             FROM '(?is)<PAGE_PRECISEPUBTIMESTAMP>([^<]*)</PAGE_PRECISEPUBTIMESTAMP>'
         )) AS raw_value
-    FROM gdelt_stage_gkg stage
-    JOIN gdelt_raw_gkg raw ON raw.id = stage.raw_id
-    LEFT JOIN gdelt_gkg_records record ON record.source_id = stage.id
+    FROM gdelt_gkg gkg
+    JOIN gdelt_gkg_payloads raw ON raw.id = gkg.id
 ), parsed AS (
     SELECT *,
            CASE WHEN raw_value ~ '^[0-9]{14}$'
@@ -51,4 +50,3 @@ SELECT
     (SELECT COUNT(*) FROM article_candidates WHERE distinct_candidate_count > 1)
         AS articles_conflicting_candidates
 FROM parsed;
-
