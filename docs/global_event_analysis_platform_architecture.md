@@ -48,3 +48,13 @@ EVENTS, MENTIONS und GKG trennen die unveraenderte, temporaere Quellzeile in
 erfolgreich geparsten Fachzeilen in `gdelt_events`, `gdelt_mentions` und `gdelt_gkg`. Payload und
 Fachzeile verwenden dieselbe stabile ID. Parsing-Fehler werden unabhaengig davon dauerhaft in
 `gdelt_processing_errors` historisiert.
+
+Der gemeinsame produktive Pfad lautet fuer alle drei Datensatztypen:
+
+```text
+Download -> Payload-Import -> Parsing/Normalisierung -> Fachzeile -> Article-Extraktion
+```
+
+`gdelt_pipeline_health_view` fasst Payload-Bestand, Payloads ohne Fachzeile, offene Processing-Fehler
+und Fachzeilen je Datensatztyp zusammen. Die Payload-Tabellen duerfen dadurch spaeter unabhaengig von
+den dauerhaften Fachzeilen und der Fehlerhistorie einer Retention unterzogen werden.

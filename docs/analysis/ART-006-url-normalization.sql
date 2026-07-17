@@ -1,5 +1,5 @@
 -- ART-006: URL normalization analysis queries for PostgreSQL.
--- Run against a database populated by the normal GDELT staging and article jobs.
+-- Run against a database populated by the normal GDELT parsing and article jobs.
 
 -- Snapshot size and time range.
 SELECT count(*) AS articles,
@@ -60,7 +60,7 @@ SELECT base_url, variants, urls
 FROM query_variants
 ORDER BY variants DESC, base_url;
 
--- Most frequent raw query parameter names in all three staging sources.
+-- Most frequent source query parameter names in all three GDELT domain tables.
 WITH source_urls AS (
     SELECT source_url AS raw_url FROM gdelt_events
     UNION ALL

@@ -3,7 +3,7 @@
 ## Anlass
 
 Bei der Planung des Article-Enrichment-Crawlers wurde zunaechst angenommen, dass die importierten
-GDELT-Daten keinen belastbaren Artikeltitel enthalten. Eine Pruefung der vollstaendigen Raw-Zeilen
+GDELT-Daten keinen belastbaren Artikeltitel enthalten. Eine Pruefung der vollstaendigen Payload-Zeilen
 hat diese Annahme widerlegt.
 
 ## Technischer Befund

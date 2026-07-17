@@ -12,7 +12,7 @@ Fulltext-Crawling, Embeddings, LLM-Zusammenfassungen und Story-Clustering kommen
 ## Rolle im Zielbild
 
 ```text
-GDELT-Fach- und Staging-Zeilen
+GDELT-Fachzeilen
 -> Artikel
 -> Stories
 -> Topics
@@ -69,7 +69,7 @@ MENTIONS -> gdelt_mentions.id
 ```
 
 Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. Dadurch kann
-derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Fach- oder Staging-Zeile wird
+derselbe Artikel beliebig viele Mention-Signale haben, aber dieselbe Fachzeile wird
 bei erneuten Job-Laeufen nicht doppelt eingefuegt.
 
 ### `gdelt_gkg`
@@ -98,7 +98,7 @@ error_message
 created_at
 ```
 
-Fehler in dieser Tabelle bedeuten: Die Fach- oder Staging-Zeile war gueltig, konnte aber nicht in einen
+Fehler in dieser Tabelle bedeuten: Die Fachzeile war gueltig, konnte aber nicht in einen
 Artikel ueberfuehrt werden, zum Beispiel wegen einer leeren oder ungueltigen URL.
 Auch hier verhindert ein Unique Key auf `(signal_type, source_id)` doppelte Fehlerzeilen bei
 erneuten Job-Laeufen.
@@ -133,7 +133,7 @@ nachgezogen werden, wenn reale Daten zeigen, welche Domains sich sicher zusammen
 
 ## Quellenmatrix fuer Enrichment
 
-Die strukturierten Fach- und Staging-Felder liefern URLs, Beobachtungszeitpunkte und Signale. Die vollstaendig
+Die strukturierten Fachfelder liefern URLs, Beobachtungszeitpunkte und Signale. Die vollstaendig
 gespeicherten GKG-Rohzeilen enthalten darueber hinaus in Feld 27 (`V2EXTRASXML`) nahezu immer einen
 `PAGE_TITLE` und optional weitere Seitenmetadaten. Details und Messwerte stehen in
 `docs/analysis/ART-011-gkg-xml-extras.md`. Signalzeiten werden nicht als Publikationszeitpunkt
@@ -165,14 +165,14 @@ Werte direkt in die Fachzeile; die Article-Extraktion setzt anschliessend nur `a
 
 ## Article-Extractor-Job
 
-Der Job verarbeitet erfolgreich geparste GDELT-Fach- und Staging-Zeilen und erzeugt Artikel plus Signale.
+Der Job verarbeitet erfolgreich geparste GDELT-Fachzeilen und erzeugt Artikel plus Signale.
 
 ```text
-GDELT-Fach- und Staging-Zeilen
+GDELT-Fachzeilen
 -> URL extrahieren
 -> canonical URL berechnen
 -> article upsert
--> EVENTS/MENTIONS als article_signal oder GKG als gdelt_gkg_record idempotent einfuegen
+-> EVENTS/MENTIONS als article_signal einfuegen oder GKG mit dem Artikel verknuepfen
 ```
 
 Quellen:
@@ -183,7 +183,7 @@ gdelt_mentions.mention_identifier
 gdelt_gkg.document_identifier
 ```
 
-Der Job muss idempotent sein. Ein zweiter Lauf ueber dieselben Fach- oder Staging-Zeilen darf keine
+Der Job muss idempotent sein. Ein zweiter Lauf ueber dieselben Fachzeilen darf keine
 doppelten Artikel oder Signale erzeugen.
 
 ## Tests

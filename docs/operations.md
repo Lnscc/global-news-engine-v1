@@ -7,9 +7,11 @@ docker compose up -d
 .\mvnw.cmd spring-boot:run
 ```
 
-Der Import startet nach `gdelt.ingestion.initial-delay` und laeuft danach alle `gdelt.ingestion.poll-interval`.
+Der Import startet nach `gdelt.ingestion.initial-delay` und laeuft danach alle
+`gdelt.ingestion.poll-interval`.
 
-Fehlgeschlagene Zeitfenster werden bei spaeteren Polls erneut versucht. Die Anzahl wird ueber `gdelt.ingestion.max-failed-windows-per-poll` begrenzt.
+Fehlgeschlagene Zeitfenster werden bei spaeteren Polls erneut versucht. Die Anzahl wird ueber
+`gdelt.ingestion.max-failed-windows-per-poll` begrenzt.
 
 ## Tests
 
@@ -18,7 +20,10 @@ docker compose up -d
 .\mvnw.cmd verify
 ```
 
-Der PostgreSQL-Integrationstest nutzt die lokale Compose-Datenbank unter `localhost:5432`, legt ein temporaeres Schema an und entfernt es nach dem Test wieder.
+Die PostgreSQL-Integrationstests nutzen die lokale Compose-Datenbank unter `localhost:5432`, legen
+temporaere Schemas an und entfernen sie nach dem Test wieder. Der gemeinsame Pipeline-Test deckt
+Download, Payload-Import, Parsing, Normalisierung und Article-Extraktion fuer EVENTS, MENTIONS und
+GKG ab.
 
 ## Importstatus
 
@@ -46,17 +51,24 @@ Import-Zusammenfassung:
 docker compose exec postgres psql -U gne -d gne -c "select status, dataset_type, count(*) as files, sum(row_count) as rows from gdelt_import_files group by status, dataset_type order by status, dataset_type;"
 ```
 
+## Pipeline-Health
+
+EVENTS, MENTIONS und GKG verwenden ein gemeinsames Persistenzmodell: Die temporaeren Payloads
+liegen in `gdelt_event_payloads`, `gdelt_mention_payloads` und `gdelt_gkg_payloads`; erfolgreich
+geparste und normalisierte Fachzeilen liegen mit derselben ID in `gdelt_events`, `gdelt_mentions`
+und `gdelt_gkg`. `gdelt_pipeline_health_view` weist Payloads, Payloads ohne Fachzeile, offene
+Processing-Fehler und vorhandene Fachzeilen je Datensatztyp getrennt aus:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select dataset_type, payload_rows, pending_payload_rows, open_processing_errors, domain_rows from gdelt_pipeline_health_view order by dataset_type;"
+```
+
 ## Processing-Fehler
 
-EVENTS verwenden `gdelt_event_payloads` als Rohdatenspeicher und `gdelt_events` als dauerhafte
-Fachtabelle. Eine erfolgreich geparste EVENTS-Zeile besitzt in beiden Tabellen dieselbe ID;
-`gdelt_events` enthaelt kein `raw_tsv` und keinen technischen Verarbeitungsstatus. MENTIONS und
-GKG verwenden bis zu ihren jeweiligen Modellmigrationen weiterhin die Raw-/Staging-Tabellen.
-
 Jeder fehlgeschlagene Parsing-Versuch wird dauerhaft in `gdelt_processing_errors` protokolliert.
-Die Rohzeile selbst bleibt ausschließlich in der jeweiligen Raw-Tabelle und wird nicht in der
-Fehlerhistorie dupliziert. Der Staging-Job versucht noch nicht erfolgreich gestagte Zeilen bei
-späteren Läufen erneut. Zwischen zwei Versuchen derselben fehlerhaften Quellzeile liegt mindestens
+Die unveraenderte Quellzeile bleibt ausschliesslich in der jeweiligen Payload-Tabelle und wird nicht
+in der Fehlerhistorie dupliziert. Der Parser versucht Payloads ohne Fachzeile bei spaeteren Laeufen
+erneut. Zwischen zwei Versuchen derselben fehlerhaften Quellzeile liegt mindestens
 `gdelt.staging.retry-delay` (Standard: `PT1M`), damit ein Scheduler-Lauf keine unmittelbare
 Retry-Schleife erzeugt. Bei Erfolg erhalten alle offenen Fehler derselben Kombination aus
 `dataset_type` und `source_row_id` einen Wert in `resolved_at`.
@@ -79,8 +91,8 @@ Historische und weiterhin offene Versuche:
 docker compose exec postgres psql -U gne -d gne -c "select dataset_type, resolved_at is null as open, count(*) as attempts from gdelt_processing_errors group by dataset_type, resolved_at is null order by dataset_type, open desc;"
 ```
 
-EVENTS-Payloads ohne Fachzeile:
+Payloads ohne Fachzeile fuer alle Datensatztypen:
 
 ```powershell
-docker compose exec postgres psql -U gne -d gne -c "select payload.id, payload.source_file, payload.row_number, payload.ingested_at from gdelt_event_payloads payload left join gdelt_events event on event.id = payload.id where event.id is null order by payload.id limit 100;"
+docker compose exec postgres psql -U gne -d gne -c "select * from gdelt_pipeline_health_view where pending_payload_rows > 0 order by dataset_type;"
 ```

@@ -20,6 +20,20 @@ GKG      → Worum geht es semantisch?
 
 ---
 
+## Gemeinsames Persistenzmodell
+
+Alle drei Datensatztypen verwenden dasselbe Persistenzmuster:
+
+```text
+*_payloads.id -> Parsing und Normalisierung -> Fachtabelle.id (identisch)
+```
+
+Nur die Payload-Tabellen enthalten `raw_tsv`. Fachzeilen enthalten ausschliesslich erfolgreich
+geparste und normalisierte Werte. Fehlversuche werden dauerhaft in `gdelt_processing_errors`
+historisiert. `gdelt_pipeline_health_view` zeigt je Datensatztyp die gesamte und ausstehende
+Payload-Menge, offene Fehler und vorhandene Fachzeilen. Damit kann Payload-Retention fuer alle drei
+Typen ohne Aenderung der Fachtabellen oder Fehlerhistorie umgesetzt werden.
+
 # 1. EVENTS
 
 ## Persistenzmodell

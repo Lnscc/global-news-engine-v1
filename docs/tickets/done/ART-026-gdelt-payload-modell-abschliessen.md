@@ -1,6 +1,6 @@
 # ART-026: GDELT-Payload-Modell abschliessend konsolidieren
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, architecture
 
 ## Kontext
@@ -69,3 +69,26 @@ Das Ticket baut auf ART-021, ART-023, ART-024 und ART-025 auf.
 Die automatische Payload-Loeschung selbst ist Bestandteil von ART-022. Neue Article-Funktionen,
 weitere fachliche Normalisierung und eine Zusammenlegung von `gdelt_import_files` sind nicht Teil
 dieses Tickets.
+
+## Umsetzungskommentar
+
+Implementiert am 2026-07-17:
+
+- Migration V19 fuehrt `gdelt_pipeline_health_view` ein. Die View weist fuer EVENTS, MENTIONS und
+  GKG jeweils den gesamten Payload-Bestand, Payloads ohne Fachzeile, offene Processing-Fehler und
+  vorhandene Fachzeilen nach derselben Definition aus.
+- Ein gemeinsamer PostgreSQL-End-to-End-Test prueft HTTP-Download, Payload-Import, Parsing,
+  GKG-Normalisierung und Article-Extraktion fuer alle drei Datensatztypen. Neuimport sowie erneute
+  Verarbeitung nach simuliertem Neustart erzeugen keine doppelten Payloads, Fachzeilen, Artikel
+  oder Signale.
+- Architektur-, Article-, Analyse- und Betriebsdokumentation beschreiben das aktuelle Payload-,
+  Fach- und Processing-Error-Modell. Die Betriebsdokumentation enthaelt die gemeinsame Health-
+  Abfrage und dokumentiert den vollstaendigen PostgreSQL-Testpfad.
+- ART-022 kann alle drei Payload-Tabellen anhand ihrer stabilen IDs und der vorhandenen Fachzeilen
+  behandeln; die dauerhaften Fachzeilen und `gdelt_processing_errors` benoetigen dafuer keine
+  weitere Schemaaenderung.
+- Der bestehende Article-REST-Contract einschliesslich Suche, Filter, Pagination, Sortierung,
+  Statuscodes und `/articles/extraction/health` blieb unveraendert. Daher war keine Anpassung der
+  Postman-Collection erforderlich; ihre JSON-Struktur wurde validiert.
+- Verifiziert mit `.\mvnw.cmd verify`: 54 Unit-/Kontexttests und 5 PostgreSQL-Integrationstests,
+  jeweils ohne Fehler oder uebersprungene Tests.

@@ -57,5 +57,5 @@ geprueft. Danach werden in einer Transaktion neue Zielartikel angelegt, alle `ar
 auf den jeweiligen Zielartikel umgehaengt und `first_seen_at` als Minimum der Quellartikel
 gesetzt. Erst nach Mengen-, FK- und Unique-Key-Pruefungen werden alte Artikel entfernt und die
 neuen `canonical_url`-/`url_hash`-Werte aktiviert. Alternativ kann bei reproduzierbar vorhandenem
-Staging-Bestand die Artikel-Schicht vollstaendig geleert und mit dem geaenderten Normalizer neu
+Fachdatenbestand die Artikel-Schicht vollstaendig geleert und mit dem geaenderten Normalizer neu
 extrahiert werden. In beiden Faellen sind Backup, Dry Run und Rollback-Punkt Pflicht.
