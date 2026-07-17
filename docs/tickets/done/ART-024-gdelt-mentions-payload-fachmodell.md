@@ -113,7 +113,8 @@ Article-REST-Contract sind nicht Teil dieses Tickets.
 Migration V17 ueberfuehrt `gdelt_raw_mentions` ID-erhaltend nach `gdelt_mention_payloads` und
 erzeugt aus jeder bisherigen `gdelt_stage_mentions`-Zeile genau eine `gdelt_mentions`-Fachzeile
 mit der ID der zugehoerigen Payload. MENTIONS-Referenzen in `article_signals` und
-`article_extraction_errors` werden von der bisherigen Stage-ID auf diese stabile ID umgesetzt.
+`article_extraction_errors` werden von der bisherigen Stage-ID kollisionssicher in zwei Phasen auf
+diese stabile ID umgesetzt, auch wenn Ziel-Payload-IDs noch als andere Stage-IDs belegt sind.
 Mengen- und Referenzpruefungen laufen vor dem Entfernen der beiden Alttabellen; die
 Payload-Identity wird anschliessend oberhalb des migrierten Maximalwerts fortgesetzt.
 

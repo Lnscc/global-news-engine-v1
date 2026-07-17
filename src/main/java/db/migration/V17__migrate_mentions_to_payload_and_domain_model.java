@@ -95,16 +95,26 @@ public class V17__migrate_mentions_to_payload_and_domain_model extends BaseJavaM
         execute(connection, """
                 UPDATE article_signals signal
                 SET source_id = (
-                    SELECT stage.raw_id FROM gdelt_stage_mentions stage WHERE stage.id = signal.source_id
+                    SELECT -stage.raw_id FROM gdelt_stage_mentions stage WHERE stage.id = signal.source_id
                 )
                 WHERE signal.signal_type = 'MENTIONS'
                 """);
         execute(connection, """
+                UPDATE article_signals
+                SET source_id = -source_id
+                WHERE signal_type = 'MENTIONS' AND source_id < 0
+                """);
+        execute(connection, """
                 UPDATE article_extraction_errors error
                 SET source_id = (
-                    SELECT stage.raw_id FROM gdelt_stage_mentions stage WHERE stage.id = error.source_id
+                    SELECT -stage.raw_id FROM gdelt_stage_mentions stage WHERE stage.id = error.source_id
                 )
                 WHERE error.signal_type = 'MENTIONS'
+                """);
+        execute(connection, """
+                UPDATE article_extraction_errors
+                SET source_id = -source_id
+                WHERE signal_type = 'MENTIONS' AND source_id < 0
                 """);
 
         long migratedPayloadCount = count(connection, "SELECT COUNT(*) FROM gdelt_mention_payloads");
