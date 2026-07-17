@@ -7,6 +7,7 @@ import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltMentionParser;
 import com.example.globalnewsenginev1.gdelt.staging.parser.GdeltParserTests;
 import db.migration.V15__create_gdelt_processing_errors;
 import db.migration.V16__migrate_events_to_payload_and_domain_model;
+import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +44,7 @@ class GdeltRawToStagingTransformerTests {
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
+            new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V7__add_gkg_article_titles.sql"));
             connection.createStatement().execute("ALTER TABLE gdelt_stage_gkg "
@@ -67,7 +69,7 @@ class GdeltRawToStagingTransformerTests {
                 GdeltParserTests.eventRow());
         insertRaw("gdelt_event_payloads", eventImportId, "20260705120000.export.CSV.zip", sourceTimestamp, 2,
                 "bad\trow");
-        insertRaw("gdelt_raw_mentions", mentionImportId, "20260705120000.mentions.CSV.zip", sourceTimestamp, 1,
+        insertRaw("gdelt_mention_payloads", mentionImportId, "20260705120000.mentions.CSV.zip", sourceTimestamp, 1,
                 GdeltParserTests.mentionRow());
         insertRaw("gdelt_raw_gkg", gkgImportId, "20260705120000.gkg.csv.zip", sourceTimestamp, 1,
                 GdeltParserTests.gkgRow());
@@ -78,7 +80,7 @@ class GdeltRawToStagingTransformerTests {
         assertThat(firstRun).isEqualTo(new GdeltStagingResult(1, 1, 1, 1));
         assertThat(secondRun).isEqualTo(new GdeltStagingResult(0, 0, 0, 1));
         assertThat(countRows("gdelt_events")).isEqualTo(1);
-        assertThat(countRows("gdelt_stage_mentions")).isEqualTo(1);
+        assertThat(countRows("gdelt_mentions")).isEqualTo(1);
         assertThat(countRows("gdelt_stage_gkg")).isEqualTo(1);
         assertThat(countRows("gdelt_processing_errors")).isEqualTo(2);
         assertThat(jdbcTemplate.queryForObject(
@@ -123,6 +125,28 @@ class GdeltRawToStagingTransformerTests {
                 "SELECT COUNT(*) FROM gdelt_processing_errors WHERE resolved_at IS NOT NULL",
                 Integer.class)).isEqualTo(1);
         assertThat(countRows("gdelt_events")).isEqualTo(1);
+    }
+
+    @Test
+    void retriesFailedMentionPayloadWithTheSameIdentity() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        long importId = insertImportFile("MENTIONS", "20260705120000.mentions.CSV.zip", timestamp);
+        long payloadId = insertRaw("gdelt_mention_payloads", importId,
+                "20260705120000.mentions.CSV.zip", timestamp, 1, "bad\trow");
+
+        assertThat(transformer.transformCompletedRawRows(100).errors()).isEqualTo(1);
+        jdbcTemplate.update("UPDATE gdelt_mention_payloads SET raw_tsv = ? WHERE id = ?",
+                GdeltParserTests.mentionRow(), payloadId);
+        jdbcTemplate.update("UPDATE gdelt_processing_errors SET occurred_at = ? WHERE source_row_id = ?",
+                utc(timestamp), payloadId);
+
+        assertThat(transformer.transformCompletedRawRows(100).mentionsStaged()).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT id FROM gdelt_mentions", Long.class)).isEqualTo(payloadId);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT COUNT(*) FROM gdelt_processing_errors
+                WHERE dataset_type = 'MENTIONS' AND source_row_id = ? AND resolved_at IS NOT NULL
+                """, Integer.class, payloadId)).isEqualTo(1);
     }
 
     @Test

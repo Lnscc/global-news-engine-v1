@@ -101,6 +101,37 @@ class GdeltProcessingErrorPostgresIT {
                 """, Integer.class, sourceRowId)).isEqualTo(1);
     }
 
+    @Test
+    void parsesAndExtractsMentionWithPayloadIdentityIdempotently() {
+        Instant timestamp = Instant.parse("2026-07-05T12:00:00Z");
+        var databaseTimestamp = timestamp.atOffset(ZoneOffset.UTC);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_import_files
+                    (dataset_type, source_file, source_url, source_timestamp, status, started_at, completed_at)
+                VALUES ('MENTIONS', 'mentions.zip', 'https://example.org/mentions.zip', ?,
+                        'COMPLETED', ?, ?)
+                """, databaseTimestamp, databaseTimestamp, databaseTimestamp);
+        Long importId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_import_files", Long.class);
+        jdbcTemplate.update("""
+                INSERT INTO gdelt_mention_payloads
+                    (import_file_id, source_file, source_timestamp, row_number, raw_tsv, ingested_at)
+                VALUES (?, 'mentions.zip', ?, 1, ?, ?)
+                """, importId, databaseTimestamp, GdeltParserTests.mentionRow(), databaseTimestamp);
+        Long sourceRowId = jdbcTemplate.queryForObject("SELECT id FROM gdelt_mention_payloads", Long.class);
+
+        assertThat(transformer.transformCompletedRawRows(100).mentionsStaged()).isEqualTo(1);
+        assertThat(transformer.transformCompletedRawRows(100).mentionsStaged()).isZero();
+        assertThat(articleExtractor.extractArticles(100).signalsCreated()).isEqualTo(1);
+        assertThat(articleExtractor.extractArticles(100).signalsCreated()).isZero();
+
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM gdelt_mentions WHERE id = ?", Integer.class, sourceRowId)).isEqualTo(1);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT COUNT(*) FROM article_signals
+                WHERE signal_type = 'MENTIONS' AND source_id = ?
+                """, Integer.class, sourceRowId)).isEqualTo(1);
+    }
+
     private DataSource adminDataSource() {
         PGSimpleDataSource dataSource = new PGSimpleDataSource();
         dataSource.setUrl(System.getProperty("it.postgres.jdbc-url", "jdbc:postgresql://localhost:5432/gne"));

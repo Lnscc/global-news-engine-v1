@@ -112,18 +112,18 @@ public class GdeltRawToStagingTransformer {
         long staged = 0;
         long errors = 0;
         for (RawRow row : loadPendingRows(
-                "gdelt_raw_mentions", "gdelt_stage_mentions", "raw_id", "MENTIONS", batchSize)) {
+                "gdelt_mention_payloads", "gdelt_mentions", "id", "MENTIONS", batchSize)) {
             try {
                 GdeltStageMention mention = mentionParser.parse(row.rawTsv());
                 jdbcTemplate.update("""
-                        INSERT INTO gdelt_stage_mentions
-                            (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                        INSERT INTO gdelt_mentions
+                            (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
                              global_event_id, event_time_date, mention_time_date, mention_type,
                              mention_source_name, mention_identifier, confidence, mention_doc_tone)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                         """,
                         row.rawId(), row.importFileId(), row.sourceFile(), utc(row.sourceTimestamp()),
-                        row.rowNumber(), utc(Instant.now()), mention.globalEventId(),
+                        row.rowNumber(), utc(row.ingestedAt()), utc(Instant.now()), mention.globalEventId(),
                         nullableUtc(mention.eventTimeDate()), nullableUtc(mention.mentionTimeDate()),
                         mention.mentionType(), mention.mentionSourceName(), mention.mentionIdentifier(),
                         mention.confidence(), mention.mentionDocTone());

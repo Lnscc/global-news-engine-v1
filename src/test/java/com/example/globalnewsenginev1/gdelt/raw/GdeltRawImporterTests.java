@@ -40,6 +40,8 @@ class GdeltRawImporterTests {
                     new ClassPathResource("db/migration/V1__create_gdelt_raw_tables.sql"));
             connection.createStatement().execute(
                     "ALTER TABLE gdelt_raw_events RENAME TO gdelt_event_payloads");
+            connection.createStatement().execute(
+                    "ALTER TABLE gdelt_raw_mentions RENAME TO gdelt_mention_payloads");
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
 
@@ -74,7 +76,7 @@ class GdeltRawImporterTests {
         assertThat(firstImport).allMatch(result -> result.rowCount() == 2 && !result.skipped());
         assertThat(secondImport).allMatch(result -> result.rowCount() == 2 && result.skipped());
         assertThat(countRows("gdelt_event_payloads")).isEqualTo(2);
-        assertThat(countRows("gdelt_raw_mentions")).isEqualTo(2);
+        assertThat(countRows("gdelt_mention_payloads")).isEqualTo(2);
         assertThat(countRows("gdelt_raw_gkg")).isEqualTo(2);
         assertThat(countRows("gdelt_import_files")).isEqualTo(3);
         assertThat(jdbcTemplate.queryForObject(

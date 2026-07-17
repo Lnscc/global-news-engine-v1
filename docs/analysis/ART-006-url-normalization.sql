@@ -64,7 +64,7 @@ ORDER BY variants DESC, base_url;
 WITH source_urls AS (
     SELECT source_url AS raw_url FROM gdelt_events
     UNION ALL
-    SELECT mention_identifier FROM gdelt_stage_mentions
+    SELECT mention_identifier FROM gdelt_mentions
     UNION ALL
     SELECT document_identifier FROM gdelt_stage_gkg
 ), parameters AS (
@@ -85,7 +85,7 @@ ORDER BY occurrences DESC, name;
 WITH source_urls AS (
     SELECT source_url AS raw_url FROM gdelt_events
     UNION ALL
-    SELECT mention_identifier FROM gdelt_stage_mentions
+    SELECT mention_identifier FROM gdelt_mentions
     UNION ALL
     SELECT document_identifier FROM gdelt_stage_gkg
 ), paths AS (

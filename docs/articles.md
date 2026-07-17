@@ -3,8 +3,8 @@
 ## Ziel
 
 Die Artikel-Schicht ist der erste Schritt vom GDELT-Import zum produktnahen Modell.
-Aus `gdelt_events`, `gdelt_stage_mentions` und `gdelt_stage_gkg` werden deduplizierte Artikel
-abgeleitet. EVENTS sind bereits dauerhafte Fachzeilen; MENTIONS und GKG folgen derzeit noch dem
+Aus `gdelt_events`, `gdelt_mentions` und `gdelt_stage_gkg` werden deduplizierte Artikel
+abgeleitet. EVENTS und MENTIONS sind dauerhafte Fachzeilen; GKG folgt derzeit noch dem
 Staging-Modell.
 
 Ein Artikel ist in dieser Phase primaer eine kanonische URL mit Metadaten und Signalen aus GDELT.
@@ -66,7 +66,7 @@ MENTIONS-Hinweise. GKG besitzt ein eigenes Record-Modell.
 
 ```text
 EVENTS   -> gdelt_events.id
-MENTIONS -> gdelt_stage_mentions.id
+MENTIONS -> gdelt_mentions.id
 ```
 
 Die Tabelle bekommt einen fachlichen Unique Key auf `(signal_type, source_id)`. Dadurch kann
@@ -180,7 +180,7 @@ Quellen:
 
 ```text
 gdelt_events.source_url
-gdelt_stage_mentions.mention_identifier
+gdelt_mentions.mention_identifier
 gdelt_stage_gkg.document_identifier
 ```
 

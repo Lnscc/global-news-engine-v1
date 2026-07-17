@@ -5,6 +5,7 @@ import db.migration.V11__normalize_remaining_gkg_values;
 import db.migration.V12__add_gkg_publication_time;
 import db.migration.V13__add_gkg_sharing_image;
 import db.migration.V16__migrate_events_to_payload_and_domain_model;
+import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
 
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,6 +53,7 @@ class ArticleExtractorServiceTests {
             new V12__add_gkg_publication_time().migrate(connection);
             new V13__add_gkg_sharing_image().migrate(connection);
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
+            new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -157,7 +159,7 @@ class ArticleExtractorServiceTests {
     private long insertRawMention(Instant sourceTimestamp, long rowNumber) {
         long importFileId = insertImportFile("MENTIONS", "20260705120000.mentions-%s.CSV.zip".formatted(rowNumber),
                 sourceTimestamp);
-        return insertRaw("gdelt_raw_mentions", importFileId, "20260705120000.mentions-%s.CSV.zip".formatted(rowNumber),
+        return insertRaw("gdelt_mention_payloads", importFileId, "20260705120000.mentions-%s.CSV.zip".formatted(rowNumber),
                 sourceTimestamp, rowNumber);
     }
 
@@ -209,14 +211,14 @@ class ArticleExtractorServiceTests {
                 """, utc(sourceTimestamp), avgTone, sourceUrl, payloadId);
     }
 
-    private void insertStageMention(long rawId, Instant sourceTimestamp, String mentionIdentifier, double tone) {
+    private void insertStageMention(long payloadId, Instant sourceTimestamp, String mentionIdentifier, double tone) {
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_mentions
-                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at,
+                INSERT INTO gdelt_mentions
+                    (id, import_file_id, source_file, source_timestamp, row_number, ingested_at, parsed_at,
                      global_event_id, mention_identifier, mention_doc_tone)
-                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?, 123, ?, ?
-                FROM gdelt_raw_mentions WHERE id = ?
-                """, utc(sourceTimestamp), mentionIdentifier, tone, rawId);
+                SELECT id, import_file_id, source_file, source_timestamp, row_number, ingested_at, ?, 123, ?, ?
+                FROM gdelt_mention_payloads WHERE id = ?
+                """, utc(sourceTimestamp), mentionIdentifier, tone, payloadId);
     }
 
     private void insertStageGkg(

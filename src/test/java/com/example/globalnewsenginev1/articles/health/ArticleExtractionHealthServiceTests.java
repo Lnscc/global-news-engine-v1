@@ -2,6 +2,7 @@ package com.example.globalnewsenginev1.articles.health;
 
 import db.migration.V15__create_gdelt_processing_errors;
 import db.migration.V16__migrate_events_to_payload_and_domain_model;
+import db.migration.V17__migrate_mentions_to_payload_and_domain_model;
 import org.h2.jdbcx.JdbcDataSource;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +36,7 @@ class ArticleExtractionHealthServiceTests {
             ScriptUtils.executeSqlScript(connection,
                     new ClassPathResource("db/migration/V3__create_articles.sql"));
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
+            new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
         }
         jdbcTemplate = new JdbcTemplate(dataSource);
         jdbcTemplate.execute("""
@@ -85,14 +87,16 @@ class ArticleExtractionHealthServiceTests {
     }
 
     private long insertStageMention(Instant timestamp, long rowNumber) {
-        long rawId = insertRaw("MENTIONS", "gdelt_raw_mentions", timestamp, rowNumber);
+        long payloadId = insertRaw("MENTIONS", "gdelt_mention_payloads", timestamp, rowNumber);
         jdbcTemplate.update("""
-                INSERT INTO gdelt_stage_mentions
-                    (raw_id, import_file_id, source_file, source_timestamp, row_number, staged_at, global_event_id)
-                SELECT id, import_file_id, source_file, source_timestamp, row_number, ?, ?
-                FROM gdelt_raw_mentions WHERE id = ?
-                """, utc(timestamp), rowNumber, rawId);
-        return jdbcTemplate.queryForObject("SELECT id FROM gdelt_stage_mentions WHERE raw_id = ?", Long.class, rawId);
+                INSERT INTO gdelt_mentions
+                    (id, import_file_id, source_file, source_timestamp, row_number,
+                     ingested_at, parsed_at, global_event_id)
+                SELECT id, import_file_id, source_file, source_timestamp, row_number,
+                       ingested_at, ?, ?
+                FROM gdelt_mention_payloads WHERE id = ?
+                """, utc(timestamp), rowNumber, payloadId);
+        return payloadId;
     }
 
     private void insertStageGkg(Instant timestamp, long rowNumber) {

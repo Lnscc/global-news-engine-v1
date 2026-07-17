@@ -1,6 +1,6 @@
 # ART-024: GDELT MENTIONS auf Payload- und Fachmodell umstellen
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, architecture
 
 ## Kontext
@@ -107,3 +107,19 @@ Das Ticket baut auf `gdelt_processing_errors` aus ART-021 auf.
 
 EVENTS, GKG, Payload-Retention, weitere fachliche Mention-Normalisierung und Aenderungen am
 Article-REST-Contract sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Migration V17 ueberfuehrt `gdelt_raw_mentions` ID-erhaltend nach `gdelt_mention_payloads` und
+erzeugt aus jeder bisherigen `gdelt_stage_mentions`-Zeile genau eine `gdelt_mentions`-Fachzeile
+mit der ID der zugehoerigen Payload. MENTIONS-Referenzen in `article_signals` und
+`article_extraction_errors` werden von der bisherigen Stage-ID auf diese stabile ID umgesetzt.
+Mengen- und Referenzpruefungen laufen vor dem Entfernen der beiden Alttabellen; die
+Payload-Identity wird anschliessend oberhalb des migrierten Maximalwerts fortgesetzt.
+
+Neue MENTIONS-Imports schreiben direkt nach `gdelt_mention_payloads`. Der Parser liest offene
+Payloads, legt `gdelt_mentions` idempotent mit `ingested_at` und `parsed_at` an und loest
+bestehende Processing-Fehler bei einem erfolgreichen Retry auf. Article-Extraktion,
+Health-Abfragen, Dokumentation und URL-Analyseskripte verwenden das neue Fachmodell.
+Migrations-, Importer-, Parser/Retry-, Extraktions-, Health- und PostgreSQL-Tests decken
+ID-Erhalt, Referenzmigration, Neuimport, Wiederholung und den unveraenderten Article-Contract ab.

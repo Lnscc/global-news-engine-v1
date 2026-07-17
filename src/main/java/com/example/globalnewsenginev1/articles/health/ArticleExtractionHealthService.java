@@ -64,7 +64,7 @@ public class ArticleExtractionHealthService {
                 new ExtractionErrorCount(resultSet.getString("error_code"), resultSet.getLong("error_count"))));
 
         pending("EVENTS", "gdelt_events", healthByType);
-        pending("MENTIONS", "gdelt_stage_mentions", healthByType);
+        pending("MENTIONS", "gdelt_mentions", healthByType);
         pending("GKG", "gdelt_stage_gkg", healthByType);
 
         long articlesCreatedTotal = jdbcTemplate.queryForObject("SELECT COUNT(*) FROM articles", Long.class);
