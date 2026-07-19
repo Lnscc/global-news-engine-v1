@@ -1,6 +1,6 @@
 # ART-030: Story-Begriff und Clustering-Ziel definieren
 
-Status: offen
+Status: erledigt
 Bereich: stories, architecture
 
 ## Kontext
@@ -29,7 +29,8 @@ derselben Story gehoeren und welche Eigenschaften das erste Story-MVP besitzt.
 - relevante Zeitbegriffe und deren fachliche Bedeutung benennen
 - Mindestinhalt einer Story definieren
 - nicht-funktionale Ziele fuer Nachvollziehbarkeit und reproduzierbare Zuordnung festlegen
-- MVP-Abgrenzung gegen Embeddings, Volltext, LLM-Zusammenfassungen, Topics und Themes dokumentieren
+- Rolle von Titel-Embeddings als primaeres, aber nicht allein entscheidendes MVP-Signal festlegen
+- MVP-Abgrenzung gegen Volltext, generative LLM-Funktionen, Topics und Themes dokumentieren
 - Konsequenzen fuer Analyse, Evaluationskorpus und Lebenszyklusentscheidungen ableiten
 ```
 
@@ -42,6 +43,7 @@ derselben Story gehoeren und welche Eigenschaften das erste Story-MVP besitzt.
 - Wie werden Sammelartikel, Liveblogs und Rueckblicke behandelt?
 - Darf ein Artikel im MVP mehreren Stories angehoeren?
 - Welche Mindestbegruendung muss eine automatische Zuordnung liefern koennen?
+- Welche Rolle spielen Embedding-Aehnlichkeit, Zeitfenster und strukturierte Trennsignale zusammen?
 ```
 
 ## Akzeptanzkriterien
@@ -52,6 +54,8 @@ derselben Story gehoeren und welche Eigenschaften das erste Story-MVP besitzt.
 - mindestens zehn reale oder realistische Grenzfaelle besitzen eine begruendete Sollentscheidung
 - Artikelmitgliedschaft und Mindestinhalt einer Story sind fuer das MVP entschieden
 - benoetigte Eingangssignale sind nach notwendig, optional und spaeter eingeordnet
+- Titel-Embeddings sind als versioniertes Kandidaten- und Aehnlichkeitssignal eingeordnet, ohne
+  fachliche Story-Identitaet allein aus einem Similarity-Wert abzuleiten
 - explizite Nicht-Ziele verhindern, dass das erste Story-MVP zum Topic- oder LLM-Projekt anwaechst
 - offene Unsicherheiten sind benannt und als messbare Fragen fuer ART-031 oder ART-032 formuliert
 - es erfolgen keine Aenderungen an Datenbank oder REST API
@@ -76,6 +80,10 @@ konkretes Geschehen als Story-Einheit, die Abgrenzung zu Folgeereignis, Topic un
 eine Story je Artikel, zulaessige Singletons, der Umgang mit Sammelartikeln, Liveblogs und
 Rueckblicken sowie die Mindestdaten und Mindestbegruendung einer Zuordnung. Achtzehn begruendete
 Grenzfaelle und messbare Anschlussfragen konkretisieren die Arbeit fuer ART-031 bis ART-033.
+Titel-Embeddings sind als primaeres MVP-Signal fuer Kandidatensuche und Aehnlichkeit aufgenommen.
+Sie werden mit einem Zeitfenster und vorhandenen strukturierten Signalen kombiniert und duerfen
+eine Zuordnung nicht allein aufgrund eines Similarity-Werts erzwingen. Volltext und generative
+LLM-Funktionen bleiben ausserhalb des MVP.
 
 Es wurden bewusst weder produktives Datenbankschema noch REST API, Cluster-Implementierung oder
 Story-Persistenz veraendert.

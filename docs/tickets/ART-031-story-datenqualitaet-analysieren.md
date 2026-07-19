@@ -15,7 +15,8 @@ oder bei unterschiedlichen Ereignissen regelmaessig gleich aussehen.
 ## Ziel
 
 Eine reproduzierbare Analyse bewertet die vorhandenen Artikeldaten als Eingang fuer ein erstes
-Story-Clustering und benennt belastbare Features, Qualitaetsrisiken und konkreten Datenbedarf.
+Story-Clustering mit Titel-Embeddings und benennt belastbare Features, Qualitaetsrisiken, ein
+geeignetes Embedding-Modell und konkreten Datenbedarf.
 
 ## Umfang
 
@@ -29,6 +30,14 @@ Story-Clustering und benennt belastbare Features, Qualitaetsrisiken und konkrete
 - spaet eintreffende Signale und nachtraeglich verfuegbare GKG-Metadaten messen
 - Artikelvolumen pro Zeitfenster als Grundlage fuer Kandidatensuche bestimmen
 - typische positive Kandidaten und harte Negativfaelle dokumentieren
+- einen deterministischen Titel-Eingabetext und dessen Hash fuer Embeddings definieren
+- mindestens ein fuer die vorhandenen Sprachen geeignetes Embedding-Modell auf der Stichprobe
+  reproduzierbar untersuchen; Modellkennung, Version, Dimension und Ausfuehrungsumgebung festhalten
+- Cosine-Similarity-Verteilungen fuer erkennbare positive Paare, harte Negativpaare und
+  mehrdeutige Faelle getrennt ausweisen
+- Recall der positiven Kandidaten und Kandidatenmengengroesse fuer sinnvolle Kombinationen aus
+  Zeitfenster und Top-k-Nachbarn messen
+- Laufzeit, Batch-Groesse, Fehlerrate und geschaetzte Kosten der Embedding-Erzeugung dokumentieren
 - Analyseabfragen oder ein kleines wiederholbar ausfuehrbares Analyseskript bereitstellen
 ```
 
@@ -36,7 +45,11 @@ Story-Clustering und benennt belastbare Features, Qualitaetsrisiken und konkrete
 
 ```text
 - keine Story-Wahrheit allein aus globalEventId, Theme oder Domain ableiten
+- keine Story-Wahrheit allein aus Embedding-Aehnlichkeit oder einem ungeprueften Schwellwert ableiten
 - keine fehlenden Werte aus TLD, Publisher oder anderen Heuristiken erfinden
+- Embeddings nur aus dem normalisierten Titel bilden; keine Entitaeten, GDELT-Themes oder
+  generierten Texte verdeckt in den Eingabetext mischen
+- Modell und Eingabetext so protokollieren, dass jede gemessene Aehnlichkeit reproduzierbar ist
 - Ergebnisse nach Zeitraum und relevanten Quelltypen aufschluesseln
 - Rohzahlen und Prozentwerte gemeinsam dokumentieren
 - verwendeten Datenstand und Stichprobenverfahren nachvollziehbar festhalten
@@ -49,10 +62,19 @@ Story-Clustering und benennt belastbare Features, Qualitaetsrisiken und konkrete
 - die Analyse ist mit dokumentierten Schritten auf einem lokalen Datenbestand wiederholbar
 - Stichprobe, Zeitraum, Groesse und Auswahlverfahren sind dokumentiert
 - Titel, Zeitstempel und alle vorhandenen strukturierten Signalsorten besitzen Abdeckungswerte
+- Titel-Eingabetext, Normalisierung, Hashbildung, Embedding-Modell, Modellversion und Dimension
+  sind eindeutig dokumentiert
 - typische Spaetankunft und zeitliche Streuung sind quantifiziert
 - Kandidatenmengen fuer mehrere sinnvolle Zeitfenster sind abgeschaetzt
 - mindestens je zehn erkennbare positive Kandidaten und harte Negativfaelle sind beschrieben
+- fuer diese Kandidaten sind Similarity-Verteilungen sowie Recall-at-k fuer mindestens zwei
+  sinnvolle Zeitfenster ausgewiesen
+- Verhalten bei unterschiedlichen Sprachen, sehr kurzen, generischen und nahezu identischen
+  Titeln ist anhand konkreter Beispiele bewertet
 - Features sind begruendet als primaer, unterstuetzend oder fuer das MVP ungeeignet eingeordnet
+- genau ein Embedding-Modell wird fuer ART-032 empfohlen oder die gemessene Blockade mit einem
+  quantitativen Mindestkriterium fuer eine erneute Auswahl belegt
+- Durchsatz, Fehler und Kosten sind so quantifiziert, dass ART-033 Batch- und Retry-Regeln festlegen kann
 - Datenluecken werden einem konkreten Folgeschritt zugeordnet, ohne ART-010 automatisch zu aktivieren
 - die Ergebnisse liefern ein begruendetes Sampling fuer ART-032
 - es erfolgen keine Aenderungen am produktiven Datenbankschema oder REST-Vertrag
@@ -65,5 +87,7 @@ Das Ticket baut auf ART-030 auf. Die dauerhaften GDELT-Fachmodelle und direkten
 
 ## Abgrenzung
 
-Persistentes Story-Modell, produktiver Clusterer, Embeddings, Sprachklassifikation, Volltext und
-externe Seitenabrufe sind nicht Teil dieses Tickets.
+Persistentes Story-Modell, produktiver Clusterer, produktive Embedding-Persistenz oder
+Vektorsuche, Sprachklassifikation, Volltext und externe Seitenabrufe sind nicht Teil dieses
+Tickets. Experimentell erzeugte Titel-Embeddings und lokale Analyseartefakte sind ausdruecklich
+Teil der Analyse.
