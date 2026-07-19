@@ -74,6 +74,7 @@ class GdeltGkgPayloadMigrationTests {
 
         try (Connection connection = dataSource.getConnection()) {
             new V18__migrate_gkg_to_payload_and_domain_model().migrate(connection);
+            execute(connection, "V21__remove_redundant_gkg_raw_columns.sql");
         }
 
         assertThat(jdbc.queryForMap("SELECT id, raw_tsv FROM gdelt_gkg_payloads WHERE id = 42"))
@@ -83,6 +84,8 @@ class GdeltGkgPayloadMigrationTests {
                 .containsEntry("GKG_RECORD_ID", "record-42").containsEntry("TONE_VALUE", -1.0);
         assertThat(arrayValues(jdbc, "themes")).containsExactly("PRODUCT_A", "PRODUCT_B");
         assertThat(arrayValues(jdbc, "persons")).containsExactly("Product Person");
+        assertThat(columnCount(jdbc, "themes_raw", "persons_raw", "organizations_raw", "locations_raw", "tone_raw"))
+                .isZero();
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM gdelt_gkg_payloads", Integer.class)).isEqualTo(2);
         assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM gdelt_gkg", Integer.class)).isEqualTo(1);
         assertThat(jdbc.queryForObject(
@@ -118,5 +121,13 @@ class GdeltGkgPayloadMigrationTests {
         return jdbc.queryForObject("""
                 SELECT COUNT(*) FROM information_schema.tables WHERE lower(table_name) = ?
                 """, Integer.class, tableName);
+    }
+
+    private int columnCount(JdbcTemplate jdbc, String... columnNames) {
+        String placeholders = String.join(", ", java.util.Collections.nCopies(columnNames.length, "?"));
+        return jdbc.queryForObject("""
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE lower(table_name) = 'gdelt_gkg' AND lower(column_name) IN (%s)
+                """.formatted(placeholders), Integer.class, (Object[]) columnNames);
     }
 }

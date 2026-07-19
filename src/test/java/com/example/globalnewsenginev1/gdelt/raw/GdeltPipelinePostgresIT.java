@@ -115,6 +115,11 @@ class GdeltPipelinePostgresIT {
         assertThat(transformed.errors()).isZero();
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT cardinality(themes) FROM gdelt_gkg", Integer.class)).isGreaterThan(0);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT COUNT(*) FROM information_schema.columns
+                WHERE table_schema = current_schema() AND table_name = 'gdelt_gkg'
+                  AND column_name IN ('themes_raw', 'persons_raw', 'organizations_raw', 'locations_raw', 'tone_raw')
+                """, Integer.class)).isZero();
         assertThat(extractor.extractArticles(100).signalsCreated()).isEqualTo(3);
 
         GdeltRawToStagingTransformer restartedTransformer =

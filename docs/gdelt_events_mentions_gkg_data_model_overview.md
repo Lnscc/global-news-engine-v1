@@ -158,7 +158,10 @@ Die Article-Extraktion setzt anschliessend die nullable `gdelt_mentions.article_
 
 GKG verwendet `gdelt_gkg_payloads.id` als stabile Identitaet. Parsing und Normalisierung legen
 dieselbe ID in `gdelt_gkg` an. Die Article-Extraktion ergaenzt danach die nullable `article_id`;
-fehlerhafte Payloads bleiben ohne Fachzeile erneut verarbeitbar.
+fehlerhafte Payloads bleiben ohne Fachzeile erneut verarbeitbar. `gdelt_gkg` speichert Themes,
+Personen und Organisationen als normalisierte Arrays, Orte als normalisiertes JSON und Tone in
+einzelnen Messfeldern. Die unveraenderte Quellzeile existiert temporaer ausschliesslich als
+`gdelt_gkg_payloads.raw_tsv`; das Fachmodell enthaelt keine `*_raw`-Spalten.
 
 # GKG-Felder
 

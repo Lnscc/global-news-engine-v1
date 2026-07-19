@@ -1,6 +1,6 @@
 # ART-029: Redundante GKG-Rohspalten aus dem Fachmodell entfernen
 
-Status: offen
+Status: erledigt
 Bereich: gdelt, architecture
 
 ## Kontext
@@ -105,3 +105,14 @@ etablierte normalisierte GKG-Modell. Es baut ausserdem auf der Payload-Retention
 Eine verlaengerte Retention, externe Rohdatenarchivierung, erneute Normalisierung bereits
 geloeschter Payloads, Aenderungen der Normalisierungsregeln und Aenderungen am Article-REST-Contract
 sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Migration V21 entfernt `themes_raw`, `persons_raw`, `organizations_raw`, `locations_raw` und
+`tone_raw` vorwaertsgerichtet aus `gdelt_gkg`; die historische Migration V18 bleibt unveraendert.
+Der aktive GKG-Transformer persistiert nur noch die normalisierten Arrays, das normalisierte
+Orts-JSON und die einzelnen Tone-Komponenten. Migrationstests pruefen den Erhalt bestehender
+normalisierter Werte und Artikelbeziehungen sowie das bereinigte Zielschema. Der PostgreSQL-
+Pipeline-Test prueft Neuimport und Normalisierung direkt gegen das Schema ohne Rohspalten.
+Dokumentation und Betriebshinweise beschreiben `gdelt_gkg_payloads.raw_tsv` als einzige temporaere
+Rohdatenquelle. Der Article-REST-Contract und die Payload-Retention bleiben unveraendert.

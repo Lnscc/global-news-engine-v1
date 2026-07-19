@@ -78,7 +78,9 @@ Die unveraenderte Quellzeile bleibt in `gdelt_gkg_payloads.raw_tsv` bis zum Abla
 konfigurierten Payload-Retention erhalten. Danach darf sie nur geloescht werden, wenn die
 erfolgreich verarbeitete Fachzeile mit derselben ID existiert. Das Fachmodell speichert Themes,
 Personen und Organisationen als Arrays, Orte als typisierte JSON-Liste und Tone in einzelnen
-Messfeldern. Die API projiziert GKG-Records weiterhin als Signale.
+Messfeldern. Es enthaelt keine zusaetzlichen Rohkopien dieser Werte; `raw_tsv` in der Payload-Tabelle
+ist bis zum Retention-Ablauf die einzige unveraenderte Rohdatenquelle. Die API projiziert
+GKG-Records weiterhin als Signale.
 
 ### `article_extraction_errors`
 

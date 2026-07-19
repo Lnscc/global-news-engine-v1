@@ -63,6 +63,8 @@ class GdeltRawToStagingTransformerTests {
             new V16__migrate_events_to_payload_and_domain_model().migrate(connection);
             new V17__migrate_mentions_to_payload_and_domain_model().migrate(connection);
             new V18__migrate_gkg_to_payload_and_domain_model().migrate(connection);
+            ScriptUtils.executeSqlScript(connection,
+                    new ClassPathResource("db/migration/V21__remove_redundant_gkg_raw_columns.sql"));
         }
 
         jdbcTemplate = new JdbcTemplate(dataSource);
@@ -101,6 +103,10 @@ class GdeltRawToStagingTransformerTests {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT sharing_image_url FROM gdelt_gkg", String.class))
                 .isEqualTo("https://cdn.example.org/news/main.jpg?width=1200");
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT CARDINALITY(persons) FROM gdelt_gkg", Integer.class)).isGreaterThan(0);
+        assertThat(jdbcTemplate.queryForObject(
+                "SELECT tone_value FROM gdelt_gkg", Double.class)).isEqualTo(-1.5);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT error_code FROM gdelt_processing_errors WHERE dataset_type = 'EVENTS' LIMIT 1",
                 String.class)).isEqualTo("COLUMN_COUNT");
