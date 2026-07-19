@@ -1,6 +1,6 @@
 # ART-031: Story-relevante Artikeldaten analysieren
 
-Status: offen
+Status: erledigt
 Bereich: stories, articles, gdelt
 
 ## Kontext
@@ -91,3 +91,36 @@ Persistentes Story-Modell, produktiver Clusterer, produktive Embedding-Persisten
 Vektorsuche, Sprachklassifikation, Volltext und externe Seitenabrufe sind nicht Teil dieses
 Tickets. Experimentell erzeugte Titel-Embeddings und lokale Analyseartefakte sind ausdruecklich
 Teil der Analyse.
+
+## Implementierungskommentar
+
+Die reproduzierbare Analyse ist in `docs/analysis/ART-031-story-data-quality.md` dokumentiert.
+`scripts/run_art031_analysis.py` misst auf einem fest abgegrenzten lokalen Datenfenster Titel-,
+Zeit-, Signal- und Entitaetsabdeckung, Duplikate, Generik, Spaetankunft, Event-ID-/Code-Mehrfachheit,
+Artikelvolumen und zeitliche Kandidatenmengen. Die Rohmessung liegt versioniert in
+`docs/analysis/ART-031-results.json`; 10 positive, 10 harte negative und 5 mehrdeutige reale
+Titelpaare sind in `docs/analysis/ART-031-pairs.csv` festgehalten.
+
+Fuer den deterministisch normalisierten und per SHA-256 identifizierten Titel wurden
+`sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` in der unveraenderlichen Revision
+`e8f8c211226b894fcb81acc59f3b34ba3efd5f42` lokal auf CPU und OpenAI
+`text-embedding-3-small` und `text-embedding-3-large` ueber die Embeddings API auf exakt demselben
+Korpus gemessen. `text-embedding-3-small` wird als einziges Modell fuer ART-032 empfohlen: Beide
+OpenAI-Modelle verbessern die Positiv-vs.-Hard-Negative-AUC von 0,97 auf 0,99; bei 24-h-Top-50
+erreichen alle drei Modelle 1,00. MiniLMs 24-h-Top-10-Vorteil von 0,90 gegenueber 0,80 entspricht
+auf dem kleinen Labelsatz zwei von 20 Suchrichtungen und ueberwiegt nicht den einfacheren
+API-Betrieb. Der gemessene Small-Lauf kostete 0,00141396 USD fuer 4.035 Titel; fuer 1.000 neue
+Artikel je 15 Minuten werden rund 1,01 USD pro 30 Tage erwartet. ART-032 validiert die Festlegung
+auf 1.000 unabhaengig gelabelten Paaren. Dokumentiert sind Dimensionen, Runtime und
+Dependency-Lock, Batch-Groesse,
+Durchsatz, Fehlerquote, Tokenmenge, Kosten, getrennte Cosine-Verteilungen sowie Recall fuer mehrere
+Zeitfenster/Top-k-Kombinationen. Die Ueberlappung der positiven, negativen und mehrdeutigen
+Verteilungen belegt, dass kein einzelner Similarity-Schwellwert Story-Identitaet liefern kann.
+Als Start-Sampling fuer ART-032 ist `24 h + top-50` mit gezielter Uebergewichtung des
+Similarity-Ueberlappungsbereichs festgelegt.
+
+Die Analyse hat weder produktives Datenbankschema noch Datenwerte oder REST-Vertrag veraendert.
+Vor dem Abschluss wurden der dokumentierte Datenbank-Fingerprint mit dem versionierten Ergebnis
+synchronisiert, `firstSeenAt` als tatsaechlich gemessene Zeitbasis fuer Kandidatenfenster und
+Recall klargestellt und der Cache-Hash fuer bereits normalisierte OpenAI-Eingaben gegen eine
+erneute Normalisierung abgesichert.

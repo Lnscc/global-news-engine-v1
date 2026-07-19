@@ -1,0 +1,1881 @@
+{
+  "generatedAt": "2026-07-19T17:56:38.104001+00:00",
+  "sample": {
+    "start": "2026-07-12T20:15:00+00:00",
+    "endExclusive": "2026-07-17T20:00:00+00:00",
+    "selection": "all articles with first_seen_at in the half-open UTC interval",
+    "articles": 80080,
+    "domains": 7255,
+    "databaseFingerprint": {
+      "gkg": 102808,
+      "events": 85237,
+      "articles": 103509,
+      "mentions": 243839,
+      "maxParsedAt": "2026-07-19T17:55:08.725764+00:00",
+      "maxArticleId": 103551
+    }
+  },
+  "titleInput": {
+    "version": "art031-title-nfkc-ws-v1",
+    "normalization": "HTML5 entity decode; Unicode NFKC; collapse Unicode whitespace to U+0020; trim; preserve case and punctuation",
+    "hash": "lowercase hexadecimal SHA-256 of UTF-8 normalized title",
+    "example": {
+      "raw": "  Caf&eacute;\n  update  ",
+      "input": "Café update",
+      "sha256": "839f7749f479b15cf6ff14fa937382119eba8448f6843b11309f80349d84fefb"
+    }
+  },
+  "coverage": {
+    "title": {
+      "count": 79872,
+      "percent": 99.7403
+    },
+    "publishedAt": {
+      "count": 39409,
+      "percent": 49.212
+    },
+    "firstSeenAt": {
+      "count": 80080,
+      "percent": 100.0
+    },
+    "EVENTS": {
+      "count": 12594,
+      "percent": 15.7268
+    },
+    "MENTIONS": {
+      "count": 29644,
+      "percent": 37.018
+    },
+    "GKG": {
+      "count": 80038,
+      "percent": 99.9476
+    },
+    "themes": {
+      "count": 71171,
+      "percent": 88.8749
+    },
+    "persons": {
+      "count": 57767,
+      "percent": 72.1366
+    },
+    "organizations": {
+      "count": 59666,
+      "percent": 74.508
+    },
+    "locations": {
+      "count": 61918,
+      "percent": 77.3202
+    }
+  },
+  "titles": {
+    "nonEmpty": 79872,
+    "uniqueNormalized": 56467,
+    "duplicateRows": 28027,
+    "duplicateGroups": 4622,
+    "excessDuplicateRows": 23405,
+    "generic": 300,
+    "shortUnderFourTokens": 1778,
+    "topDuplicates": [
+      [
+        "one person made decision to rescind balogun's red card, suspension: report",
+        362
+      ],
+      [
+        "cdc issues health alert as cases of diarrhea from parasite explode to 7,000",
+        331
+      ],
+      [
+        "targeted news service",
+        263
+      ],
+      [
+        "how to listen to third place world cup game between france and england",
+        256
+      ],
+      [
+        "newly retired couples could lose $17,000 a year in social security in 2033",
+        241
+      ],
+      [
+        "popular toaster ovens recalled due to shock, fire risk",
+        236
+      ],
+      [
+        "tourist hospitalized after bison tossed him into the air at yellowstone",
+        232
+      ],
+      [
+        "mercedes driver knocked out in wild street brawl with skateboarder",
+        229
+      ],
+      [
+        "ariana grande stokes rekindled romance rumors with ex after lyric change",
+        116
+      ],
+      [
+        "murder of ann widdecombe being investigated as potential act of terrorism",
+        100
+      ],
+      [
+        "how to listen to the fifa world cup 2026 final halftime show",
+        100
+      ],
+      [
+        "writer is paid 5.6 million dollars in trump sexual abuse and defamation case",
+        90
+      ],
+      [
+        "blunt-force trauma caused death of mother and children in home",
+        88
+      ],
+      [
+        "three found dead in family home in ballymena",
+        87
+      ],
+      [
+        "outbreak of diarrhea from parasite continues to spread, tops 3,000 cases",
+        85
+      ],
+      [
+        "trump to present world cup trophy with fifa president",
+        85
+      ],
+      [
+        "trump backs down over threat to levy tolls on shipping in strait of hormuz",
+        84
+      ],
+      [
+        "firefighters continue battling major wildfire in cairngorms",
+        84
+      ],
+      [
+        "justin moore opens up about sobriety journey: 'drinking got out of control'",
+        81
+      ],
+      [
+        "e. jean carroll receives $5 million payment from trump for civil suit",
+        79
+      ]
+    ]
+  },
+  "time": {
+    "publishedMinusFirstSeenHours": {
+      "count": 39409,
+      "min": -427604.2166666667,
+      "p10": -5.616666666666666,
+      "median": -2.1,
+      "p90": -0.5,
+      "p95": -0.38333333333333336,
+      "p99": 0.016666666666666666,
+      "max": 0.25
+    },
+    "absolutePublishedFirstSeenHours": {
+      "count": 39409,
+      "min": 0.0,
+      "p10": 0.5,
+      "median": 2.1,
+      "p90": 5.616666666666666,
+      "p95": 12.633333333333333,
+      "p99": 270.929999999993,
+      "max": 427604.2166666667
+    },
+    "publishedMoreThan24HoursBeforeFirstSeen": {
+      "count": 1068,
+      "percent": 2.71
+    },
+    "publishedMoreThan7DaysBeforeFirstSeen": {
+      "count": 422,
+      "percent": 1.0708
+    },
+    "publishedAfterFirstSeen": {
+      "count": 408,
+      "percent": 1.0353
+    },
+    "lastSignalMinusFirstSeenHours": {
+      "count": 80080,
+      "min": 0.0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 0.0,
+      "p95": 0.0,
+      "p99": 0.0,
+      "max": 2.0
+    },
+    "titleAvailableMinusFirstSeenHours": {
+      "count": 79872,
+      "min": 0.0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 0.0,
+      "p95": 0.0,
+      "p99": 0.0,
+      "max": 0.0
+    },
+    "publicationMetadataMinusFirstSeenHours": {
+      "count": 39409,
+      "min": 0.0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 0.0,
+      "p95": 0.0,
+      "p99": 0.0,
+      "max": 0.0
+    },
+    "ingestionSpanHours": {
+      "count": 80080,
+      "min": 0.0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 1.0629471211111112,
+      "p95": 20.769684968611113,
+      "p99": 60.72368415611111,
+      "max": 62.723484902222225
+    },
+    "titleIngestionDelayHours": {
+      "count": 79872,
+      "min": 0.0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 1.0629471211111112,
+      "p95": 20.769670982777775,
+      "p99": 60.72368415611111,
+      "max": 60.86815081194444
+    },
+    "publicationMetadataIngestionDelayHours": {
+      "count": 39409,
+      "min": 0.0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 1.3191687636111111,
+      "p95": 22.276579322777778,
+      "p99": 60.72368415611111,
+      "max": 60.86815081194444
+    }
+  },
+  "lateArrival": {
+    "anySignalAfter1Hour": {
+      "count": 8047,
+      "percent": 10.0487
+    },
+    "anySignalAfter24Hours": {
+      "count": 1909,
+      "percent": 2.3839
+    },
+    "titleAfter24Hours": {
+      "count": 1892,
+      "percent": 2.3688
+    },
+    "publicationMetadataAfter24Hours": {
+      "count": 1023,
+      "percent": 2.5959
+    }
+  },
+  "signalMultiplicity": {
+    "eventRows": {
+      "count": 80080,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 2.0,
+      "p95": 5.0,
+      "p99": 13.0,
+      "max": 178
+    },
+    "mentionRows": {
+      "count": 80080,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 7.0,
+      "p95": 12.0,
+      "p99": 26.0,
+      "max": 191
+    },
+    "gkgRows": {
+      "count": 80080,
+      "min": 0,
+      "p10": 1.0,
+      "median": 1.0,
+      "p90": 1.0,
+      "p95": 1.0,
+      "p99": 1.0,
+      "max": 2
+    },
+    "eventGlobalIds": {
+      "count": 80080,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 2.0,
+      "p95": 5.0,
+      "p99": 13.0,
+      "max": 178
+    },
+    "mentionGlobalIds": {
+      "count": 80080,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 7.0,
+      "p95": 12.0,
+      "p99": 26.0,
+      "max": 189
+    },
+    "eventCodes": {
+      "count": 80080,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 1.0,
+      "p95": 3.0,
+      "p99": 5.0,
+      "max": 26
+    },
+    "globalIdsAcrossEventsAndMentions": {
+      "count": 80080,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 7.0,
+      "p95": 12.0,
+      "p99": 26.0,
+      "max": 189
+    },
+    "multipleEventGlobalIds": {
+      "count": 8972,
+      "percent": 11.2038
+    },
+    "multipleMentionGlobalIds": {
+      "count": 22485,
+      "percent": 28.0782
+    },
+    "multipleEventCodes": {
+      "count": 7170,
+      "percent": 8.9535
+    },
+    "multipleGlobalIdsAcrossEventsAndMentions": {
+      "count": 22485,
+      "percent": 28.0782
+    }
+  },
+  "featureValueFrequency": [
+    {
+      "feature": "location",
+      "distinct_values": 18467,
+      "max_article_frequency": 15253,
+      "median_article_frequency": 1.0,
+      "p90_article_frequency": 7.0
+    },
+    {
+      "feature": "organization",
+      "distinct_values": 59021,
+      "max_article_frequency": 6827,
+      "median_article_frequency": 1.0,
+      "p90_article_frequency": 4.0
+    },
+    {
+      "feature": "person",
+      "distinct_values": 84849,
+      "max_article_frequency": 4665,
+      "median_article_frequency": 1.0,
+      "p90_article_frequency": 3.0
+    },
+    {
+      "feature": "theme",
+      "distinct_values": 8415,
+      "max_article_frequency": 62261,
+      "median_article_frequency": 6.0,
+      "p90_article_frequency": 254.0
+    }
+  ],
+  "dailyBreakdown": [
+    {
+      "date": "2026-07-12",
+      "articles": 4644,
+      "title": {
+        "count": 4627,
+        "percent": 99.6339
+      },
+      "publishedAt": {
+        "count": 2449,
+        "percent": 52.7347
+      },
+      "EVENTS": {
+        "count": 754,
+        "percent": 16.236
+      },
+      "MENTIONS": {
+        "count": 1997,
+        "percent": 43.0017
+      },
+      "GKG": {
+        "count": 4641,
+        "percent": 99.9354
+      }
+    },
+    {
+      "date": "2026-07-13",
+      "articles": 20639,
+      "title": {
+        "count": 20598,
+        "percent": 99.8013
+      },
+      "publishedAt": {
+        "count": 10395,
+        "percent": 50.3658
+      },
+      "EVENTS": {
+        "count": 3566,
+        "percent": 17.278
+      },
+      "MENTIONS": {
+        "count": 8536,
+        "percent": 41.3586
+      },
+      "GKG": {
+        "count": 20627,
+        "percent": 99.9419
+      }
+    },
+    {
+      "date": "2026-07-14",
+      "articles": 29478,
+      "title": {
+        "count": 29398,
+        "percent": 99.7286
+      },
+      "publishedAt": {
+        "count": 14533,
+        "percent": 49.3012
+      },
+      "EVENTS": {
+        "count": 3711,
+        "percent": 12.589
+      },
+      "MENTIONS": {
+        "count": 8903,
+        "percent": 30.2022
+      },
+      "GKG": {
+        "count": 29459,
+        "percent": 99.9355
+      }
+    },
+    {
+      "date": "2026-07-15",
+      "articles": 0,
+      "title": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "publishedAt": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "EVENTS": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "MENTIONS": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "GKG": {
+        "count": 0,
+        "percent": 0.0
+      }
+    },
+    {
+      "date": "2026-07-16",
+      "articles": 0,
+      "title": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "publishedAt": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "EVENTS": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "MENTIONS": {
+        "count": 0,
+        "percent": 0.0
+      },
+      "GKG": {
+        "count": 0,
+        "percent": 0.0
+      }
+    },
+    {
+      "date": "2026-07-17",
+      "articles": 25319,
+      "title": {
+        "count": 25249,
+        "percent": 99.7235
+      },
+      "publishedAt": {
+        "count": 12032,
+        "percent": 47.5216
+      },
+      "EVENTS": {
+        "count": 4563,
+        "percent": 18.022
+      },
+      "MENTIONS": {
+        "count": 10208,
+        "percent": 40.3175
+      },
+      "GKG": {
+        "count": 25311,
+        "percent": 99.9684
+      }
+    }
+  ],
+  "articleVolumeByBucket": {
+    "15m": {
+      "count": 479,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 695.9999999999993,
+      "p95": 1559.6999999999991,
+      "p99": 1862.6599999999999,
+      "max": 3921
+    },
+    "60m": {
+      "count": 120,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 2754.200000000005,
+      "p95": 5093.399999999997,
+      "p99": 8512.650000000005,
+      "max": 12268
+    },
+    "360m": {
+      "count": 20,
+      "min": 0,
+      "p10": 0.0,
+      "median": 0.0,
+      "p90": 13866.500000000011,
+      "p95": 20918.400000000005,
+      "p99": 25165.27999999999,
+      "max": 26227
+    }
+  },
+  "temporalCandidateSizes": {
+    "12": {
+      "count": 79872,
+      "min": 4626,
+      "p10": 20597.0,
+      "median": 25248.0,
+      "p90": 29397.0,
+      "p95": 29397.0,
+      "p99": 29397.0,
+      "max": 29397
+    },
+    "24": {
+      "count": 79872,
+      "min": 25224,
+      "p10": 25248.0,
+      "median": 30245.0,
+      "p90": 45380.0,
+      "p95": 47022.0,
+      "p99": 51373.0,
+      "max": 51373
+    },
+    "72": {
+      "count": 79872,
+      "min": 33294,
+      "p10": 46230.0,
+      "median": 54646.0,
+      "p90": 79871.0,
+      "p95": 79871.0,
+      "p99": 79871.0,
+      "max": 79871
+    }
+  },
+  "embeddings": {
+    "model": {
+      "id": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+      "dimension": 384,
+      "path": ".art031\\models\\paraphrase-multilingual-MiniLM-L12-v2",
+      "sentenceTransformers": "5.1.2"
+    },
+    "runtime": {
+      "device": "cpu",
+      "platform": "Windows-11-10.0.26200-SP0",
+      "python": "3.12.13",
+      "batchSize": 64,
+      "articles": 4035,
+      "seconds": 8.759307400032412,
+      "articlesPerSecond": 460.65285937847887,
+      "failures": 0,
+      "failurePercent": 0.0,
+      "estimatedFullTitledSampleSeconds": 173.38869904718433,
+      "estimatedOneMillionSeconds": 2170.8320694008457,
+      "externalApiCostUsd": 0.0
+    },
+    "sample": {
+      "method": "lowest 4000 url_hash values plus all labeled articles",
+      "size": 4035
+    },
+    "similarityDistributions": {
+      "POSITIVE": {
+        "count": 10,
+        "min": 0.5428032279014587,
+        "p10": 0.5980631172657013,
+        "median": 0.7925942540168762,
+        "p90": 0.9544835805892944,
+        "p95": 0.9772419095039367,
+        "p99": 0.9954485726356507,
+        "max": 1.000000238418579
+      },
+      "HARD_NEGATIVE": {
+        "count": 10,
+        "min": 0.06974425911903381,
+        "p10": 0.16715205907821656,
+        "median": 0.2887124568223953,
+        "p90": 0.4524832516908645,
+        "p95": 0.5495965853333471,
+        "p99": 0.6272872522473335,
+        "max": 0.6467099189758301
+      },
+      "AMBIGUOUS": {
+        "count": 5,
+        "min": 0.16143035888671875,
+        "p10": 0.26407657861709594,
+        "median": 0.4488816261291504,
+        "p90": 0.7954035639762879,
+        "p95": 0.8076184511184692,
+        "p99": 0.8173903608322144,
+        "max": 0.8198333382606506
+      }
+    },
+    "separation": {
+      "positiveVsHardNegativeAuc": 0.97,
+      "positiveMinMinusHardNegativeMax": -0.10390669107437134
+    },
+    "positiveRecall": {
+      "12h@10": {
+        "hits": 16,
+        "queries": 20,
+        "recall": 0.8
+      },
+      "12h@50": {
+        "hits": 18,
+        "queries": 20,
+        "recall": 0.9
+      },
+      "24h@10": {
+        "hits": 18,
+        "queries": 20,
+        "recall": 0.9
+      },
+      "24h@50": {
+        "hits": 20,
+        "queries": 20,
+        "recall": 1.0
+      },
+      "72h@10": {
+        "hits": 18,
+        "queries": 20,
+        "recall": 0.9
+      },
+      "72h@50": {
+        "hits": 20,
+        "queries": 20,
+        "recall": 1.0
+      }
+    },
+    "pairs": [
+      {
+        "pair_id": "P01",
+        "label": "POSITIVE",
+        "left_article_id": 1040,
+        "right_article_id": 2738,
+        "category": "paraphrase",
+        "languages": "en-en",
+        "rationale": "Same Bangkok pub fire and casualty report.",
+        "left_title": "Bangkok: Fire breaks out at a pub killing at least 27 people",
+        "right_title": "At least 27 killed in blaze at Bangkok pub, Thai officials say",
+        "cosine_similarity": 0.7908481359481812,
+        "time_distance_hours": 1.25
+      },
+      {
+        "pair_id": "P02",
+        "label": "POSITIVE",
+        "left_article_id": 26242,
+        "right_article_id": 31173,
+        "category": "paraphrase",
+        "languages": "en-en",
+        "rationale": "Same targeted killing update about Ann Widdecombe.",
+        "left_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+        "right_title": "Ann Widdecombe killed in 'targeted attack' as police give murder investigation update",
+        "cosine_similarity": 0.9494261741638184,
+        "time_distance_hours": 0.25
+      },
+      {
+        "pair_id": "P03",
+        "label": "POSITIVE",
+        "left_article_id": 46180,
+        "right_article_id": 50054,
+        "category": "cross-language",
+        "languages": "en-fr",
+        "rationale": "Same Trump payment to E. Jean Carroll.",
+        "left_title": "After appellate defeats, Trump pays Carroll $5 million",
+        "right_title": "Agression sexuelle: Trump a versé 5 millions de dollars à l'autrice E. Jean Carroll",
+        "cosine_similarity": 0.5428032279014587,
+        "time_distance_hours": 0.0
+      },
+      {
+        "pair_id": "P04",
+        "label": "POSITIVE",
+        "left_article_id": 62857,
+        "right_article_id": 53241,
+        "category": "update",
+        "languages": "en-en",
+        "rationale": "Same Cairngorms wildfire on its third day.",
+        "left_title": "Cairngorms wildfire burns for third day across nearly four miles",
+        "right_title": "Cairngorms wildfire enters third day as residents told to 'leave pets behind'",
+        "cosine_similarity": 0.7943403720855713,
+        "time_distance_hours": 2.0
+      },
+      {
+        "pair_id": "P05",
+        "label": "POSITIVE",
+        "left_article_id": 31639,
+        "right_article_id": 48659,
+        "category": "cross-language",
+        "languages": "en-it",
+        "rationale": "Same Balogun suspension-reversal controversy.",
+        "left_title": "Balogun admits Trump's intervention made life harder for US team",
+        "right_title": "Balogun rompe il silenzio sul caso Trump-FIFA: \"Ha creato nervosismo nello spogliatoio\"",
+        "cosine_similarity": 0.6042031049728394,
+        "time_distance_hours": 1.25
+      },
+      {
+        "pair_id": "P06",
+        "label": "POSITIVE",
+        "left_article_id": 54330,
+        "right_article_id": 57750,
+        "category": "paraphrase",
+        "languages": "en-en",
+        "rationale": "Same Burberry quarterly trading update.",
+        "left_title": "Burberry Group Q1 Retail Revenue Improves",
+        "right_title": "Burberry Q1 2026-27 Earnings: Burberry Sales Climb 5% in Q1, Fueled by Gen Z and Renewed Enthusiasm for Trench Coats",
+        "cosine_similarity": 0.6243910789489746,
+        "time_distance_hours": 1.0
+      },
+      {
+        "pair_id": "P07",
+        "label": "POSITIVE",
+        "left_article_id": 36694,
+        "right_article_id": 50199,
+        "category": "paraphrase",
+        "languages": "en-en",
+        "rationale": "Same withdrawal of the Hormuz toll plan.",
+        "left_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+        "right_title": "Donald Trump backs off 20% toll for Strait of Hormuz",
+        "cosine_similarity": 0.8652624487876892,
+        "time_distance_hours": 0.75
+      },
+      {
+        "pair_id": "P08",
+        "label": "POSITIVE",
+        "left_article_id": 46198,
+        "right_article_id": 50378,
+        "category": "paraphrase",
+        "languages": "en-en",
+        "rationale": "Same ICE order suspending most vehicle stops.",
+        "left_title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+        "right_title": "ICE ordered to suspend most vehicle stops: AP source – NBC 7 San Diego",
+        "cosine_similarity": 0.8538033962249756,
+        "time_distance_hours": 0.25
+      },
+      {
+        "pair_id": "P09",
+        "label": "POSITIVE",
+        "left_article_id": 51369,
+        "right_article_id": 31758,
+        "category": "syndicated",
+        "languages": "en-en",
+        "rationale": "Same Michigan Cyclospora report syndicated verbatim.",
+        "left_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+        "right_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+        "cosine_similarity": 1.000000238418579,
+        "time_distance_hours": 1.75
+      },
+      {
+        "pair_id": "P10",
+        "label": "POSITIVE",
+        "left_article_id": 858,
+        "right_article_id": 11046,
+        "category": "paraphrase",
+        "languages": "en-en",
+        "rationale": "Same Yellowstone bison attack on a grandfather.",
+        "left_title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+        "right_title": "Bison rams elderly man in Yellowstone, flinging him into the sky",
+        "cosine_similarity": 0.7447466254234314,
+        "time_distance_hours": 22.0
+      },
+      {
+        "pair_id": "N01",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 3302,
+        "right_article_id": 26242,
+        "category": "same-person",
+        "languages": "en-en",
+        "rationale": "Backlash to university comments versus the later killing.",
+        "left_title": "Aberdeen University staffer says backlash to  Ann Widdecombe comments 'overblown'",
+        "right_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+        "cosine_similarity": 0.3516903519630432,
+        "time_distance_hours": 25.25
+      },
+      {
+        "pair_id": "N02",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 1154,
+        "right_article_id": 36694,
+        "category": "same-region",
+        "languages": "en-en",
+        "rationale": "Military control claims versus a separate toll-policy reversal.",
+        "left_title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+        "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+        "cosine_similarity": 0.2563852071762085,
+        "time_distance_hours": 46.5
+      },
+      {
+        "pair_id": "N03",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 63905,
+        "right_article_id": 36694,
+        "category": "same-topic",
+        "languages": "en-en",
+        "rationale": "Aviation-price effects versus the toll-policy decision.",
+        "left_title": "Airfares face new hikes as Hormuz tensions pressure aviation costs",
+        "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+        "cosine_similarity": 0.1779751479625702,
+        "time_distance_hours": 62.5
+      },
+      {
+        "pair_id": "N04",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 31734,
+        "right_article_id": 46180,
+        "category": "lexical-name",
+        "languages": "en-en",
+        "rationale": "Carrollton Ridge shooting versus E. Jean Carroll payment.",
+        "left_title": "20-year-old man shot in Carrollton Ridge overnight, police say",
+        "right_title": "After appellate defeats, Trump pays Carroll $5 million",
+        "cosine_similarity": 0.06974425911903381,
+        "time_distance_hours": 1.25
+      },
+      {
+        "pair_id": "N05",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 62857,
+        "right_article_id": 9723,
+        "category": "same-event-type",
+        "languages": "en-en",
+        "rationale": "Wildfires in Cairngorms and Fontainebleau.",
+        "left_title": "Cairngorms wildfire burns for third day across nearly four miles",
+        "right_title": "Fire in Fontainebleau forest south of Paris prompts evacuations",
+        "cosine_similarity": 0.43090251088142395,
+        "time_distance_hours": 89.25
+      },
+      {
+        "pair_id": "N06",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 1040,
+        "right_article_id": 62857,
+        "category": "same-event-type",
+        "languages": "en-en",
+        "rationale": "Bangkok pub fire versus Cairngorms wildfire.",
+        "left_title": "Bangkok: Fire breaks out at a pub killing at least 27 people",
+        "right_title": "Cairngorms wildfire burns for third day across nearly four miles",
+        "cosine_similarity": 0.24077212810516357,
+        "time_distance_hours": 110.0
+      },
+      {
+        "pair_id": "N07",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 31639,
+        "right_article_id": 36694,
+        "category": "same-actor",
+        "languages": "en-en",
+        "rationale": "Balogun football controversy versus Hormuz policy.",
+        "left_title": "Balogun admits Trump's intervention made life harder for US team",
+        "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+        "cosine_similarity": 0.32103970646858215,
+        "time_distance_hours": 0.75
+      },
+      {
+        "pair_id": "N08",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 46198,
+        "right_article_id": 15256,
+        "category": "same-organization",
+        "languages": "en-en",
+        "rationale": "ICE vehicle-stop policy versus a distinct Maine shooting.",
+        "left_title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+        "right_title": "Maine Shooting Marks Second ICE-Involved Fatality In A Week",
+        "cosine_similarity": 0.3583443760871887,
+        "time_distance_hours": 25.5
+      },
+      {
+        "pair_id": "N09",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 53621,
+        "right_article_id": 42192,
+        "category": "same-topic",
+        "languages": "en-en",
+        "rationale": "Separate state-level Cyclospora case reports in New Mexico and Arkansas.",
+        "left_title": "Cyclospora infections rise to four in New Mexico",
+        "right_title": "10 cases of cyclosporiasis found in Arkansas",
+        "cosine_similarity": 0.6467099189758301,
+        "time_distance_hours": 0.5
+      },
+      {
+        "pair_id": "N10",
+        "label": "HARD_NEGATIVE",
+        "left_article_id": 19967,
+        "right_article_id": 32981,
+        "category": "same-action",
+        "languages": "en-en",
+        "rationale": "Separate lawsuits about a media merger and endangered-species rules.",
+        "left_title": "12 states challenge Paramount's takeover of Warner Bros, say merger would 'extinguish competition'",
+        "right_title": "Environmental groups sue government to stop a big change to the Endangered Species Act",
+        "cosine_similarity": 0.22119775414466858,
+        "time_distance_hours": 24.0
+      },
+      {
+        "pair_id": "A01",
+        "label": "AMBIGUOUS",
+        "left_article_id": 3914,
+        "right_article_id": 34550,
+        "category": "sparse-breaking",
+        "languages": "en-en",
+        "rationale": "Headlines alone do not establish whether the Iran explosions are the same incident.",
+        "left_title": "Explosions heard near Bandar Abbas and Qeshm",
+        "right_title": "Explosions reported on Iran's Qeshm and Kish Islands",
+        "cosine_similarity": 0.7587589025497437,
+        "time_distance_hours": 45.25
+      },
+      {
+        "pair_id": "A02",
+        "label": "AMBIGUOUS",
+        "left_article_id": 51369,
+        "right_article_id": 53621,
+        "category": "scope",
+        "languages": "en-en",
+        "rationale": "Title-only evidence cannot settle national-outbreak versus state-update identity.",
+        "left_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+        "right_title": "Cyclospora infections rise to four in New Mexico",
+        "cosine_similarity": 0.41804590821266174,
+        "time_distance_hours": 0.25
+      },
+      {
+        "pair_id": "A03",
+        "label": "AMBIGUOUS",
+        "left_article_id": 24646,
+        "right_article_id": 26242,
+        "category": "retrospective",
+        "languages": "en-en",
+        "rationale": "The pre-death interview may be context or the dominant subject.",
+        "left_title": "Ann Widdecombe gave interview defending Nigel Farage minutes before killing",
+        "right_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+        "cosine_similarity": 0.4488816261291504,
+        "time_distance_hours": 0.25
+      },
+      {
+        "pair_id": "A04",
+        "label": "AMBIGUOUS",
+        "left_article_id": 1154,
+        "right_article_id": 30351,
+        "category": "same-region",
+        "languages": "en-en",
+        "rationale": "Title-only evidence cannot connect the tanker explosion to the wider exchange.",
+        "left_title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+        "right_title": "Chemical tanker Stolt Magnesium hit by explosion off Omani coast, manager says",
+        "cosine_similarity": 0.16143035888671875,
+        "time_distance_hours": 44.75
+      },
+      {
+        "pair_id": "A05",
+        "label": "AMBIGUOUS",
+        "left_article_id": 858,
+        "right_article_id": 17980,
+        "category": "update",
+        "languages": "en-en",
+        "rationale": "The recovery report probably follows the same attack but title-only identity is incomplete.",
+        "left_title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+        "right_title": "Grandfather recovering from surgery after bison attack at Yellowstone sent him flying",
+        "cosine_similarity": 0.8198333382606506,
+        "time_distance_hours": 23.25
+      }
+    ],
+    "openaiComparison": {
+      "model": {
+        "id": "text-embedding-3-small",
+        "apiModelReturned": "text-embedding-3-small",
+        "dimension": 1536,
+        "provider": "OpenAI",
+        "immutableRevisionAvailable": false
+      },
+      "runtime": {
+        "device": "OpenAI API",
+        "batchSize": 256,
+        "articles": 4035,
+        "seconds": 35.65313370001968,
+        "articlesPerSecond": 113.17378253339265,
+        "failures": 0,
+        "failurePercent": 0.0,
+        "requests": 16,
+        "inputTokens": 70698,
+        "configuredMaxRetries": 2,
+        "terminalFailures": 0,
+        "cacheHit": true,
+        "cacheLoadSeconds": 0.08154689997900277,
+        "estimatedFullTitledSampleSeconds": 705.7464919177129,
+        "estimatedOneMillionSeconds": 8835.968698889636,
+        "pricePerMillionInputTokensUsd": 0.02,
+        "externalApiCostUsd": 0.00141396
+      },
+      "sample": {
+        "method": "lowest 4000 url_hash values plus all labeled articles",
+        "size": 4035,
+        "identicalToLocalBaseline": true
+      },
+      "vectorNormalization": "OpenAI vectors are L2-normalized; defensively renormalized before scoring",
+      "similarityDistributions": {
+        "POSITIVE": {
+          "count": 10,
+          "min": 0.5404808521270752,
+          "p10": 0.5881824374198914,
+          "median": 0.7328210771083832,
+          "p90": 0.9320044696331024,
+          "p95": 0.9660023540258407,
+          "p99": 0.9932006615400314,
+          "max": 1.000000238418579
+        },
+        "HARD_NEGATIVE": {
+          "count": 10,
+          "min": 0.2348223775625229,
+          "p10": 0.26449035853147507,
+          "median": 0.3890594244003296,
+          "p90": 0.48892459869384763,
+          "p95": 0.5243162393569946,
+          "p99": 0.5526295518875122,
+          "max": 0.5597078800201416
+        },
+        "AMBIGUOUS": {
+          "count": 5,
+          "min": 0.416101336479187,
+          "p10": 0.4810999631881714,
+          "median": 0.6211715936660767,
+          "p90": 0.8499008178710937,
+          "p95": 0.8627822279930115,
+          "p99": 0.8730873560905457,
+          "max": 0.8756636381149292
+        }
+      },
+      "separation": {
+        "positiveVsHardNegativeAuc": 0.99,
+        "positiveMinMinusHardNegativeMax": -0.019227027893066406
+      },
+      "positiveRecall": {
+        "12h@10": {
+          "hits": 15,
+          "queries": 20,
+          "recall": 0.75
+        },
+        "12h@50": {
+          "hits": 18,
+          "queries": 20,
+          "recall": 0.9
+        },
+        "24h@10": {
+          "hits": 16,
+          "queries": 20,
+          "recall": 0.8
+        },
+        "24h@50": {
+          "hits": 20,
+          "queries": 20,
+          "recall": 1.0
+        },
+        "72h@10": {
+          "hits": 16,
+          "queries": 20,
+          "recall": 0.8
+        },
+        "72h@50": {
+          "hits": 20,
+          "queries": 20,
+          "recall": 1.0
+        }
+      },
+      "pairs": [
+        {
+          "pair_id": "P01",
+          "label": "POSITIVE",
+          "left_article_id": 1040,
+          "right_article_id": 2738,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same Bangkok pub fire and casualty report.",
+          "left_title": "Bangkok: Fire breaks out at a pub killing at least 27 people",
+          "right_title": "At least 27 killed in blaze at Bangkok pub, Thai officials say",
+          "cosine_similarity": 0.8682835698127747,
+          "time_distance_hours": 1.25
+        },
+        {
+          "pair_id": "P02",
+          "label": "POSITIVE",
+          "left_article_id": 26242,
+          "right_article_id": 31173,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same targeted killing update about Ann Widdecombe.",
+          "left_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+          "right_title": "Ann Widdecombe killed in 'targeted attack' as police give murder investigation update",
+          "cosine_similarity": 0.9244493842124939,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "P03",
+          "label": "POSITIVE",
+          "left_article_id": 46180,
+          "right_article_id": 50054,
+          "category": "cross-language",
+          "languages": "en-fr",
+          "rationale": "Same Trump payment to E. Jean Carroll.",
+          "left_title": "After appellate defeats, Trump pays Carroll $5 million",
+          "right_title": "Agression sexuelle: Trump a versé 5 millions de dollars à l'autrice E. Jean Carroll",
+          "cosine_similarity": 0.5934826135635376,
+          "time_distance_hours": 0.0
+        },
+        {
+          "pair_id": "P04",
+          "label": "POSITIVE",
+          "left_article_id": 62857,
+          "right_article_id": 53241,
+          "category": "update",
+          "languages": "en-en",
+          "rationale": "Same Cairngorms wildfire on its third day.",
+          "left_title": "Cairngorms wildfire burns for third day across nearly four miles",
+          "right_title": "Cairngorms wildfire enters third day as residents told to 'leave pets behind'",
+          "cosine_similarity": 0.727504551410675,
+          "time_distance_hours": 2.0
+        },
+        {
+          "pair_id": "P05",
+          "label": "POSITIVE",
+          "left_article_id": 31639,
+          "right_article_id": 48659,
+          "category": "cross-language",
+          "languages": "en-it",
+          "rationale": "Same Balogun suspension-reversal controversy.",
+          "left_title": "Balogun admits Trump's intervention made life harder for US team",
+          "right_title": "Balogun rompe il silenzio sul caso Trump-FIFA: \"Ha creato nervosismo nello spogliatoio\"",
+          "cosine_similarity": 0.5404808521270752,
+          "time_distance_hours": 1.25
+        },
+        {
+          "pair_id": "P06",
+          "label": "POSITIVE",
+          "left_article_id": 54330,
+          "right_article_id": 57750,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same Burberry quarterly trading update.",
+          "left_title": "Burberry Group Q1 Retail Revenue Improves",
+          "right_title": "Burberry Q1 2026-27 Earnings: Burberry Sales Climb 5% in Q1, Fueled by Gen Z and Renewed Enthusiasm for Trench Coats",
+          "cosine_similarity": 0.7328654527664185,
+          "time_distance_hours": 1.0
+        },
+        {
+          "pair_id": "P07",
+          "label": "POSITIVE",
+          "left_article_id": 36694,
+          "right_article_id": 50199,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same withdrawal of the Hormuz toll plan.",
+          "left_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "right_title": "Donald Trump backs off 20% toll for Strait of Hormuz",
+          "cosine_similarity": 0.8934388160705566,
+          "time_distance_hours": 0.75
+        },
+        {
+          "pair_id": "P08",
+          "label": "POSITIVE",
+          "left_article_id": 46198,
+          "right_article_id": 50378,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same ICE order suspending most vehicle stops.",
+          "left_title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+          "right_title": "ICE ordered to suspend most vehicle stops: AP source – NBC 7 San Diego",
+          "cosine_similarity": 0.6372849941253662,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "P09",
+          "label": "POSITIVE",
+          "left_article_id": 51369,
+          "right_article_id": 31758,
+          "category": "syndicated",
+          "languages": "en-en",
+          "rationale": "Same Michigan Cyclospora report syndicated verbatim.",
+          "left_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+          "right_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+          "cosine_similarity": 1.000000238418579,
+          "time_distance_hours": 1.75
+        },
+        {
+          "pair_id": "P10",
+          "label": "POSITIVE",
+          "left_article_id": 858,
+          "right_article_id": 11046,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same Yellowstone bison attack on a grandfather.",
+          "left_title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+          "right_title": "Bison rams elderly man in Yellowstone, flinging him into the sky",
+          "cosine_similarity": 0.7327767014503479,
+          "time_distance_hours": 22.0
+        },
+        {
+          "pair_id": "N01",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 3302,
+          "right_article_id": 26242,
+          "category": "same-person",
+          "languages": "en-en",
+          "rationale": "Backlash to university comments versus the later killing.",
+          "left_title": "Aberdeen University staffer says backlash to  Ann Widdecombe comments 'overblown'",
+          "right_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+          "cosine_similarity": 0.4810597896575928,
+          "time_distance_hours": 25.25
+        },
+        {
+          "pair_id": "N02",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 1154,
+          "right_article_id": 36694,
+          "category": "same-region",
+          "languages": "en-en",
+          "rationale": "Military control claims versus a separate toll-policy reversal.",
+          "left_title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+          "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "cosine_similarity": 0.41239622235298157,
+          "time_distance_hours": 46.5
+        },
+        {
+          "pair_id": "N03",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 63905,
+          "right_article_id": 36694,
+          "category": "same-topic",
+          "languages": "en-en",
+          "rationale": "Aviation-price effects versus the toll-policy decision.",
+          "left_title": "Airfares face new hikes as Hormuz tensions pressure aviation costs",
+          "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "cosine_similarity": 0.4392423629760742,
+          "time_distance_hours": 62.5
+        },
+        {
+          "pair_id": "N04",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 31734,
+          "right_article_id": 46180,
+          "category": "lexical-name",
+          "languages": "en-en",
+          "rationale": "Carrollton Ridge shooting versus E. Jean Carroll payment.",
+          "left_title": "20-year-old man shot in Carrollton Ridge overnight, police say",
+          "right_title": "After appellate defeats, Trump pays Carroll $5 million",
+          "cosine_similarity": 0.2348223775625229,
+          "time_distance_hours": 1.25
+        },
+        {
+          "pair_id": "N05",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 62857,
+          "right_article_id": 9723,
+          "category": "same-event-type",
+          "languages": "en-en",
+          "rationale": "Wildfires in Cairngorms and Fontainebleau.",
+          "left_title": "Cairngorms wildfire burns for third day across nearly four miles",
+          "right_title": "Fire in Fontainebleau forest south of Paris prompts evacuations",
+          "cosine_similarity": 0.3569386601448059,
+          "time_distance_hours": 89.25
+        },
+        {
+          "pair_id": "N06",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 1040,
+          "right_article_id": 62857,
+          "category": "same-event-type",
+          "languages": "en-en",
+          "rationale": "Bangkok pub fire versus Cairngorms wildfire.",
+          "left_title": "Bangkok: Fire breaks out at a pub killing at least 27 people",
+          "right_title": "Cairngorms wildfire burns for third day across nearly four miles",
+          "cosine_similarity": 0.26778680086135864,
+          "time_distance_hours": 110.0
+        },
+        {
+          "pair_id": "N07",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 31639,
+          "right_article_id": 36694,
+          "category": "same-actor",
+          "languages": "en-en",
+          "rationale": "Balogun football controversy versus Hormuz policy.",
+          "left_title": "Balogun admits Trump's intervention made life harder for US team",
+          "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "cosine_similarity": 0.3657226264476776,
+          "time_distance_hours": 0.75
+        },
+        {
+          "pair_id": "N08",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 46198,
+          "right_article_id": 15256,
+          "category": "same-organization",
+          "languages": "en-en",
+          "rationale": "ICE vehicle-stop policy versus a distinct Maine shooting.",
+          "left_title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+          "right_title": "Maine Shooting Marks Second ICE-Involved Fatality In A Week",
+          "cosine_similarity": 0.4244358539581299,
+          "time_distance_hours": 25.5
+        },
+        {
+          "pair_id": "N09",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 53621,
+          "right_article_id": 42192,
+          "category": "same-topic",
+          "languages": "en-en",
+          "rationale": "Separate state-level Cyclospora case reports in New Mexico and Arkansas.",
+          "left_title": "Cyclospora infections rise to four in New Mexico",
+          "right_title": "10 cases of cyclosporiasis found in Arkansas",
+          "cosine_similarity": 0.5597078800201416,
+          "time_distance_hours": 0.5
+        },
+        {
+          "pair_id": "N10",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 19967,
+          "right_article_id": 32981,
+          "category": "same-action",
+          "languages": "en-en",
+          "rationale": "Separate lawsuits about a media merger and endangered-species rules.",
+          "left_title": "12 states challenge Paramount's takeover of Warner Bros, say merger would 'extinguish competition'",
+          "right_title": "Environmental groups sue government to stop a big change to the Endangered Species Act",
+          "cosine_similarity": 0.34347084164619446,
+          "time_distance_hours": 24.0
+        },
+        {
+          "pair_id": "A01",
+          "label": "AMBIGUOUS",
+          "left_article_id": 3914,
+          "right_article_id": 34550,
+          "category": "sparse-breaking",
+          "languages": "en-en",
+          "rationale": "Headlines alone do not establish whether the Iran explosions are the same incident.",
+          "left_title": "Explosions heard near Bandar Abbas and Qeshm",
+          "right_title": "Explosions reported on Iran's Qeshm and Kish Islands",
+          "cosine_similarity": 0.8112565875053406,
+          "time_distance_hours": 45.25
+        },
+        {
+          "pair_id": "A02",
+          "label": "AMBIGUOUS",
+          "left_article_id": 51369,
+          "right_article_id": 53621,
+          "category": "scope",
+          "languages": "en-en",
+          "rationale": "Title-only evidence cannot settle national-outbreak versus state-update identity.",
+          "left_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+          "right_title": "Cyclospora infections rise to four in New Mexico",
+          "cosine_similarity": 0.578597903251648,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "A03",
+          "label": "AMBIGUOUS",
+          "left_article_id": 24646,
+          "right_article_id": 26242,
+          "category": "retrospective",
+          "languages": "en-en",
+          "rationale": "The pre-death interview may be context or the dominant subject.",
+          "left_title": "Ann Widdecombe gave interview defending Nigel Farage minutes before killing",
+          "right_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+          "cosine_similarity": 0.6211715936660767,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "A04",
+          "label": "AMBIGUOUS",
+          "left_article_id": 1154,
+          "right_article_id": 30351,
+          "category": "same-region",
+          "languages": "en-en",
+          "rationale": "Title-only evidence cannot connect the tanker explosion to the wider exchange.",
+          "left_title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+          "right_title": "Chemical tanker Stolt Magnesium hit by explosion off Omani coast, manager says",
+          "cosine_similarity": 0.416101336479187,
+          "time_distance_hours": 44.75
+        },
+        {
+          "pair_id": "A05",
+          "label": "AMBIGUOUS",
+          "left_article_id": 858,
+          "right_article_id": 17980,
+          "category": "update",
+          "languages": "en-en",
+          "rationale": "The recovery report probably follows the same attack but title-only identity is incomplete.",
+          "left_title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+          "right_title": "Grandfather recovering from surgery after bison attack at Yellowstone sent him flying",
+          "cosine_similarity": 0.8756636381149292,
+          "time_distance_hours": 23.25
+        }
+      ]
+    },
+    "openaiLargeComparison": {
+      "model": {
+        "id": "text-embedding-3-large",
+        "apiModelReturned": "text-embedding-3-large",
+        "dimension": 3072,
+        "provider": "OpenAI",
+        "immutableRevisionAvailable": false
+      },
+      "runtime": {
+        "device": "OpenAI API",
+        "batchSize": 256,
+        "articles": 4035,
+        "seconds": 54.285731399955694,
+        "articlesPerSecond": 74.32892393531043,
+        "failures": 0,
+        "failurePercent": 0.0,
+        "requests": 16,
+        "inputTokens": 70698,
+        "configuredMaxRetries": 2,
+        "terminalFailures": 0,
+        "cacheHit": false,
+        "cacheLoadSeconds": null,
+        "estimatedFullTitledSampleSeconds": 1074.5749537490115,
+        "estimatedOneMillionSeconds": 13453.712862442553,
+        "pricePerMillionInputTokensUsd": 0.13,
+        "externalApiCostUsd": 0.00919074
+      },
+      "sample": {
+        "method": "lowest 4000 url_hash values plus all labeled articles",
+        "size": 4035,
+        "identicalToLocalBaseline": true
+      },
+      "vectorNormalization": "OpenAI vectors are L2-normalized; defensively renormalized before scoring",
+      "similarityDistributions": {
+        "POSITIVE": {
+          "count": 10,
+          "min": 0.5989575386047363,
+          "p10": 0.6505844831466675,
+          "median": 0.7476745545864105,
+          "p90": 0.9302271604537964,
+          "p95": 0.9651135802268981,
+          "p99": 0.9930227160453796,
+          "max": 1.0
+        },
+        "HARD_NEGATIVE": {
+          "count": 10,
+          "min": 0.19630339741706848,
+          "p10": 0.21319923549890518,
+          "median": 0.3666463941335678,
+          "p90": 0.5096573084592819,
+          "p95": 0.5649516507983207,
+          "p99": 0.6091871246695518,
+          "max": 0.6202459931373596
+        },
+        "AMBIGUOUS": {
+          "count": 5,
+          "min": 0.43484145402908325,
+          "p10": 0.4884140372276306,
+          "median": 0.5725641846656799,
+          "p90": 0.8323524117469787,
+          "p95": 0.849480128288269,
+          "p99": 0.8631823015213013,
+          "max": 0.8666078448295593
+        }
+      },
+      "separation": {
+        "positiveVsHardNegativeAuc": 0.99,
+        "positiveMinMinusHardNegativeMax": -0.02128845453262329
+      },
+      "positiveRecall": {
+        "12h@10": {
+          "hits": 16,
+          "queries": 20,
+          "recall": 0.8
+        },
+        "12h@50": {
+          "hits": 18,
+          "queries": 20,
+          "recall": 0.9
+        },
+        "24h@10": {
+          "hits": 17,
+          "queries": 20,
+          "recall": 0.85
+        },
+        "24h@50": {
+          "hits": 20,
+          "queries": 20,
+          "recall": 1.0
+        },
+        "72h@10": {
+          "hits": 17,
+          "queries": 20,
+          "recall": 0.85
+        },
+        "72h@50": {
+          "hits": 20,
+          "queries": 20,
+          "recall": 1.0
+        }
+      },
+      "pairs": [
+        {
+          "pair_id": "P01",
+          "label": "POSITIVE",
+          "left_article_id": 1040,
+          "right_article_id": 2738,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same Bangkok pub fire and casualty report.",
+          "left_title": "Bangkok: Fire breaks out at a pub killing at least 27 people",
+          "right_title": "At least 27 killed in blaze at Bangkok pub, Thai officials say",
+          "cosine_similarity": 0.8391224145889282,
+          "time_distance_hours": 1.25
+        },
+        {
+          "pair_id": "P02",
+          "label": "POSITIVE",
+          "left_article_id": 26242,
+          "right_article_id": 31173,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same targeted killing update about Ann Widdecombe.",
+          "left_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+          "right_title": "Ann Widdecombe killed in 'targeted attack' as police give murder investigation update",
+          "cosine_similarity": 0.9224746227264404,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "P03",
+          "label": "POSITIVE",
+          "left_article_id": 46180,
+          "right_article_id": 50054,
+          "category": "cross-language",
+          "languages": "en-fr",
+          "rationale": "Same Trump payment to E. Jean Carroll.",
+          "left_title": "After appellate defeats, Trump pays Carroll $5 million",
+          "right_title": "Agression sexuelle: Trump a versé 5 millions de dollars à l'autrice E. Jean Carroll",
+          "cosine_similarity": 0.6563208103179932,
+          "time_distance_hours": 0.0
+        },
+        {
+          "pair_id": "P04",
+          "label": "POSITIVE",
+          "left_article_id": 62857,
+          "right_article_id": 53241,
+          "category": "update",
+          "languages": "en-en",
+          "rationale": "Same Cairngorms wildfire on its third day.",
+          "left_title": "Cairngorms wildfire burns for third day across nearly four miles",
+          "right_title": "Cairngorms wildfire enters third day as residents told to 'leave pets behind'",
+          "cosine_similarity": 0.7177705764770508,
+          "time_distance_hours": 2.0
+        },
+        {
+          "pair_id": "P05",
+          "label": "POSITIVE",
+          "left_article_id": 31639,
+          "right_article_id": 48659,
+          "category": "cross-language",
+          "languages": "en-it",
+          "rationale": "Same Balogun suspension-reversal controversy.",
+          "left_title": "Balogun admits Trump's intervention made life harder for US team",
+          "right_title": "Balogun rompe il silenzio sul caso Trump-FIFA: \"Ha creato nervosismo nello spogliatoio\"",
+          "cosine_similarity": 0.5989575386047363,
+          "time_distance_hours": 1.25
+        },
+        {
+          "pair_id": "P06",
+          "label": "POSITIVE",
+          "left_article_id": 54330,
+          "right_article_id": 57750,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same Burberry quarterly trading update.",
+          "left_title": "Burberry Group Q1 Retail Revenue Improves",
+          "right_title": "Burberry Q1 2026-27 Earnings: Burberry Sales Climb 5% in Q1, Fueled by Gen Z and Renewed Enthusiasm for Trench Coats",
+          "cosine_similarity": 0.7042458653450012,
+          "time_distance_hours": 1.0
+        },
+        {
+          "pair_id": "P07",
+          "label": "POSITIVE",
+          "left_article_id": 36694,
+          "right_article_id": 50199,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same withdrawal of the Hormuz toll plan.",
+          "left_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "right_title": "Donald Trump backs off 20% toll for Strait of Hormuz",
+          "cosine_similarity": 0.8976548910140991,
+          "time_distance_hours": 0.75
+        },
+        {
+          "pair_id": "P08",
+          "label": "POSITIVE",
+          "left_article_id": 46198,
+          "right_article_id": 50378,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same ICE order suspending most vehicle stops.",
+          "left_title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+          "right_title": "ICE ordered to suspend most vehicle stops: AP source – NBC 7 San Diego",
+          "cosine_similarity": 0.7648836970329285,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "P09",
+          "label": "POSITIVE",
+          "left_article_id": 51369,
+          "right_article_id": 31758,
+          "category": "syndicated",
+          "languages": "en-en",
+          "rationale": "Same Michigan Cyclospora report syndicated verbatim.",
+          "left_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+          "right_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+          "cosine_similarity": 1.0,
+          "time_distance_hours": 1.75
+        },
+        {
+          "pair_id": "P10",
+          "label": "POSITIVE",
+          "left_article_id": 858,
+          "right_article_id": 11046,
+          "category": "paraphrase",
+          "languages": "en-en",
+          "rationale": "Same Yellowstone bison attack on a grandfather.",
+          "left_title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+          "right_title": "Bison rams elderly man in Yellowstone, flinging him into the sky",
+          "cosine_similarity": 0.7304654121398926,
+          "time_distance_hours": 22.0
+        },
+        {
+          "pair_id": "N01",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 3302,
+          "right_article_id": 26242,
+          "category": "same-person",
+          "languages": "en-en",
+          "rationale": "Backlash to university comments versus the later killing.",
+          "left_title": "Aberdeen University staffer says backlash to  Ann Widdecombe comments 'overblown'",
+          "right_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+          "cosine_similarity": 0.4091542959213257,
+          "time_distance_hours": 25.25
+        },
+        {
+          "pair_id": "N02",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 1154,
+          "right_article_id": 36694,
+          "category": "same-region",
+          "languages": "en-en",
+          "rationale": "Military control claims versus a separate toll-policy reversal.",
+          "left_title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+          "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "cosine_similarity": 0.3424849510192871,
+          "time_distance_hours": 46.5
+        },
+        {
+          "pair_id": "N03",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 63905,
+          "right_article_id": 36694,
+          "category": "same-topic",
+          "languages": "en-en",
+          "rationale": "Aviation-price effects versus the toll-policy decision.",
+          "left_title": "Airfares face new hikes as Hormuz tensions pressure aviation costs",
+          "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "cosine_similarity": 0.3654351532459259,
+          "time_distance_hours": 62.5
+        },
+        {
+          "pair_id": "N04",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 31734,
+          "right_article_id": 46180,
+          "category": "lexical-name",
+          "languages": "en-en",
+          "rationale": "Carrollton Ridge shooting versus E. Jean Carroll payment.",
+          "left_title": "20-year-old man shot in Carrollton Ridge overnight, police say",
+          "right_title": "After appellate defeats, Trump pays Carroll $5 million",
+          "cosine_similarity": 0.19630339741706848,
+          "time_distance_hours": 1.25
+        },
+        {
+          "pair_id": "N05",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 62857,
+          "right_article_id": 9723,
+          "category": "same-event-type",
+          "languages": "en-en",
+          "rationale": "Wildfires in Cairngorms and Fontainebleau.",
+          "left_title": "Cairngorms wildfire burns for third day across nearly four miles",
+          "right_title": "Fire in Fontainebleau forest south of Paris prompts evacuations",
+          "cosine_similarity": 0.40167298913002014,
+          "time_distance_hours": 89.25
+        },
+        {
+          "pair_id": "N06",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 1040,
+          "right_article_id": 62857,
+          "category": "same-event-type",
+          "languages": "en-en",
+          "rationale": "Bangkok pub fire versus Cairngorms wildfire.",
+          "left_title": "Bangkok: Fire breaks out at a pub killing at least 27 people",
+          "right_title": "Cairngorms wildfire burns for third day across nearly four miles",
+          "cosine_similarity": 0.21507655084133148,
+          "time_distance_hours": 110.0
+        },
+        {
+          "pair_id": "N07",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 31639,
+          "right_article_id": 36694,
+          "category": "same-actor",
+          "languages": "en-en",
+          "rationale": "Balogun football controversy versus Hormuz policy.",
+          "left_title": "Balogun admits Trump's intervention made life harder for US team",
+          "right_title": "Donald Trump backs down on 20 percent fee to guard Strait of Hormuz",
+          "cosine_similarity": 0.3678576350212097,
+          "time_distance_hours": 0.75
+        },
+        {
+          "pair_id": "N08",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 46198,
+          "right_article_id": 15256,
+          "category": "same-organization",
+          "languages": "en-en",
+          "rationale": "ICE vehicle-stop policy versus a distinct Maine shooting.",
+          "left_title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+          "right_title": "Maine Shooting Marks Second ICE-Involved Fatality In A Week",
+          "cosine_similarity": 0.4973696768283844,
+          "time_distance_hours": 25.5
+        },
+        {
+          "pair_id": "N09",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 53621,
+          "right_article_id": 42192,
+          "category": "same-topic",
+          "languages": "en-en",
+          "rationale": "Separate state-level Cyclospora case reports in New Mexico and Arkansas.",
+          "left_title": "Cyclospora infections rise to four in New Mexico",
+          "right_title": "10 cases of cyclosporiasis found in Arkansas",
+          "cosine_similarity": 0.6202459931373596,
+          "time_distance_hours": 0.5
+        },
+        {
+          "pair_id": "N10",
+          "label": "HARD_NEGATIVE",
+          "left_article_id": 19967,
+          "right_article_id": 32981,
+          "category": "same-action",
+          "languages": "en-en",
+          "rationale": "Separate lawsuits about a media merger and endangered-species rules.",
+          "left_title": "12 states challenge Paramount's takeover of Warner Bros, say merger would 'extinguish competition'",
+          "right_title": "Environmental groups sue government to stop a big change to the Endangered Species Act",
+          "cosine_similarity": 0.31498923897743225,
+          "time_distance_hours": 24.0
+        },
+        {
+          "pair_id": "A01",
+          "label": "AMBIGUOUS",
+          "left_article_id": 3914,
+          "right_article_id": 34550,
+          "category": "sparse-breaking",
+          "languages": "en-en",
+          "rationale": "Headlines alone do not establish whether the Iran explosions are the same incident.",
+          "left_title": "Explosions heard near Bandar Abbas and Qeshm",
+          "right_title": "Explosions reported on Iran's Qeshm and Kish Islands",
+          "cosine_similarity": 0.7809692621231079,
+          "time_distance_hours": 45.25
+        },
+        {
+          "pair_id": "A02",
+          "label": "AMBIGUOUS",
+          "left_article_id": 51369,
+          "right_article_id": 53621,
+          "category": "scope",
+          "languages": "en-en",
+          "rationale": "Title-only evidence cannot settle national-outbreak versus state-update identity.",
+          "left_title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+          "right_title": "Cyclospora infections rise to four in New Mexico",
+          "cosine_similarity": 0.5725641846656799,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "A03",
+          "label": "AMBIGUOUS",
+          "left_article_id": 24646,
+          "right_article_id": 26242,
+          "category": "retrospective",
+          "languages": "en-en",
+          "rationale": "The pre-death interview may be context or the dominant subject.",
+          "left_title": "Ann Widdecombe gave interview defending Nigel Farage minutes before killing",
+          "right_title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+          "cosine_similarity": 0.5687729120254517,
+          "time_distance_hours": 0.25
+        },
+        {
+          "pair_id": "A04",
+          "label": "AMBIGUOUS",
+          "left_article_id": 1154,
+          "right_article_id": 30351,
+          "category": "same-region",
+          "languages": "en-en",
+          "rationale": "Title-only evidence cannot connect the tanker explosion to the wider exchange.",
+          "left_title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+          "right_title": "Chemical tanker Stolt Magnesium hit by explosion off Omani coast, manager says",
+          "cosine_similarity": 0.43484145402908325,
+          "time_distance_hours": 44.75
+        },
+        {
+          "pair_id": "A05",
+          "label": "AMBIGUOUS",
+          "left_article_id": 858,
+          "right_article_id": 17980,
+          "category": "update",
+          "languages": "en-en",
+          "rationale": "The recovery report probably follows the same attack but title-only identity is incomplete.",
+          "left_title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+          "right_title": "Grandfather recovering from surgery after bison attack at Yellowstone sent him flying",
+          "cosine_similarity": 0.8666078448295593,
+          "time_distance_hours": 23.25
+        }
+      ]
+    }
+  }
+}

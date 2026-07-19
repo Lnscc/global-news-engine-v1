@@ -1,0 +1,26 @@
+pair_id,label,left_article_id,right_article_id,category,languages,rationale
+P01,POSITIVE,1040,2738,paraphrase,en-en,Same Bangkok pub fire and casualty report.
+P02,POSITIVE,26242,31173,paraphrase,en-en,Same targeted killing update about Ann Widdecombe.
+P03,POSITIVE,46180,50054,cross-language,en-fr,Same Trump payment to E. Jean Carroll.
+P04,POSITIVE,62857,53241,update,en-en,Same Cairngorms wildfire on its third day.
+P05,POSITIVE,31639,48659,cross-language,en-it,Same Balogun suspension-reversal controversy.
+P06,POSITIVE,54330,57750,paraphrase,en-en,Same Burberry quarterly trading update.
+P07,POSITIVE,36694,50199,paraphrase,en-en,Same withdrawal of the Hormuz toll plan.
+P08,POSITIVE,46198,50378,paraphrase,en-en,Same ICE order suspending most vehicle stops.
+P09,POSITIVE,51369,31758,syndicated,en-en,Same Michigan Cyclospora report syndicated verbatim.
+P10,POSITIVE,858,11046,paraphrase,en-en,Same Yellowstone bison attack on a grandfather.
+N01,HARD_NEGATIVE,3302,26242,same-person,en-en,Backlash to university comments versus the later killing.
+N02,HARD_NEGATIVE,1154,36694,same-region,en-en,Military control claims versus a separate toll-policy reversal.
+N03,HARD_NEGATIVE,63905,36694,same-topic,en-en,Aviation-price effects versus the toll-policy decision.
+N04,HARD_NEGATIVE,31734,46180,lexical-name,en-en,Carrollton Ridge shooting versus E. Jean Carroll payment.
+N05,HARD_NEGATIVE,62857,9723,same-event-type,en-en,Wildfires in Cairngorms and Fontainebleau.
+N06,HARD_NEGATIVE,1040,62857,same-event-type,en-en,Bangkok pub fire versus Cairngorms wildfire.
+N07,HARD_NEGATIVE,31639,36694,same-actor,en-en,Balogun football controversy versus Hormuz policy.
+N08,HARD_NEGATIVE,46198,15256,same-organization,en-en,ICE vehicle-stop policy versus a distinct Maine shooting.
+N09,HARD_NEGATIVE,53621,42192,same-topic,en-en,Separate state-level Cyclospora case reports in New Mexico and Arkansas.
+N10,HARD_NEGATIVE,19967,32981,same-action,en-en,Separate lawsuits about a media merger and endangered-species rules.
+A01,AMBIGUOUS,3914,34550,sparse-breaking,en-en,Headlines alone do not establish whether the Iran explosions are the same incident.
+A02,AMBIGUOUS,51369,53621,scope,en-en,Title-only evidence cannot settle national-outbreak versus state-update identity.
+A03,AMBIGUOUS,24646,26242,retrospective,en-en,The pre-death interview may be context or the dominant subject.
+A04,AMBIGUOUS,1154,30351,same-region,en-en,Title-only evidence cannot connect the tanker explosion to the wider exchange.
+A05,AMBIGUOUS,858,17980,update,en-en,The recovery report probably follows the same attack but title-only identity is incomplete.
