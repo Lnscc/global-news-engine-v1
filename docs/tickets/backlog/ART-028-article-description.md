@@ -2,6 +2,7 @@
 
 Status: offen
 Bereich: articles, gdelt
+Prioritaet: zurueckgestellt
 
 ## Kontext
 
