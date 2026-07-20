@@ -1,0 +1,91 @@
+{
+  "generatedAt": "2026-07-20T20:21:50.336993+00:00",
+  "corpusVersion": "1.0.0",
+  "articles": 46,
+  "model": "text-embedding-3-small",
+  "modelVersion": "openai:text-embedding-3-small@2026-07-20",
+  "titleInputVersion": "art031-title-nfkc-ws-v1",
+  "titleInputSetHash": "4971a2e258b54bb17ea1852674391b5bd79ceaa9b8320ed9d2fba919c3bbef46",
+  "candidateWindowHours": 24,
+  "topK": 50,
+  "candidatePopulation": "deterministic 4,000-url-hash sample plus duplicate/sparse strata and all corpus articles",
+  "embeddingCandidateTieBreak": "descending cosine, then ascending urlHash",
+  "lexicalCandidateTieBreak": "descending token Jaccard, then ascending urlHash",
+  "lexical": {
+    "threshold": 0.090909,
+    "decisionRule": "within 24h lexical top-50 and token Jaccard >= frozen threshold",
+    "evaluation": {
+      "split": "evaluation",
+      "clearPairs": 60,
+      "uncertainExcluded": 3,
+      "confusion": {
+        "truePositive": 19,
+        "falsePositive": 18,
+        "falseNegative": 0,
+        "trueNegative": 23
+      },
+      "pairwisePrecision": 0.5135135135135135,
+      "pairwiseRecall": 1.0,
+      "pairwiseF1": 0.6785714285714285,
+      "candidateRecall": 1.0,
+      "falseMerges": {
+        "count": 18,
+        "pairIds": [
+          "pair-143a2835723a372d",
+          "pair-45e826918cd1780c",
+          "pair-4e0bc22a14c72fe7",
+          "pair-5a1e41729a73ee70",
+          "pair-5a90d03ceb1afadc",
+          "pair-64e948ec40747112",
+          "pair-6586e8325bafa6bd",
+          "pair-7425dcc9b9dd8d0e",
+          "pair-8286b872d71a8cfb",
+          "pair-a84ad67358e83349",
+          "pair-b1b8feb9602e2c89",
+          "pair-b74a5a7181cef99f",
+          "pair-c3fb55f650535959",
+          "pair-cdc8e6f50d88dccd",
+          "pair-d18c78fe195cf03f",
+          "pair-e5557b44fa99bdde",
+          "pair-ec946b8e1ba4e89d",
+          "pair-f731de7ce0901672"
+        ]
+      },
+      "singletonShare": 0.0
+    }
+  },
+  "embedding": {
+    "threshold": 0.224867,
+    "decisionRule": "within 24h embedding top-50 and cosine >= frozen threshold",
+    "evaluation": {
+      "split": "evaluation",
+      "clearPairs": 60,
+      "uncertainExcluded": 3,
+      "confusion": {
+        "truePositive": 19,
+        "falsePositive": 9,
+        "falseNegative": 0,
+        "trueNegative": 32
+      },
+      "pairwisePrecision": 0.6785714285714286,
+      "pairwiseRecall": 1.0,
+      "pairwiseF1": 0.8085106382978724,
+      "candidateRecall": 1.0,
+      "falseMerges": {
+        "count": 9,
+        "pairIds": [
+          "pair-45e826918cd1780c",
+          "pair-5a90d03ceb1afadc",
+          "pair-64e948ec40747112",
+          "pair-6586e8325bafa6bd",
+          "pair-7425dcc9b9dd8d0e",
+          "pair-a84ad67358e83349",
+          "pair-b1b8feb9602e2c89",
+          "pair-c3fb55f650535959",
+          "pair-cdc8e6f50d88dccd"
+        ]
+      },
+      "singletonShare": 0.0
+    }
+  }
+}

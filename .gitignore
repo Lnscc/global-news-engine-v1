@@ -33,5 +33,6 @@ build/
 
 # Local, reproducible ART-031 analysis runtime and generated measurements
 .art031/
+.art032/
 __pycache__/
 *.pyc

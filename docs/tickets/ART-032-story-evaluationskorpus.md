@@ -90,3 +90,28 @@ aus ART-031 auf.
 
 Produktives Clustering, Story-Persistenz, ein allgemeines Annotationstool und die automatische
 Erzeugung von Ground Truth sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar (2026-07-20)
+
+Das Evaluationskorpus wurde mit 46 realen Artikelreferenzen aus dem lokalen GDELT-Datenbestand
+umgesetzt. Es enthaelt 103 eindeutige und fuenf unsichere Paare, darunter 33 `SAME_STORY`-Paare,
+27 gepruefte harte `DIFFERENT_STORY`-Paare und zehn Referenz-Stories mit je drei Artikeln. Die
+schweren Negativfaelle umfassen insbesondere einen Produktrueckruf nach einem Ausbruch, den
+Rueckzug einer zuvor angekuendigten Hormus-Gebuehr sowie die Neubesetzung eines Senatssitzes nach
+dem Tod des Amtsinhabers. Fuer diese Entscheidungen wurden zusaetzliche reale Quellen geprueft und
+im Korpus dokumentiert.
+
+Schema, Korpusvertrag, Sampling, Korrekturregeln und Metrikdefinitionen stehen unter
+`docs/analysis/ART-032-story-evaluation-corpus.md`. Der Sampler erzeugt getrennte lexikalische und
+Embedding-Top-50-Kandidaten aus 4.100 realen Titeln, vergibt aber keine Ground-Truth-Labels. Der
+Validator erzwingt Mindestmengen, stabile URL-Hash-Referenzen, Titel-Hashes und leakagefreie
+Kalibrierungs-/Evaluationssplits. Der automatisierte Evaluator weist Precision, Recall, F1,
+Kandidaten-Recall, Fehl-Merges und Singleton-Anteil aus.
+
+Die nur auf der Kalibrierungsmenge eingefrorenen Regeln sind Token-Jaccard `>= 0,090909` und
+`text-embedding-3-small` Cosine `>= 0,224867`, jeweils mit 24 Stunden und Top-50. Auf der
+Evaluationsmenge erreicht die lexikalische Baseline F1 `0,6786`; die Embedding-Baseline erreicht
+F1 `0,8085` und erzeugt neun Fehl-Merges bei der angekuendigten und spaeter zurueckgezogenen
+Hormus-Gebuehr. Damit ist ein einzelner Embedding-Schwellwert als produktive Merge-Regel fachlich
+nicht freigegeben; eine deterministische Zusatzregel fuer Handlungswechsel ist vor dem
+Embedding-MVP erforderlich. Produktives Datenbankschema und REST-Vertrag wurden nicht geaendert.

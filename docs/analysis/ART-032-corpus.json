@@ -1,0 +1,2469 @@
+{
+  "schemaVersion": "1.0",
+  "corpusVersion": "1.0.0",
+  "provenance": {
+    "source": "local PostgreSQL populated by the GDELT pipeline",
+    "selectionStart": "2026-07-12T20:15:00+00:00",
+    "selectionEndExclusive": "2026-07-20T18:45:00+00:00",
+    "generatedAt": "2026-07-20T20:19:25.254768+00:00",
+    "fullTextStored": false
+  },
+  "articles": [
+    {
+      "ref": "article-011ce56bff40194f",
+      "urlHash": "011ce56bff40194f0e8a93c1cc99d8a4d882a60be9331483d65445d46a6bc11f",
+      "canonicalUrl": "https://www.wandsworthguardian.co.uk/news/national/26275278.murder-ann-widdecombe-investigated-potential-act-terrorism",
+      "domain": "www.wandsworthguardian.co.uk",
+      "title": "Murder of Ann Widdecombe being investigated as potential act of terrorism",
+      "titleInputHash": "395cce1a2e2c80c73f4a9c87ef21aae6932117d92cef2e0507538012e4ab203d",
+      "firstSeenAt": "2026-07-13T17:15:00Z",
+      "publishedAt": "2026-07-13T17:28:00Z"
+    },
+    {
+      "ref": "article-0159b3adcd258aeb",
+      "urlHash": "0159b3adcd258aeb77560afbfa45a49d280b479bcd77f8bdb6fe181355492ac7",
+      "canonicalUrl": "https://www.asianimage.co.uk/news/national/26288568.helicopter-deployed-firefighters-spend-third-day-tackling-cairngorms-wildfire",
+      "domain": "www.asianimage.co.uk",
+      "title": "Helicopter deployed as firefighters spend third day tackling Cairngorms wildfire",
+      "titleInputHash": "5c88400cc2532c9b1b3bfab4a27c52f7d4624ce10ee9778b8edd56953ea17c51",
+      "firstSeenAt": "2026-07-17T11:00:00Z",
+      "publishedAt": "2026-07-17T10:48:00Z"
+    },
+    {
+      "ref": "article-02004a1ad8c4ce80",
+      "urlHash": "02004a1ad8c4ce8022848c895870d4ee34b6030e825517f34d27733f698d501f",
+      "canonicalUrl": "https://www.westerntelegraph.co.uk/news/national/26275278.murder-ann-widdecombe-investigated-potential-act-terrorism",
+      "domain": "www.westerntelegraph.co.uk",
+      "title": "Murder of Ann Widdecombe being investigated as potential act of terrorism",
+      "titleInputHash": "395cce1a2e2c80c73f4a9c87ef21aae6932117d92cef2e0507538012e4ab203d",
+      "firstSeenAt": "2026-07-13T18:45:00Z",
+      "publishedAt": "2026-07-13T17:28:00Z"
+    },
+    {
+      "ref": "article-0280bbb31930fe98",
+      "urlHash": "0280bbb31930fe9894cd01d5d0a3d033ba9608e640ae116099ca07baa4f121aa",
+      "canonicalUrl": "https://www.marinij.com/2026/07/11/sen-lindsey-graham-a-close-trump-ally-and-foreign-policy-hawk-dies-after-a-brief-illness",
+      "domain": "www.marinij.com",
+      "title": "Sen. Lindsey Graham, a close Trump ally and foreign policy hawk, dies after a brief illness",
+      "titleInputHash": "56f59a561b6228d53f5168b531de6797c9427e1392942cd8b4c335f19c388a37",
+      "firstSeenAt": "2026-07-12T20:15:00Z",
+      "publishedAt": "2026-07-12T06:38:00Z"
+    },
+    {
+      "ref": "article-02aa693190fa74d2",
+      "urlHash": "02aa693190fa74d2cf0216b69187ad10adc3433bcb1178034774d8eefdcec1e1",
+      "canonicalUrl": "https://newstalk1230.iheart.com/content/2026-07-13-tourist-hospitalized-after-bison-tossed-him-into-the-air-at-yellowstone",
+      "domain": "newstalk1230.iheart.com",
+      "title": "Tourist Hospitalized After Bison Tossed Him Into The Air At Yellowstone",
+      "titleInputHash": "298b3deda654c367b670524b9144ace8dedd2a256133a8d34c623ab6f3bc9ed2",
+      "firstSeenAt": "2026-07-13T18:45:00Z"
+    },
+    {
+      "ref": "article-0323906776dcce3d",
+      "urlHash": "0323906776dcce3d18cba27fe3aa77a4d435fc5b48b511e692adf9442efd40d0",
+      "canonicalUrl": "https://www.freepressseries.co.uk/news/national/26280310.trump-backs-threat-levy-tolls-shipping-strait-hormuz",
+      "domain": "www.freepressseries.co.uk",
+      "title": "Trump backs down over threat to levy tolls on shipping in Strait of Hormuz",
+      "titleInputHash": "e006abacd7c0dc37dad6518aaee4e963849d3aa8d6a83d84b14eb74b09cd5ae4",
+      "firstSeenAt": "2026-07-14T17:30:00Z",
+      "publishedAt": "2026-07-14T17:36:00Z"
+    },
+    {
+      "ref": "article-0339a998206d04cf",
+      "urlHash": "0339a998206d04cfb62e5a5a2c0c11102d2096deea8f6339b2b82769d2acd81a",
+      "canonicalUrl": "https://1037theq.iheart.com/content/2026-07-13-tourist-hospitalized-after-bison-tossed-him-into-the-air-at-yellowstone",
+      "domain": "1037theq.iheart.com",
+      "title": "Tourist Hospitalized After Bison Tossed Him Into The Air At Yellowstone",
+      "titleInputHash": "298b3deda654c367b670524b9144ace8dedd2a256133a8d34c623ab6f3bc9ed2",
+      "firstSeenAt": "2026-07-13T18:15:00Z"
+    },
+    {
+      "ref": "article-04eb549f73fa4f08",
+      "urlHash": "04eb549f73fa4f08159d7a381d5a6c8d38cea9c6498c3bf70c8e21b7ccfcc7b3",
+      "canonicalUrl": "https://realradio.iheart.com/content/2026-07-13-tourist-hospitalized-after-bison-tossed-him-into-the-air-at-yellowstone",
+      "domain": "realradio.iheart.com",
+      "title": "Tourist Hospitalized After Bison Tossed Him Into The Air At Yellowstone",
+      "titleInputHash": "298b3deda654c367b670524b9144ace8dedd2a256133a8d34c623ab6f3bc9ed2",
+      "firstSeenAt": "2026-07-13T18:15:00Z"
+    },
+    {
+      "ref": "article-05b7eeb8b11c7112",
+      "urlHash": "05b7eeb8b11c71128f3961046f7cd9930173865af5684d6406178b32a67c74b7",
+      "canonicalUrl": "https://www.chardandilminsternews.co.uk/news/national/26288568.helicopter-deployed-firefighters-spend-third-day-tackling-cairngorms-wildfire",
+      "domain": "www.chardandilminsternews.co.uk",
+      "title": "Helicopter deployed as firefighters spend third day tackling Cairngorms wildfire",
+      "titleInputHash": "5c88400cc2532c9b1b3bfab4a27c52f7d4624ce10ee9778b8edd56953ea17c51",
+      "firstSeenAt": "2026-07-17T10:15:00Z"
+    },
+    {
+      "ref": "article-05c4a69393d4a25e",
+      "urlHash": "05c4a69393d4a25e8fb2fc9613bd9f5b54250bdabcf0f319bdd6f425a4730946",
+      "canonicalUrl": "https://www.hillingdontimes.co.uk/news/national/26280310.trump-backs-threat-levy-tolls-shipping-strait-hormuz",
+      "domain": "www.hillingdontimes.co.uk",
+      "title": "Trump backs down over threat to levy tolls on shipping in Strait of Hormuz",
+      "titleInputHash": "e006abacd7c0dc37dad6518aaee4e963849d3aa8d6a83d84b14eb74b09cd5ae4",
+      "firstSeenAt": "2026-07-14T17:45:00Z",
+      "publishedAt": "2026-07-14T17:36:00Z"
+    },
+    {
+      "ref": "article-0689c15f975a8b9e",
+      "urlHash": "0689c15f975a8b9e8a8f7487f9fbef8c7c92978f1804a8abac9b2cb622f1a0a4",
+      "canonicalUrl": "https://www.london-now.co.uk/news/national/26280310.trump-backs-threat-levy-tolls-shipping-strait-hormuz",
+      "domain": "www.london-now.co.uk",
+      "title": "Trump backs down over threat to levy tolls on shipping in Strait of Hormuz",
+      "titleInputHash": "e006abacd7c0dc37dad6518aaee4e963849d3aa8d6a83d84b14eb74b09cd5ae4",
+      "firstSeenAt": "2026-07-14T18:15:00Z",
+      "publishedAt": "2026-07-14T17:36:00Z"
+    },
+    {
+      "ref": "article-06a4b042615a6708",
+      "urlHash": "06a4b042615a6708f7f93d2c667075b48a6caba551f131b1445d1847ad9feebb",
+      "canonicalUrl": "https://www.wboi.org/npr-news/2026-07-13/trump-says-the-u-s-is-back-to-blockading-iran-and-will-charge-ships-a-toll-in-hormuz",
+      "domain": "www.wboi.org",
+      "title": "Trump says the U.S. is back to blockading Iran and will charge ships a toll in Hormuz",
+      "titleInputHash": "86260853e4a003c08a74df4918ae11dfc4ff35ef8db9493a94abd5d187fbc732",
+      "firstSeenAt": "2026-07-13T19:30:00Z"
+    },
+    {
+      "ref": "article-089644fd54e86365",
+      "urlHash": "089644fd54e863653849525cde1325dcaaae00801a4b88fc0d3be1b141b6987a",
+      "canonicalUrl": "https://www.newsandstar.co.uk/news/national/26275278.murder-ann-widdecombe-investigated-potential-act-terrorism",
+      "domain": "www.newsandstar.co.uk",
+      "title": "Murder of Ann Widdecombe being investigated as potential act of terrorism",
+      "titleInputHash": "395cce1a2e2c80c73f4a9c87ef21aae6932117d92cef2e0507538012e4ab203d",
+      "firstSeenAt": "2026-07-13T18:30:00Z",
+      "publishedAt": "2026-07-13T17:28:00Z"
+    },
+    {
+      "ref": "article-097e20c871b136f7",
+      "urlHash": "097e20c871b136f769a78deee83f1d7cb1c04f45ac595c205bc3ee0fd50e343e",
+      "canonicalUrl": "https://www.barryanddistrictnews.co.uk/news/national/26273528.twenty-seven-people-killed-fire-bangkok-pub-say-officials",
+      "domain": "www.barryanddistrictnews.co.uk",
+      "title": "Twenty-seven people killed in fire at Bangkok pub, say officials",
+      "titleInputHash": "70400b670153bba076bb42f71e259fe1eeb82ce406bca4ea6dbdcadac7b9d9eb",
+      "firstSeenAt": "2026-07-12T21:30:00Z",
+      "publishedAt": "2026-07-12T20:56:00Z"
+    },
+    {
+      "ref": "article-0ad1ae8f4dcb7bc0",
+      "urlHash": "0ad1ae8f4dcb7bc009aa12ba6465a439adf8a5c85eb9f4be707c4c9247f23f11",
+      "canonicalUrl": "https://www.kbia.org/2026-07-13/trump-says-the-u-s-is-back-to-blockading-iran-and-will-charge-ships-a-toll-in-hormuz",
+      "domain": "www.kbia.org",
+      "title": "Trump says the U.S. is back to blockading Iran and will charge ships a toll in Hormuz",
+      "titleInputHash": "86260853e4a003c08a74df4918ae11dfc4ff35ef8db9493a94abd5d187fbc732",
+      "firstSeenAt": "2026-07-13T19:45:00Z",
+      "publishedAt": "2026-07-13T12:53:00Z"
+    },
+    {
+      "ref": "article-0f63b69d79003e84",
+      "urlHash": "0f63b69d79003e84d95bcef354178260a20289ca5ff2bd939456209f797d9dfe",
+      "canonicalUrl": "https://www.yoursourceone.com/columbia_basin/sen-lindsey-graham-a-close-trump-ally-and-foreign-policy-hawk-dies-after-a-brief/article_e6ed7979-fb08-4eda-9c9d-ff683917aaef.html",
+      "domain": "www.yoursourceone.com",
+      "title": "Sen. Lindsey Graham, a close Trump ally and foreign policy hawk, dies after a brief illness",
+      "titleInputHash": "56f59a561b6228d53f5168b531de6797c9427e1392942cd8b4c335f19c388a37",
+      "firstSeenAt": "2026-07-12T21:15:00Z",
+      "publishedAt": "2026-07-12T17:23:00Z"
+    },
+    {
+      "ref": "article-0fddfc262b2a7bb4",
+      "urlHash": "0fddfc262b2a7bb47971c14d98ab0ebccf1bbb1c07282dcbc2e493e9fbbf684d",
+      "canonicalUrl": "https://www.yourlocalguardian.co.uk/news/national/26288568.helicopter-deployed-firefighters-spend-third-day-tackling-cairngorms-wildfire",
+      "domain": "www.yourlocalguardian.co.uk",
+      "title": "Helicopter deployed as firefighters spend third day tackling Cairngorms wildfire",
+      "titleInputHash": "5c88400cc2532c9b1b3bfab4a27c52f7d4624ce10ee9778b8edd56953ea17c51",
+      "firstSeenAt": "2026-07-17T10:30:00Z"
+    },
+    {
+      "ref": "article-1220b1bfbd77e391",
+      "urlHash": "1220b1bfbd77e391bb5815c84fdddf9e0a271a108d7a60821138df26976c099b",
+      "canonicalUrl": "https://www.kclu.org/world/2026-07-13/trump-says-the-u-s-is-back-to-blockading-iran-and-will-charge-ships-a-toll-in-hormuz",
+      "domain": "www.kclu.org",
+      "title": "Trump says the U.S. is back to blockading Iran and will charge ships a toll in Hormuz",
+      "titleInputHash": "86260853e4a003c08a74df4918ae11dfc4ff35ef8db9493a94abd5d187fbc732",
+      "firstSeenAt": "2026-07-13T19:45:00Z",
+      "publishedAt": "2026-07-13T12:53:00Z"
+    },
+    {
+      "ref": "article-147c2bf2ade2b476",
+      "urlHash": "147c2bf2ade2b476122ed202cced05604a3dfec57cfba3ae002481a328b6493e",
+      "canonicalUrl": "http://www.reflector.com/news/national/darline-graham-sister-of-late-sen-lindsey-graham-has-been-sworn-in-to-finish-his/article_c37a25a5-66f9-5251-ad67-c2b2b3292999.html",
+      "domain": "www.reflector.com",
+      "title": "Darline Graham, sister of late Sen. Lindsey Graham, has been sworn in to finish his term",
+      "titleInputHash": "62f548aca22d3bb6087aa91350ff9b26446bb6851e5ef3a6418a94c4f5adf521",
+      "firstSeenAt": "2026-07-14T19:45:00Z",
+      "publishedAt": "2026-07-14T18:49:00Z"
+    },
+    {
+      "ref": "article-14eed3bfc9ebaab4",
+      "urlHash": "14eed3bfc9ebaab4559262450d08798c400990c42369adbd533ce73eb1acb272",
+      "canonicalUrl": "https://www.ynetnews.com/article/bkm2xs11vml",
+      "domain": "www.ynetnews.com",
+      "title": "Both sides claim to 'control Hormuz' as explosions reported in Iran, column of smoke",
+      "titleInputHash": "73f7ba5e09a309862a792524f224c0f577a91bfa33e5934bd59847546eb6fec8",
+      "firstSeenAt": "2026-07-12T20:45:00Z"
+    },
+    {
+      "ref": "article-174c42aed058537d",
+      "urlHash": "174c42aed058537df06f75105365ac00706c86e5a1cc6770fd46fbb2affa6a26",
+      "canonicalUrl": "https://www.sthelensstar.co.uk/news/national/26273528.twenty-seven-people-killed-fire-bangkok-pub-say-officials",
+      "domain": "www.sthelensstar.co.uk",
+      "title": "Twenty-seven people killed in fire at Bangkok pub, say officials",
+      "titleInputHash": "70400b670153bba076bb42f71e259fe1eeb82ce406bca4ea6dbdcadac7b9d9eb",
+      "firstSeenAt": "2026-07-12T21:30:00Z",
+      "publishedAt": "2026-07-12T20:56:00Z"
+    },
+    {
+      "ref": "article-18e2f44d62de5125",
+      "urlHash": "18e2f44d62de5125f6bb03e8e84767de56da40009afda45490e058fef4c2bd57",
+      "canonicalUrl": "https://www.kidderminstershuttle.co.uk/news/national/26273528.twenty-seven-people-killed-fire-bangkok-pub-say-officials",
+      "domain": "www.kidderminstershuttle.co.uk",
+      "title": "Twenty-seven people killed in fire at Bangkok pub, say officials",
+      "titleInputHash": "70400b670153bba076bb42f71e259fe1eeb82ce406bca4ea6dbdcadac7b9d9eb",
+      "firstSeenAt": "2026-07-12T20:15:00Z"
+    },
+    {
+      "ref": "article-1f4fdd5a17ce3aaa",
+      "urlHash": "1f4fdd5a17ce3aaac5e8edeb7d9fb3c675160f5247f36742683ddc6557e25b93",
+      "canonicalUrl": "https://www.wftv.com/news/trending/cyclosporiasis-cases-increase-what-we-know-dont-know-about-illness/SHKEFPKCGNFHRL35EMQ4KZJSL4",
+      "domain": "www.wftv.com",
+      "title": "Cyclosporiasis outbreak: Thousands fall ill in 31 states",
+      "titleInputHash": "e97e133b25997c8ebc9860782d3f86d93e26bca195be176034fe786d1957b3a6",
+      "firstSeenAt": "2026-07-13T20:00:00Z",
+      "publishedAt": "2026-07-13T17:52:00Z"
+    },
+    {
+      "ref": "article-1fce6790f73f7641",
+      "urlHash": "1fce6790f73f764159e8cd35fac6fa3911ce017c195dfffee94823a74faf006f",
+      "canonicalUrl": "https://cdapress.com/news/2026/jul/14/as-cyclospora-illnesses-surge-to-a-record-michigan-officials-eye-lettuce-as-a-possible-cause",
+      "domain": "cdapress.com",
+      "title": "As cyclospora illnesses surge to a record, Michigan officials eye lettuce as a possible cause",
+      "titleInputHash": "cce15288d55e550bd520d9dfc60a5b0f44e3223940c7e6b08e6af78c1c2e0b32",
+      "firstSeenAt": "2026-07-14T20:15:00Z"
+    },
+    {
+      "ref": "article-33ab98700e5fd9c7",
+      "urlHash": "33ab98700e5fd9c71d98d4885ee29c82dabe0e1ba4df2853c4491af8f6f5a7ed",
+      "canonicalUrl": "https://www.independent.co.uk/news/uk/crime/ann-widdecombe-murder-farage-terror-police-reform-b3014595.html",
+      "domain": "www.independent.co.uk",
+      "title": "Ann Widdecombe gave interview defending Nigel Farage minutes before killing",
+      "titleInputHash": "ead0cf2e05373417ea599688ae99802dcb51f484466c7cc98ef1915527eafc9c",
+      "firstSeenAt": "2026-07-14T18:00:00Z",
+      "publishedAt": "2026-07-14T14:11:00Z"
+    },
+    {
+      "ref": "article-35168e52dd90ada6",
+      "urlHash": "35168e52dd90ada635c1160f150ef8191c16bfeb79708e99d5dd40eda777d171",
+      "canonicalUrl": "https://www.yahoo.com/news/world/articles/chemical-tanker-stolt-magnesium-hit-130610128.html",
+      "domain": "www.yahoo.com",
+      "title": "Chemical tanker Stolt Magnesium hit by explosion off Omani coast, manager says",
+      "titleInputHash": "6a15975fc8eb62432b938dda21fbeea0cd60c4bfb9da1e3919e33818a94a3507",
+      "firstSeenAt": "2026-07-14T17:30:00Z",
+      "publishedAt": "2026-07-14T13:06:00Z"
+    },
+    {
+      "ref": "article-40ab60c6fb03f1b9",
+      "urlHash": "40ab60c6fb03f1b9d25eb88c80b9489dabc5e72890615a84b2839a0fc5bf84ac",
+      "canonicalUrl": "https://www.wdbo.com/news/trending/cyclosporiasis-cases-increase-what-we-know-dont-know-about-illness/SHKEFPKCGNFHRL35EMQ4KZJSL4",
+      "domain": "www.wdbo.com",
+      "title": "Cyclosporiasis outbreak: Thousands fall ill in 31 states",
+      "titleInputHash": "e97e133b25997c8ebc9860782d3f86d93e26bca195be176034fe786d1957b3a6",
+      "firstSeenAt": "2026-07-13T18:45:00Z",
+      "publishedAt": "2026-07-13T17:52:00Z"
+    },
+    {
+      "ref": "article-5172a771ddca29e7",
+      "urlHash": "5172a771ddca29e77558ff95b30f0e284608dc20ca739305f231338d67a00779",
+      "canonicalUrl": "https://www.clickorlando.com/news/politics/2026/07/14/darline-graham-sister-of-late-sen-lindsey-graham-will-be-sworn-in-to-fill-her-brothers-term",
+      "domain": "www.clickorlando.com",
+      "title": "Darline Graham, sister of late Sen. Lindsey Graham, has been sworn in to finish his term",
+      "titleInputHash": "62f548aca22d3bb6087aa91350ff9b26446bb6851e5ef3a6418a94c4f5adf521",
+      "firstSeenAt": "2026-07-14T19:45:00Z",
+      "publishedAt": "2026-07-14T17:51:00Z"
+    },
+    {
+      "ref": "article-5590fe9ecda37801",
+      "urlHash": "5590fe9ecda37801d35a1c4706cf6f9d4133760b468d0bfcde6892d841a2c12d",
+      "canonicalUrl": "https://www.koat.com/article/cyclospora-infections-in-new-mexico/71930470",
+      "domain": "www.koat.com",
+      "title": "Cyclospora infections rise to four in New Mexico",
+      "titleInputHash": "8c1cb82473625674c5a20dbd92117849c531dc760b45c813bed4240a3e959648",
+      "firstSeenAt": "2026-07-14T20:00:00Z"
+    },
+    {
+      "ref": "article-56bbf98dac73cf8f",
+      "urlHash": "56bbf98dac73cf8f3a202732733092a151aaed5e2f76cc452b3ac304bc10d5df",
+      "canonicalUrl": "https://panow.com/2026/07/14/darline-graham-sister-of-late-sen-lindsey-graham-has-been-sworn-in-to-finish-his-term",
+      "domain": "panow.com",
+      "title": "Darline Graham, sister of late Sen. Lindsey Graham, has been sworn in to finish his term",
+      "titleInputHash": "62f548aca22d3bb6087aa91350ff9b26446bb6851e5ef3a6418a94c4f5adf521",
+      "firstSeenAt": "2026-07-14T19:30:00Z",
+      "publishedAt": "2026-07-14T18:51:00Z"
+    },
+    {
+      "ref": "article-5a6feee612b7f6bd",
+      "urlHash": "5a6feee612b7f6bd23b6267e17bac701397374e8469c94b0837e51bf269569b1",
+      "canonicalUrl": "https://mynorthwest.com/ap/sen-lindsey-graham-a-close-trump-ally-and-foreign-policy-hawk-dies-after-a-brief-illness/4256239",
+      "domain": "mynorthwest.com",
+      "title": "Sen. Lindsey Graham, a close Trump ally and foreign policy hawk, dies after a brief illness",
+      "titleInputHash": "56f59a561b6228d53f5168b531de6797c9427e1392942cd8b4c335f19c388a37",
+      "firstSeenAt": "2026-07-12T20:30:00Z",
+      "publishedAt": "2026-07-12T19:33:00Z"
+    },
+    {
+      "ref": "article-5d20437fab118a67",
+      "urlHash": "5d20437fab118a67e2b47983abeee78953ea94c2ae4d190ae61413f9973c7346",
+      "canonicalUrl": "https://www.larepubliquedespyrenees.fr/societe/afp/france-monde-societe/agression-sexuelle-trump-a-verse-5-millions-de-dollars-a-l-autrice-e-jean-carroll-29930958.php",
+      "domain": "www.larepubliquedespyrenees.fr",
+      "title": "Agression sexuelle: Trump a versé 5 millions de dollars à l'autrice E. Jean Carroll",
+      "titleInputHash": "789f1954d42bed307759f9946d8db677663f0dabac7f623f48f5249cc96f147c",
+      "firstSeenAt": "2026-07-14T19:45:00Z"
+    },
+    {
+      "ref": "article-6c8dc741cdf2ed20",
+      "urlHash": "6c8dc741cdf2ed204cd06dc312672f787625c2bcf92f67ac73306c48c8b0d9d5",
+      "canonicalUrl": "https://www.tuttomercatoweb.com/mondiali-2026/balogun-rompe-silenzio-trump-fifa-ha-creato-nervosismo-spogliatoio-2253683",
+      "domain": "www.tuttomercatoweb.com",
+      "title": "Balogun rompe il silenzio sul caso Trump-FIFA: \"Ha creato nervosismo nello spogliatoio\"",
+      "titleInputHash": "e882e18c6cb4b7ae09bb3f7056c3b67a0cb6ab991ef94797f0c10fb3136afcbf",
+      "firstSeenAt": "2026-07-14T19:45:00Z",
+      "publishedAt": "2026-07-14T19:15:00Z"
+    },
+    {
+      "ref": "article-7cdad42131197202",
+      "urlHash": "7cdad42131197202751423329b351542e350b641336e082d58e18994ee409924",
+      "canonicalUrl": "https://www.wokv.com/news/trending/cyclosporiasis-cases-increase-what-we-know-dont-know-about-illness/SHKEFPKCGNFHRL35EMQ4KZJSL4",
+      "domain": "www.wokv.com",
+      "title": "Cyclosporiasis outbreak: Thousands fall ill in 31 states",
+      "titleInputHash": "e97e133b25997c8ebc9860782d3f86d93e26bca195be176034fe786d1957b3a6",
+      "firstSeenAt": "2026-07-13T20:00:00Z",
+      "publishedAt": "2026-07-13T17:52:00Z"
+    },
+    {
+      "ref": "article-8f07a0bd07a367c1",
+      "urlHash": "8f07a0bd07a367c18929e0f684a5aa28386dc9e80003dd2344ffc6605648f2a6",
+      "canonicalUrl": "https://en.apa.az/asia/explosions-heard-near-bandar-abbas-and-qeshm-515719",
+      "domain": "en.apa.az",
+      "title": "Explosions heard near Bandar Abbas and Qeshm",
+      "titleInputHash": "7a08452f0a075d0fe44ee0144ac0fa1b7834bd8c1ff54dc1d958e50cda28485f",
+      "firstSeenAt": "2026-07-12T21:00:00Z"
+    },
+    {
+      "ref": "article-912d1732112167c4",
+      "urlHash": "912d1732112167c4f63137335858fa882e10be8e5ebb6e0467ab65c55a846c38",
+      "canonicalUrl": "https://www.nbcsandiego.com/news/national-international/trump-administration-ice-suspend-most-vehicle-stops/4048696",
+      "domain": "www.nbcsandiego.com",
+      "title": "ICE ordered to suspend most vehicle stops: AP source – NBC 7 San Diego",
+      "titleInputHash": "f0790f9f7e37457819199b9e4635284259c21996ab2c31465f512f6255f5c816",
+      "firstSeenAt": "2026-07-14T20:00:00Z",
+      "publishedAt": "2026-07-14T19:28:00Z"
+    },
+    {
+      "ref": "article-97efa43701a4fe6a",
+      "urlHash": "97efa43701a4fe6a7903c475ef0bfaaee69fe172399fda1219b53e9ddaba90bb",
+      "canonicalUrl": "https://www.kitv.com/news/national/iceberg-lettuce-recalled-in-27-states-due-to-potential-cyclospora-contamination/article_2d340913-fd03-5130-98b6-42c0d5968190.html",
+      "domain": "www.kitv.com",
+      "title": "Iceberg lettuce recalled in 27 states due to potential cyclospora contamination",
+      "titleInputHash": "a943af856f668a84ee8fc2bbe1814d23e5ddf358e49346fb30fd6477ef60ecf2",
+      "firstSeenAt": "2026-07-19T08:45:00Z",
+      "publishedAt": "2026-07-18T18:06:00Z"
+    },
+    {
+      "ref": "article-9e01fb9f947dbbc7",
+      "urlHash": "9e01fb9f947dbbc7689048f813707288b871f9c09cef52190f978a9093b69680",
+      "canonicalUrl": "https://www.middleeasteye.net/live-blog/live-blog-update/explosions-reported-irans-qeshm-and-kish-islands",
+      "domain": "www.middleeasteye.net",
+      "title": "Explosions reported on Iran's Qeshm and Kish Islands",
+      "titleInputHash": "4bac390dbe2871f08ea10a01db8fbcaaaf34aa333ba2d318ba2df65a02eebfb3",
+      "firstSeenAt": "2026-07-14T18:15:00Z"
+    },
+    {
+      "ref": "article-9eaabb90a0b78ad1",
+      "urlHash": "9eaabb90a0b78ad1fbd427a239e84783418fc4600ae4b2e22107c77978719159",
+      "canonicalUrl": "https://abc7ny.com/post/iceberg-lettuce-recalled-27-states-due-potential-cyclospora-contamination/19533708",
+      "domain": "abc7ny.com",
+      "title": "Iceberg lettuce recalled in 27 states due to potential cyclospora contamination",
+      "titleInputHash": "a943af856f668a84ee8fc2bbe1814d23e5ddf358e49346fb30fd6477ef60ecf2",
+      "firstSeenAt": "2026-07-19T13:45:00Z"
+    },
+    {
+      "ref": "article-a244434624651842",
+      "urlHash": "a244434624651842d92e8a6dbdc59c3bac8de610e9bd94a756901dcd3a6f8e52",
+      "canonicalUrl": "https://www.nbcnews.com/news/us-news/bison-flips-yellowstone-tourist-8-feet-air-rcna572639",
+      "domain": "www.nbcnews.com",
+      "title": "Grandfather hospitalized after bison charge sends him flying 8 feet at Yellowstone",
+      "titleInputHash": "362f4384e7cf4d61406cf2753d3da5e72e19b77ce5b09e70bf64517f224201d5",
+      "firstSeenAt": "2026-07-12T20:15:00Z",
+      "publishedAt": "2026-07-12T18:52:00Z"
+    },
+    {
+      "ref": "article-ce6e50f7c99fda9b",
+      "urlHash": "ce6e50f7c99fda9be12fa94d9519b4a2bec1a84d606badd361102eb13760e431",
+      "canonicalUrl": "https://www.wabi.tv/2026/07/14/ice-agents-suspend-most-vehicle-stops-following-shooting-sources-say",
+      "domain": "www.wabi.tv",
+      "title": "ICE agents to suspend most vehicle stops following shooting, sources say",
+      "titleInputHash": "8de1099f3bba4f41b4d11166135fc231f21b9765d18ee420707ac030c5814867",
+      "firstSeenAt": "2026-07-14T19:45:00Z"
+    },
+    {
+      "ref": "article-dbc38d897ec1cf80",
+      "urlHash": "dbc38d897ec1cf80e32fc09321771de86aa6f593deed4d72343a66a97145d3c7",
+      "canonicalUrl": "https://www.news8000.com/news/national-world/grandfather-recovering-from-surgery-after-bison-attack-at-yellowstone-sent-him-flying/article_1be2d0d9-1aab-5aea-a2a1-81cef455d037.html",
+      "domain": "www.news8000.com",
+      "title": "Grandfather recovering from surgery after bison attack at Yellowstone sent him flying",
+      "titleInputHash": "4a9f4478cc8e6ae419c59062b9f36007b458d0666b859f68e7090478f63d01f6",
+      "firstSeenAt": "2026-07-13T19:30:00Z",
+      "publishedAt": "2026-07-13T17:29:00Z"
+    },
+    {
+      "ref": "article-deb41ddce556925e",
+      "urlHash": "deb41ddce556925ec99ad8f6b9885ba11c49c7325947c76023d9bf11d7c9e034",
+      "canonicalUrl": "https://courthousenews.com/after-appellate-defeats-trump-pays-carroll-5-million",
+      "domain": "courthousenews.com",
+      "title": "After appellate defeats, Trump pays Carroll $5 million",
+      "titleInputHash": "ca347de86c98a3fc762d2a8d9c7c7cac8f5d832b944fc12fcb41fd9c47e1a14d",
+      "firstSeenAt": "2026-07-14T19:45:00Z"
+    },
+    {
+      "ref": "article-e903ebcbf365baed",
+      "urlHash": "e903ebcbf365baed197a32d6209985a6652295ac6c78529d443e3a7ffe24f58d",
+      "canonicalUrl": "https://www.vanguardngr.com/2026/07/balogun-admits-trumps-intervention-made-life-harder-for-us-team",
+      "domain": "www.vanguardngr.com",
+      "title": "Balogun admits Trump's intervention made life harder for US team",
+      "titleInputHash": "e6b063e92186a5323bcc6d8caee88efb8d1b0103653925b6327f60056700b67b",
+      "firstSeenAt": "2026-07-14T18:30:00Z",
+      "publishedAt": "2026-07-14T17:16:00Z"
+    },
+    {
+      "ref": "article-eed12394bf00330a",
+      "urlHash": "eed12394bf00330a652d10affeb9256783a876a50ffc5af276d76731c7177ce3",
+      "canonicalUrl": "https://www.kimt.com/news/iceberg-lettuce-recalled-in-27-states-due-to-potential-cyclospora-contamination/article_61c74bdd-a723-5db8-8ada-8ea0be2ca00d.html",
+      "domain": "www.kimt.com",
+      "title": "Iceberg lettuce recalled in 27 states due to potential cyclospora contamination",
+      "titleInputHash": "a943af856f668a84ee8fc2bbe1814d23e5ddf358e49346fb30fd6477ef60ecf2",
+      "firstSeenAt": "2026-07-19T18:30:00Z",
+      "publishedAt": "2026-07-18T18:06:00Z"
+    },
+    {
+      "ref": "article-f4e91b485133a75e",
+      "urlHash": "f4e91b485133a75ec0a500c0234df0150af97bc86073c28172e4381fd31482cf",
+      "canonicalUrl": "https://www.birminghammail.co.uk/news/uk-news/ann-widdecombe-killed-targeted-attack-34291459",
+      "domain": "www.birminghammail.co.uk",
+      "title": "Ann Widdecombe 'killed in targeted attack' as counter-terrorism police issue update",
+      "titleInputHash": "a9ec96e5bacb7ef3300dfbb5471b0cb0619af342d117d15b654f152a388c4309",
+      "firstSeenAt": "2026-07-14T18:15:00Z",
+      "publishedAt": "2026-07-14T17:22:00Z"
+    }
+  ],
+  "pairs": [
+    {
+      "id": "pair-02b7b4c90185728f",
+      "left": "article-011ce56bff40194f",
+      "right": "article-089644fd54e86365",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Syndicated reports on the same murder investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-0420983324915211",
+      "left": "article-1fce6790f73f7641",
+      "right": "article-5590fe9ecda37801",
+      "label": "UNCERTAIN",
+      "split": "calibration",
+      "category": "scope",
+      "hardNegative": false,
+      "rationale": "The titles do not establish whether the national/Michigan report and New Mexico cases belong to one outbreak event.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Both pinned URLs and available structured metadata were reviewed; decisive event identity is absent."
+        ]
+      }
+    },
+    {
+      "id": "pair-08a22d63da4bc821",
+      "left": "article-097e20c871b136f7",
+      "right": "article-18e2f44d62de5125",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Syndicated reports on the same Bangkok pub fire and death toll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-0b21bdd98b00077d",
+      "left": "article-174c42aed058537d",
+      "right": "article-18e2f44d62de5125",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Syndicated reports on the same Bangkok pub fire and death toll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-0b682a6b340912f2",
+      "left": "article-05c4a69393d4a25e",
+      "right": "article-0689c15f975a8b9e",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the separate July 14 decision to withdraw the toll plan.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-0d1ac172bf90cd5f",
+      "left": "article-0339a998206d04cf",
+      "right": "article-04eb549f73fa4f08",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same Yellowstone bison attack and hospitalization.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-0e84a172107ca720",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-147c2bf2ade2b476",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-143a2835723a372d",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-1584b54d5c292992",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-40ab60c6fb03f1b9",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-17d8128deefb2ed8",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-18e2f44d62de5125",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-1861e361ee799b01",
+      "left": "article-0159b3adcd258aeb",
+      "right": "article-05b7eeb8b11c7112",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same third-day response to the Cairngorms wildfire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-1e8b13121db6dda8",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-011ce56bff40194f",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-264a72c92ca22ca3",
+      "left": "article-147c2bf2ade2b476",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-27db391e543b7821",
+      "left": "article-147c2bf2ade2b476",
+      "right": "article-0f63b69d79003e84",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-2828071773ef2827",
+      "left": "article-02aa693190fa74d2",
+      "right": "article-0339a998206d04cf",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same Yellowstone bison attack and hospitalization.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-2dd817d3fd07bac3",
+      "left": "article-7cdad42131197202",
+      "right": "article-02004a1ad8c4ce80",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-3721c344d57c3744",
+      "left": "article-0280bbb31930fe98",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports announcing Lindsey Graham's death after a brief illness.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-383dd636fac01e26",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-097e20c871b136f7",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-39e93fed2f691fc8",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-1220b1bfbd77e391",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the July 13 decision to announce a Hormuz shipping toll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-3c067a794c1b0a24",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-7cdad42131197202",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same national 2026 Cyclospora illness outbreak.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-3c32249256c6e454",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-089644fd54e86365",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-3e8b040f5888ead4",
+      "left": "article-147c2bf2ade2b476",
+      "right": "article-56bbf98dac73cf8f",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on Darline Graham's later swearing-in as a senator.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-3fdd7795aa5e5354",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-02004a1ad8c4ce80",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-lettuce-recall versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-402a1bbe842b8ebd",
+      "left": "article-0f63b69d79003e84",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports announcing Lindsey Graham's death after a brief illness.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-421069ad1f0771fa",
+      "left": "article-14eed3bfc9ebaab4",
+      "right": "article-35168e52dd90ada6",
+      "label": "UNCERTAIN",
+      "split": "evaluation",
+      "category": "same-region",
+      "hardNegative": false,
+      "rationale": "Regional conflict context does not prove that unspecified Iranian explosions and the named tanker explosion are one event.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Both pinned URLs and available structured metadata were reviewed; decisive event identity is absent."
+        ]
+      }
+    },
+    {
+      "id": "pair-42af0e5fd87db4cc",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-174c42aed058537d",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-44585c451627ca20",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-56bbf98dac73cf8f",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-445b95d46af6f220",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-147c2bf2ade2b476",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-45e826918cd1780c",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-0689c15f975a8b9e",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-486d7a299b245112",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0ad1ae8f4dcb7bc0",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the July 13 decision to announce a Hormuz shipping toll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-4c291b68abe904d5",
+      "left": "article-7cdad42131197202",
+      "right": "article-089644fd54e86365",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-4e0bc22a14c72fe7",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-0280bbb31930fe98",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-5177baa8b52891a5",
+      "left": "article-a244434624651842",
+      "right": "article-dbc38d897ec1cf80",
+      "label": "UNCERTAIN",
+      "split": "evaluation",
+      "category": "update",
+      "hardNegative": false,
+      "rationale": "The recovery report strongly suggests the same attack, but the first headline omits the victim identity needed for certainty.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Both pinned URLs and available structured metadata were reviewed; decisive event identity is absent."
+        ]
+      }
+    },
+    {
+      "id": "pair-548e59f070208ce5",
+      "left": "article-011ce56bff40194f",
+      "right": "article-02004a1ad8c4ce80",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Syndicated reports on the same murder investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-5650d450edae09b4",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-7cdad42131197202",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-57bd18caa6e2b977",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-1f4fdd5a17ce3aaa",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-5a1e41729a73ee70",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0280bbb31930fe98",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-5a90d03ceb1afadc",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0323906776dcce3d",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-5f3cee6e7b6d9393",
+      "left": "article-0323906776dcce3d",
+      "right": "article-0689c15f975a8b9e",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the separate July 14 decision to withdraw the toll plan.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-60a38021eff83a8b",
+      "left": "article-9eaabb90a0b78ad1",
+      "right": "article-eed12394bf00330a",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same later Taylor Farms lettuce recall.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-64e948ec40747112",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0689c15f975a8b9e",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-65297128c379a9df",
+      "left": "article-56bbf98dac73cf8f",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-6586e8325bafa6bd",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-05c4a69393d4a25e",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-66fd310bee70ab1e",
+      "left": "article-5172a771ddca29e7",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-674b985e14e2d116",
+      "left": "article-097e20c871b136f7",
+      "right": "article-174c42aed058537d",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Syndicated reports on the same Bangkok pub fire and death toll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-6ff7289e00f23478",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-174c42aed058537d",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-7425dcc9b9dd8d0e",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-0323906776dcce3d",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-757da1caadebd4e8",
+      "left": "article-ce6e50f7c99fda9b",
+      "right": "article-912d1732112167c4",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "paraphrase",
+      "hardNegative": false,
+      "rationale": "Both reports describe the same ICE order suspending most vehicle stops.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "ART-031 measured text-embedding-3-small cosine 0.637285; source titles, actors, and concrete action were manually compared.",
+          "https://www.wabi.tv/2026/07/14/ice-agents-suspend-most-vehicle-stops-following-shooting-sources-say",
+          "https://www.nbcsandiego.com/news/national-international/trump-administration-ice-suspend-most-vehicle-stops/4048696"
+        ]
+      }
+    },
+    {
+      "id": "pair-78818396dd699bca",
+      "left": "article-0280bbb31930fe98",
+      "right": "article-0f63b69d79003e84",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports announcing Lindsey Graham's death after a brief illness.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-79be0fe3937b0953",
+      "left": "article-06a4b042615a6708",
+      "right": "article-147c2bf2ade2b476",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-827800d022bbe48c",
+      "left": "article-eed12394bf00330a",
+      "right": "article-1f4fdd5a17ce3aaa",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-8286b872d71a8cfb",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-0280bbb31930fe98",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-8402129f4c9f9456",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-02004a1ad8c4ce80",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-8463f616f83f5d2d",
+      "left": "article-06a4b042615a6708",
+      "right": "article-56bbf98dac73cf8f",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-8614e45f70e0567a",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-9eaabb90a0b78ad1",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same later Taylor Farms lettuce recall.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-863f542f6c9c7f32",
+      "left": "article-7cdad42131197202",
+      "right": "article-18e2f44d62de5125",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-88d6218d191341d5",
+      "left": "article-deb41ddce556925e",
+      "right": "article-5d20437fab118a67",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "cross-language",
+      "hardNegative": false,
+      "rationale": "English and French reports describe the same Trump payment to E. Jean Carroll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "ART-031 measured text-embedding-3-small cosine 0.593483; source titles, actors, and concrete action were manually compared.",
+          "https://courthousenews.com/after-appellate-defeats-trump-pays-carroll-5-million",
+          "https://www.larepubliquedespyrenees.fr/societe/afp/france-monde-societe/agression-sexuelle-trump-a-verse-5-millions-de-dollars-a-l-autrice-e-jean-carroll-29930958.php"
+        ]
+      }
+    },
+    {
+      "id": "pair-909904b89d76fc9b",
+      "left": "article-8f07a0bd07a367c1",
+      "right": "article-9e01fb9f947dbbc7",
+      "label": "UNCERTAIN",
+      "split": "calibration",
+      "category": "sparse-breaking",
+      "hardNegative": false,
+      "rationale": "Both reports mention Qeshm explosions, but different second locations and a two-day gap do not establish one incident.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Both pinned URLs and available structured metadata were reviewed; decisive event identity is absent."
+        ]
+      }
+    },
+    {
+      "id": "pair-94394ff070ed15bd",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-02004a1ad8c4ce80",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-96306ef0561e1592",
+      "left": "article-0159b3adcd258aeb",
+      "right": "article-0fddfc262b2a7bb4",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same third-day response to the Cairngorms wildfire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-97f3c7191fbf1a3c",
+      "left": "article-02aa693190fa74d2",
+      "right": "article-04eb549f73fa4f08",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same Yellowstone bison attack and hospitalization.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-99c929a4351faa49",
+      "left": "article-5172a771ddca29e7",
+      "right": "article-0280bbb31930fe98",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-9cb9a2d615a9f850",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-18e2f44d62de5125",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-9d1457e4088ba680",
+      "left": "article-7cdad42131197202",
+      "right": "article-011ce56bff40194f",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-a23579850465e5bc",
+      "left": "article-eed12394bf00330a",
+      "right": "article-40ab60c6fb03f1b9",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-a4626211424d2084",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-5172a771ddca29e7",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-a546d472d5543f4b",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-097e20c871b136f7",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-a84ad67358e83349",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-0323906776dcce3d",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-a9c551514110bb9c",
+      "left": "article-7cdad42131197202",
+      "right": "article-174c42aed058537d",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-ab07fda5a0ab3a79",
+      "left": "article-9eaabb90a0b78ad1",
+      "right": "article-40ab60c6fb03f1b9",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-b1b8feb9602e2c89",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-05c4a69393d4a25e",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-b4f8a464059095e6",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0159b3adcd258aeb",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus cairngorms-wildfire-day-three.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-b713c92b49bc0686",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0fddfc262b2a7bb4",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus cairngorms-wildfire-day-three.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-b74a5a7181cef99f",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-0f63b69d79003e84",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-c104a7792c6ff54c",
+      "left": "article-7cdad42131197202",
+      "right": "article-097e20c871b136f7",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus bangkok-pub-fire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-c2f19ff0d9ad1268",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-56bbf98dac73cf8f",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-c3fb55f650535959",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-0689c15f975a8b9e",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-c695337f5d2e58c0",
+      "left": "article-147c2bf2ade2b476",
+      "right": "article-0280bbb31930fe98",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-c7a7df7c205868b6",
+      "left": "article-e903ebcbf365baed",
+      "right": "article-6c8dc741cdf2ed20",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "cross-language",
+      "hardNegative": false,
+      "rationale": "English and Italian reports describe the same Balogun/Trump-FIFA dressing-room controversy.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "ART-031 measured text-embedding-3-small cosine 0.540481; source titles, actors, and concrete action were manually compared.",
+          "https://www.vanguardngr.com/2026/07/balogun-admits-trumps-intervention-made-life-harder-for-us-team",
+          "https://www.tuttomercatoweb.com/mondiali-2026/balogun-rompe-silenzio-trump-fifa-ha-creato-nervosismo-spogliatoio-2253683"
+        ]
+      }
+    },
+    {
+      "id": "pair-cc059f348d360a3a",
+      "left": "article-02004a1ad8c4ce80",
+      "right": "article-089644fd54e86365",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Syndicated reports on the same murder investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-cc9118fb1af6c609",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-5172a771ddca29e7",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-cdc8e6f50d88dccd",
+      "left": "article-06a4b042615a6708",
+      "right": "article-05c4a69393d4a25e",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "reversed-decision",
+      "hardNegative": true,
+      "rationale": "The July 13 toll announcement and July 14 withdrawal are two opposing presidential decisions, not updates to one occurrence.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Le Monde reports the July 13 announcement; Axios reports the July 14 backtrack.",
+          "https://www.lemonde.fr/en/international/article/2026/07/13/trump-imposes-maritime-toll-in-strait-of-hormuz-as-ship-traffic-collapses_6755446_4.html",
+          "https://www.axios.com/2026/07/14/trump-hormuz-toll-demand-trade-fee"
+        ]
+      }
+    },
+    {
+      "id": "pair-cfd70a608fd07c4f",
+      "left": "article-05b7eeb8b11c7112",
+      "right": "article-0fddfc262b2a7bb4",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same third-day response to the Cairngorms wildfire.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-d18c78fe195cf03f",
+      "left": "article-06a4b042615a6708",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-d335d95e6474cdcd",
+      "left": "article-56bbf98dac73cf8f",
+      "right": "article-0280bbb31930fe98",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-d35f25ef11dc7e0b",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-eed12394bf00330a",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same later Taylor Farms lettuce recall.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-d5b362bd9b41506e",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-05b7eeb8b11c7112",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus cairngorms-wildfire-day-three.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-d9f9c14fa455e623",
+      "left": "article-5172a771ddca29e7",
+      "right": "article-0f63b69d79003e84",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-de1f73fdad2ca522",
+      "left": "article-0323906776dcce3d",
+      "right": "article-05c4a69393d4a25e",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the separate July 14 decision to withdraw the toll plan.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-df3af8762381327d",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-089644fd54e86365",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-e4a3a707ca682e34",
+      "left": "article-06a4b042615a6708",
+      "right": "article-5172a771ddca29e7",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus darline-graham-swearing-in.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-e5557b44fa99bdde",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-0f63b69d79003e84",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-e622f99ea08f56d8",
+      "left": "article-0ad1ae8f4dcb7bc0",
+      "right": "article-0159b3adcd258aeb",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus cairngorms-wildfire-day-three.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-e8c06f3d86b351f0",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-7cdad42131197202",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same national 2026 Cyclospora illness outbreak.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-ea7a2e78bd57dcd5",
+      "left": "article-1f4fdd5a17ce3aaa",
+      "right": "article-40ab60c6fb03f1b9",
+      "label": "SAME_STORY",
+      "split": "calibration",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the same national 2026 Cyclospora illness outbreak.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-ec946b8e1ba4e89d",
+      "left": "article-1220b1bfbd77e391",
+      "right": "article-5a6feee612b7f6bd",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-f135f7879e5dcdd5",
+      "left": "article-33ab98700e5fd9c7",
+      "right": "article-f4e91b485133a75e",
+      "label": "UNCERTAIN",
+      "split": "evaluation",
+      "category": "retrospective",
+      "hardNegative": false,
+      "rationale": "The interview immediately before the killing may be context or the dominant subject; source framing is insufficiently stable.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Both pinned URLs and available structured metadata were reviewed; decisive event identity is absent."
+        ]
+      }
+    },
+    {
+      "id": "pair-f1f6a208ae3cac73",
+      "left": "article-40ab60c6fb03f1b9",
+      "right": "article-011ce56bff40194f",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-national-outbreak versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-f3232b2ed7bb2bfd",
+      "left": "article-06a4b042615a6708",
+      "right": "article-1220b1bfbd77e391",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on the July 13 decision to announce a Hormuz shipping toll.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-f565d475c6cc3e99",
+      "left": "article-5172a771ddca29e7",
+      "right": "article-56bbf98dac73cf8f",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on Darline Graham's later swearing-in as a senator.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-f6348fcaf44dcaef",
+      "left": "article-147c2bf2ade2b476",
+      "right": "article-5172a771ddca29e7",
+      "label": "SAME_STORY",
+      "split": "evaluation",
+      "category": "syndicated",
+      "hardNegative": false,
+      "rationale": "Reports on Darline Graham's later swearing-in as a senator.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Three distinct domains carry the same normalized headline and concrete event."
+        ]
+      }
+    },
+    {
+      "id": "pair-f6914a6d95507647",
+      "left": "article-eed12394bf00330a",
+      "right": "article-7cdad42131197202",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-f6b3ecc78633634d",
+      "left": "article-56bbf98dac73cf8f",
+      "right": "article-0f63b69d79003e84",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "same-person-follow-up-appointment",
+      "hardNegative": true,
+      "rationale": "Graham's death and his sister's later swearing-in are causally related but distinct events with different dominant actions.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The death was reported on July 12; AP records the separate swearing-in three days after the death.",
+          "https://www.local10.com/news/politics/2026/07/12/sen-lindsey-graham-a-close-trump-ally-dies-after-a-brief-and-unexpected-illness-his-office-says/",
+          "https://apnews.com/article/87bce5649c07e03129cf535feb97873a"
+        ]
+      }
+    },
+    {
+      "id": "pair-f731de7ce0901672",
+      "left": "article-06a4b042615a6708",
+      "right": "article-0f63b69d79003e84",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus lindsey-graham-death.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-f889c25eb595ee48",
+      "left": "article-97efa43701a4fe6a",
+      "right": "article-011ce56bff40194f",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: cyclospora-lettuce-recall versus ann-widdecombe-investigation.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-f8c348128fe61c2d",
+      "left": "article-9eaabb90a0b78ad1",
+      "right": "article-1f4fdd5a17ce3aaa",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    },
+    {
+      "id": "pair-fe193014b63ef451",
+      "left": "article-06a4b042615a6708",
+      "right": "article-05b7eeb8b11c7112",
+      "label": "DIFFERENT_STORY",
+      "split": "evaluation",
+      "category": "clear-negative-control",
+      "hardNegative": false,
+      "rationale": "Distinct dominant events: hormuz-toll-announcement versus cairngorms-wildfire-day-three.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "Different named actions, subjects, and/or locations in the two pinned source headlines."
+        ]
+      }
+    },
+    {
+      "id": "pair-fe22afa85532e9b9",
+      "left": "article-9eaabb90a0b78ad1",
+      "right": "article-7cdad42131197202",
+      "label": "DIFFERENT_STORY",
+      "split": "calibration",
+      "category": "follow-up-recall",
+      "hardNegative": true,
+      "rationale": "The illness outbreak and the later voluntary product recall are causally linked but distinct concrete events.",
+      "verification": {
+        "method": "manual-source-and-metadata-review",
+        "checkedAt": "2026-07-20",
+        "evidence": [
+          "The outbreak concerns illnesses across states; the FDA records a separate recall initiated on July 17.",
+          "https://www.fda.gov/food/outbreaks-foodborne-illness/investigation-5-state-outbreak-cyclospora-illnesses-iceberg-lettuce-july-2026",
+          "https://www.fda.gov/safety/recalls-market-withdrawals-safety-alerts/taylor-fresh-foods-recalls-iceberg-lettuce-central-mexico-because-possible-health-risk"
+        ]
+      }
+    }
+  ],
+  "referenceStories": [
+    {
+      "id": "story-cyclospora-national-outbreak",
+      "split": "calibration",
+      "articleRefs": [
+        "article-1f4fdd5a17ce3aaa",
+        "article-40ab60c6fb03f1b9",
+        "article-7cdad42131197202"
+      ],
+      "rationale": "Reports on the same national 2026 Cyclospora illness outbreak."
+    },
+    {
+      "id": "story-cyclospora-lettuce-recall",
+      "split": "calibration",
+      "articleRefs": [
+        "article-97efa43701a4fe6a",
+        "article-9eaabb90a0b78ad1",
+        "article-eed12394bf00330a"
+      ],
+      "rationale": "Reports on the same later Taylor Farms lettuce recall."
+    },
+    {
+      "id": "story-ann-widdecombe-investigation",
+      "split": "calibration",
+      "articleRefs": [
+        "article-011ce56bff40194f",
+        "article-02004a1ad8c4ce80",
+        "article-089644fd54e86365"
+      ],
+      "rationale": "Syndicated reports on the same murder investigation."
+    },
+    {
+      "id": "story-bangkok-pub-fire",
+      "split": "calibration",
+      "articleRefs": [
+        "article-097e20c871b136f7",
+        "article-174c42aed058537d",
+        "article-18e2f44d62de5125"
+      ],
+      "rationale": "Syndicated reports on the same Bangkok pub fire and death toll."
+    },
+    {
+      "id": "story-hormuz-toll-announcement",
+      "split": "evaluation",
+      "articleRefs": [
+        "article-06a4b042615a6708",
+        "article-0ad1ae8f4dcb7bc0",
+        "article-1220b1bfbd77e391"
+      ],
+      "rationale": "Reports on the July 13 decision to announce a Hormuz shipping toll."
+    },
+    {
+      "id": "story-hormuz-toll-withdrawal",
+      "split": "evaluation",
+      "articleRefs": [
+        "article-0323906776dcce3d",
+        "article-05c4a69393d4a25e",
+        "article-0689c15f975a8b9e"
+      ],
+      "rationale": "Reports on the separate July 14 decision to withdraw the toll plan."
+    },
+    {
+      "id": "story-lindsey-graham-death",
+      "split": "evaluation",
+      "articleRefs": [
+        "article-0280bbb31930fe98",
+        "article-0f63b69d79003e84",
+        "article-5a6feee612b7f6bd"
+      ],
+      "rationale": "Reports announcing Lindsey Graham's death after a brief illness."
+    },
+    {
+      "id": "story-darline-graham-swearing-in",
+      "split": "evaluation",
+      "articleRefs": [
+        "article-147c2bf2ade2b476",
+        "article-5172a771ddca29e7",
+        "article-56bbf98dac73cf8f"
+      ],
+      "rationale": "Reports on Darline Graham's later swearing-in as a senator."
+    },
+    {
+      "id": "story-cairngorms-wildfire-day-three",
+      "split": "evaluation",
+      "articleRefs": [
+        "article-0159b3adcd258aeb",
+        "article-05b7eeb8b11c7112",
+        "article-0fddfc262b2a7bb4"
+      ],
+      "rationale": "Reports on the same third-day response to the Cairngorms wildfire."
+    },
+    {
+      "id": "story-yellowstone-bison-attack",
+      "split": "evaluation",
+      "articleRefs": [
+        "article-02aa693190fa74d2",
+        "article-0339a998206d04cf",
+        "article-04eb549f73fa4f08"
+      ],
+      "rationale": "Reports on the same Yellowstone bison attack and hospitalization."
+    }
+  ],
+  "baseline": {
+    "titleInputVersion": "art031-title-nfkc-ws-v1",
+    "embeddingModel": "text-embedding-3-small",
+    "embeddingModelVersion": "openai:text-embedding-3-small@2026-07-20",
+    "candidateWindowHours": 24,
+    "topK": 50,
+    "calibrationSplit": "calibration",
+    "frozenAt": "2026-07-20",
+    "lexicalThreshold": 0.090909,
+    "embeddingCosineThreshold": 0.224867,
+    "frozenDecisionRule": "candidate iff within 24h and top-50; SAME_STORY iff cosine >= 0.224867"
+  }
+}
