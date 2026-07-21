@@ -1,6 +1,6 @@
 # ART-032: Gelabeltes Story-Evaluationskorpus erstellen
 
-Status: offen
+Status: erledigt
 Bereich: stories, architecture
 
 ## Kontext
