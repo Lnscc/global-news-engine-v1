@@ -7,6 +7,7 @@ Weitere Planungsdokumente:
 ```text
 - articles.md: Artikel-Schicht zwischen GDELT-Fachmodell und Stories
 - stories.md: fachliche Story-Definition und Clustering-Ziel des ersten Story-MVP
+- story-processing-contract.md: Lebenszyklus, Idempotenz und deterministische Verarbeitung von Stories
 ```
 
 ## Zielbild

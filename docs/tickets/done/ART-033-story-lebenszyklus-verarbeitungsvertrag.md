@@ -1,6 +1,6 @@
 # ART-033: Story-Lebenszyklus und Verarbeitungsvertrag festlegen
 
-Status: offen
+Status: erledigt
 Bereich: stories, architecture, operations
 
 ## Kontext
@@ -89,3 +89,38 @@ Cluster-Job.
 Flyway-Migrationen, produktiver Scheduler, Clustering- oder Embedding-Implementierung, Story REST
 API, konkrete Persistenztechnologie und Auswahl eines Vektorindexprodukts sind nicht Teil dieses
 Tickets.
+
+## Implementierungskommentar (2026-07-22)
+
+Der technologieunabhaengige Vertrag ist in `docs/story-processing-contract.md` dokumentiert und
+vom Architektur-Einstieg sowie der Story-Definition verlinkt. Festgelegt wurden insbesondere
+`publishedAt` mit Fallback auf `firstSeenAt`, eine exakte symmetrische 24-h-Similarity-Range ohne
+Top-k-Begrenzung, versionierte und unveraenderliche Embedding-Artefakte, eventgetriebene
+Neubewertung plus Revisit
+nach 24 und 72 Stunden, ein eingefrorener Snapshotvertrag sowie ein einzelner, durch Fencing und
+optimistische Konfliktpruefung geschuetzter Publisher je Clustering-Version.
+
+Die auf Top-50 und Cosine `0,224867` beruhende Embedding-Baseline aus ART-032 wurde auf Wunsch zu
+einem reinen Embedding-Zeit-Vertrag weiterentwickelt. Die erste Pair-Rule
+verbindet alle innerhalb 24 Stunden liegenden Artikelpaare mit exakter Cosine Similarity
+`>= 0,70`; Entitaeten und GDELT-Signale beeinflussen die Entscheidung nicht. Leere und durch
+ART-031 belegte generische Titel werden als Eingangsqualitaetsregel nicht geclustert. Auf dem
+bisherigen Evaluationssplit ergibt die Paarregel 18 TP, 0 FP, 1 FN und 41 TN, also Precision
+1,0000, Recall 0,9474 und F1 0,9730. Da der Schwellwert unter Kenntnis dieses Splits gewaehlt wurde,
+startet die Version ausschliesslich im Shadow-Modus und benoetigt vor einer Produktionsfreigabe
+einen neuen unabhaengigen Holdout.
+
+Die Story-Partition wird nicht per Single-Linkage gebildet. Ein deterministisches agglomeratives
+Medoid-Verfahren fuehrt immer das aehnlichste zulaessige Clusterpaar zusammen und akzeptiert den
+Merge nur, wenn danach jedes Mitglied zum neuen Medoid mindestens Cosine `0,70` und hoechstens 24
+Stunden Abstand besitzt. Parallel laufende 48-h- und 72-h-Challenger duerfen das 24-h-Fenster nur
+nach einem Recall-Gewinn ohne Unterschreitung von Precision `0,98` ersetzen.
+
+Der Vertrag definiert `ACTIVE`, `CLOSED` und `SUPERSEDED` samt erlaubten Uebergaengen,
+deterministische Merge-/Split- und Story-ID-Lineage-Regeln, historisierte Einzelmitgliedschaft,
+Idempotenzschluessel, Embedding-Fehlerbehandlung, getrennte Backfill- und Reprocessing-Ablaufe,
+Health- und Auditdaten sowie achtzehn Ende-zu-Ende-Szenarien. Approximative Suche, mehrere
+Publisher und Mehrfachmitgliedschaft sind fuer das MVP mit messbaren Kriterien bewusst vertagt.
+
+Produktives Datenbankschema, Datenwerte und REST API wurden nicht veraendert. Der Ticketstatus
+wurde nach ausdruecklicher Freigabe am 22. Juli 2026 auf `erledigt` gesetzt.

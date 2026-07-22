@@ -7,6 +7,9 @@ verbindliche Grundlage fuer Datenanalyse, Evaluationskorpus und den spaeteren St
 Eine technische Aehnlichkeit ist nur ein Hinweis; die Sollzuordnung richtet sich immer nach dem
 beschriebenen Geschehen.
 
+Der darauf aufbauende technische und operative Lebenszyklusvertrag steht in
+`story-processing-contract.md`.
+
 ```text
 GDELT-Signale -> Artikel -> Stories -> Topics -> Themes
 ```
