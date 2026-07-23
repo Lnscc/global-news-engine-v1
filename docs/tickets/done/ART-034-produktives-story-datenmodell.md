@@ -1,6 +1,6 @@
 # ART-034: Produktives Story-Datenmodell implementieren
 
-Status: offen
+Status: erledigt
 Bereich: stories, architecture, operations
 
 ## Kontext
@@ -48,7 +48,7 @@ Das Modell muss mindestens folgende fachliche Aggregate dauerhaft abbilden koenn
 - Embedding-Artefakte ueber den vollstaendigen fachlichen Artefaktschluessel deduplizieren
 - Vektor, kanonischen Vektor-Hash, Dimension, Norm, Anbieter-Request-ID und Erzeugungsdaten
   speichern
-- konkrete PostgreSQL-Vektorrepräsentation entscheiden und dokumentieren; exakte Suche und
+- konkrete PostgreSQL-Vektordarstellung entscheiden und dokumentieren; exakte Suche und
   reproduzierbare Float32-/Float64-Verarbeitung muessen moeglich bleiben
 - Artikel-Input-Fingerprint, effectiveAt samt Zeitquelle, titleInputHash,
   Verwendbarkeitsgrund und Embedding-Zustand versioniert speichern
@@ -108,7 +108,7 @@ Die Implementierung muss die folgenden technischen Entscheidungen anhand der Ver
 und des erwarteten MVP-Datenvolumens dokumentieren:
 
 ```text
-- PostgreSQL-Repräsentation des 1.536-dimensionalen Float32-Vektors
+- PostgreSQL-Darstellung des 1.536-dimensionalen Float32-Vektors
 - normalisierte Spalten gegen strukturierte JSON-Diagnoseevidenz
 - Materialisierung der Snapshot-Mitglieder gegen unveraenderlich referenzierte Eingabemengen
 - Aufteilung von Pair-, Mitgliedschafts-, Zustands- und Publish-Auditdaten
@@ -172,3 +172,27 @@ keinen Publisher, keinen Backfill und keine REST API. Es aktiviert keine Cluster
 erzeugt keine produktiven Stories und fuehrt keinen externen Modellaufruf aus. Topics, Themes,
 generierte Story-Titel oder Zusammenfassungen, Mehrfachmitgliedschaft und approximative
 Vektorsuche bleiben ausserhalb des MVP.
+
+## Implementierungskommentar
+
+Umgesetzt am 2026-07-23. Flyway-Migration V22 legt das produktive Story-Persistenzmodell mit
+Clustering-Versionen, Statushistorie, deduplizierten Embedding-Artefakten, Embedding-Versuchen,
+versionierten Artikel-Inputs, materialisierten Snapshots, Runs, Stories, Pair- und
+Zuordnungsentscheidungen, historisierten Mitgliedschaften, Lineage, Zustandswechseln und
+idempotenten Publish-Commits an.
+
+Der normalisierte Titelvektor wird ohne vorgezogenen Vektorindex als kanonische Float32-Bytefolge
+in `BYTEA` gespeichert. Laenge, Dimension, SHA-256-Hash und positive `NUMERIC`-Norm werden
+datenbankseitig geprueft. Zusammengesetzte Fremdschluessel isolieren alle Daten nach
+Clustering-Version; Unique- und Check-Constraints sichern aktuelle Mitgliedschaften,
+Idempotenzschluessel, Zustaende, Historisierung und Snapshot-Konsistenz.
+V23 ergaenzt PostgreSQL-Schutztrigger fuer unveraenderliche Versionsdefinitionen und
+READY-Embeddings, eingefrorene Snapshots, append-only Auditdaten sowie die ausschliesslich
+vorwaerts gerichtete Historisierung aktueller Mitgliedschaften.
+
+Die vertraglich festgelegten 24-, 48- und 72-Stunden-Versionen werden ausschliesslich als
+`SHADOW` angelegt. PostgreSQL-Integrationstests pruefen Migration, Bestandsschutz,
+Embedding-Deduplizierung, Vektorpayload, Versionsisolation, aktuelle Mitgliedschaft, Lineage und
+Publish-Idempotenz. Das Datenmodell und die Persistenzentscheidungen stehen in
+`docs/story-data-model.md`. Embedding-Aufrufe, Cluster-Job, produktive Aktivierung und REST API
+bleiben unveraendert ausserhalb dieses Tickets. Der Ticketstatus wurde nicht geaendert.

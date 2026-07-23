@@ -11,6 +11,9 @@ Der Vertrag beschreibt das erste produktionsfaehige MVP. Er schreibt keine konkr
 Queue, Scheduler- oder Vektorindeximplementierung vor. Ein spaeteres Persistenzschema und ein
 Cluster-Job muessen die hier beschriebenen Invarianten nachweisbar umsetzen.
 
+Das mit ART-034 abgeleitete Persistenzschema und seine technischen Entscheidungen sind in
+`story-data-model.md` dokumentiert.
+
 ## Verbindliche Entscheidungen
 
 | Thema | Entscheidung | Begruendung |

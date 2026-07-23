@@ -9,6 +9,7 @@ beschriebenen Geschehen.
 
 Der darauf aufbauende technische und operative Lebenszyklusvertrag steht in
 `story-processing-contract.md`.
+Das daraus abgeleitete produktive Persistenzschema ist in `story-data-model.md` dokumentiert.
 
 ```text
 GDELT-Signale -> Artikel -> Stories -> Topics -> Themes
