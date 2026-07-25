@@ -159,3 +159,29 @@ verwenden und muss seinen konkreten Umfang nachvollziehbar festhalten.
 Medoid-Berechnung, Komponentenbildung, Story-Identitaeten, Mitgliedschaften, Story-Zustaende,
 Merge, Split, Lineage, Publishing, Promotion einer Clustering-Version, Story REST API,
 approximative Vektorsuche und `pgvector`-Indizes sind nicht Teil dieses Tickets.
+
+## Implementierungskommentar
+
+Implementiert am 2026-07-25:
+
+- Ein konfigurierbarer inkrementeller Job materialisiert je `SHADOW`-Version atomare,
+  unveraenderliche Snapshots aus aktuellen, verwendbaren `READY`-Inputs.
+- Watermark, kanonische UTF-8-Serialisierung sowie Snapshot-, Input-, Run- und
+  Entscheidungs-Hashes sind deterministisch implementiert.
+- Float32-BYTEA wird dimensionsgetreu dekodiert und vor der Suche auf Laenge, Dimension,
+  SHA-256, endliche Werte und positive Norm geprueft.
+- Die exakte zeitfensterbegrenzte Cosine-Suche persistiert alle quantisierten Treffer ab
+  `0.700000`, stabile kanonische Ranks und deterministische Top-1-Diagnosen ohne Top-k-Limit.
+- Transaktionale PostgreSQL-Advisory-Locks, Fencing-Tokens und die vorhandenen Unique Constraints
+  machen Snapshot-, Run- und Pair-Erzeugung retry- und concurrency-sicher. Fehler bleiben auf
+  die betroffene Clustering-Version begrenzt.
+- `INCREMENTAL`, begrenzter und standardmaessig deaktivierter `BACKFILL` sowie
+  `REPROCESSING` verwenden getrennte Run-Modi.
+- Micrometer-Metriken und Betriebsabfragen dokumentieren Snapshots, Mitglieder, Kandidaten,
+  Pair-Ergebnisse, Laufzeit und Fehler.
+- Unit-Tests pruefen Hashing, Watermark-Normalisierung, Float32-Reihenfolge, Cosine-Grenzwerte
+  und alle invaliden Vektorklassen. PostgreSQL-Integrationstests pruefen Freeze, Historisierung,
+  exakte Pair-Ergebnisse, Retry, parallele Worker, Constraints und Fehlerisolation.
+- Das vorhandene Datenbankschema wird unveraendert verwendet. REST API und Postman-Collection
+  bleiben unveraendert; es werden keine Stories, Mitgliedschaften, Merge- oder Split-Ergebnisse
+  erzeugt.

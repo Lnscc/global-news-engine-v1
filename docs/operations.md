@@ -102,6 +102,53 @@ Micrometer stellt die Zaehler `stories.embedding.model.calls`, `stories.embeddin
 `stories.embedding.provider.latency` bereit. `stories.embedding.artifacts` weist die Zustaende
 per `status`-Tag aus; `stories.embedding.backlog` misst den offenen Rueckstand.
 
+## Story-Snapshots und Kandidatenpaare
+
+Der inkrementelle Snapshot-Job verarbeitet die `SHADOW`-Clustering-Versionen in der Reihenfolge
+ihrer Datenbank-ID. Pro Version friert er alle zum Lauf-Watermark aktuellen, verwendbaren
+`READY`-Inputs atomar in `story_snapshots` und `story_snapshot_members` ein. Anschliessend
+validiert er die kanonischen Float32-Vektoren und berechnet innerhalb des versionierten
+24-, 48- oder 72-Stunden-Fensters alle Cosine-Similarities ohne Top-k-Begrenzung.
+
+```properties
+stories.snapshots.max-versions-per-run=3
+stories.snapshots.claim-timeout=PT30M
+stories.snapshots.incremental.enabled=true
+stories.snapshots.incremental.initial-delay=PT1M
+stories.snapshots.incremental.poll-interval=PT5M
+stories.snapshots.backfill.enabled=false
+stories.snapshots.backfill.max-versions-per-run=3
+stories.snapshots.backfill.initial-delay=PT2M
+stories.snapshots.backfill.poll-interval=PT1H
+# erforderlich, wenn Backfill aktiviert wird:
+stories.snapshots.backfill.watermark=2026-07-25T00:00:00Z
+```
+
+Der Backfill ist standardmaessig ausgeschaltet. Sein festes Watermark begrenzt die Eingabemenge
+auf `effective_at <= watermark` und macht wiederholte Aufrufe idempotent. Fuer einen manuellen
+Reprocessing-Aufruf steht `StorySnapshotService.reprocess(watermark, maxVersions)` bereit.
+`max-versions-per-run` begrenzt jeweils die Anzahl der Versionen. Ein `RUNNING`-Claim darf nach
+`claim-timeout` mit demselben Snapshot, derselben Run-Zeile und einem neuen Fencing-Token
+wiederaufgenommen werden.
+
+Persistiert werden alle quantisierten Treffer ab `0.700000` als `SAME_STORY` sowie die
+deterministische beste exakte Vergleichsdiagnose fuer Artikel ohne positiven Treffer als
+`UNCERTAIN`. Der Job erzeugt keine Stories, Mitgliedschaften, Assignment-, Merge- oder
+Split-Ergebnisse.
+
+Operative Kontrollen:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select version.version_key, run.run_mode, run.status, run.read_article_count, run.candidate_count, run.failed_article_count, run.started_at, run.completed_at from story_processing_runs run join story_clustering_versions version on version.id = run.clustering_version_id order by run.started_at desc limit 20;"
+docker compose exec postgres psql -U gne -d gne -c "select version.version_key, count(distinct snapshot.id) as snapshots, count(member.*) as members from story_snapshots snapshot join story_clustering_versions version on version.id = snapshot.clustering_version_id left join story_snapshot_members member on member.snapshot_id = snapshot.id group by version.version_key order by version.version_key;"
+docker compose exec postgres psql -U gne -d gne -c "select result, top_one_below_threshold, count(*) from story_pair_decisions group by result, top_one_below_threshold order by result, top_one_below_threshold;"
+```
+
+Micrometer stellt `stories.snapshot.created`, `stories.snapshot.reused`,
+`stories.snapshot.members`, `stories.snapshot.candidates`, `stories.snapshot.failures`, den
+resultatgetaggten Zaehler `stories.snapshot.pairs` und den Timer
+`stories.snapshot.processing.latency` bereit.
+
 ## Importstatus
 
 Letzte erfolgreich importierte Dateien:

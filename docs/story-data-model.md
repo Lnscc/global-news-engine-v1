@@ -8,8 +8,9 @@ Migration `V22__create_story_domain_model.sql` bildet den fachlichen Verarbeitun
 Versionen, unveraenderliche Embeddings, Artikel-Inputs, eingefrorene Snapshots, Runs, Stories,
 historisierte Mitgliedschaften, Lineage und Entscheidungen.
 
-V22 startet keinen Job und aktiviert keine Version. Die 24-, 48- und 72-Stunden-Versionen werden
-ausschliesslich mit Status `SHADOW` angelegt.
+V22 aktiviert keine Version. Die 24-, 48- und 72-Stunden-Versionen werden ausschliesslich mit
+Status `SHADOW` angelegt. Der mit ART-036 ergaenzte Snapshot-Job materialisiert diese vorhandenen
+Tabellen, ohne das Schema oder den Versionsstatus zu aendern.
 
 ## Tabellen und Kardinalitaeten
 
@@ -75,6 +76,19 @@ Fingerprint und bei einem verwendbaren Titel die konkrete Kombination aus Embedd
 Vektor-Hash. Zusammengesetzte Fremdschluessel verhindern Versions- oder Hash-Mischung. Ein spaeter
 veraenderter Artikel erzeugt einen neuen Input und Snapshot, statt einen vorhandenen Snapshot
 umzudeuten.
+
+ART-036 bildet `snapshot_input_hash`, `snapshot_key`, `run_key` und `decision_hash` aus
+laengenpraefigierten, kanonischen UTF-8-Feldern und SHA-256. Watermarks werden vor Hashing und
+Persistenz auf PostgreSQL-Mikrosekunden normalisiert. Snapshot-Inputs sind nach
+`effective_at, article_ref` sortiert. Transaktionale Advisory Locks und die vorhandenen Unique
+Constraints sorgen dafuer, dass konkurrierende Worker dieselbe fachliche Snapshot- und Run-Zeile
+verwenden. Ein abgebrochener oder fehlgeschlagener Run wird nach Ablauf seines Claim-Timeouts mit
+demselben Snapshot und einem neuen Fencing-Token fortgesetzt.
+
+Die exakte Kandidatensuche dekodiert die big-endian Float32-Bytefolge dimensionsgetreu, prueft
+Byte-Laenge, SHA-256, endliche Werte und positive Norm und akkumuliert Skalarprodukt und Normen
+mit Float64. Der persistierte Score wird auf sechs Nachkommastellen gerundet. Paarreihenfolge,
+Rangfolge und Top-1-Tie-Breaks sind deterministisch.
 
 ### Auditdaten
 
