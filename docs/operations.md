@@ -59,6 +59,49 @@ temporaere Schemas an und entfernen sie nach dem Test wieder. Der gemeinsame Pip
 Download, Payload-Import, Parsing, Normalisierung und Article-Extraktion fuer EVENTS, MENTIONS und
 GKG ab.
 
+## Story-Titel-Inputs und Embeddings
+
+Der inkrementelle Job erzeugt fuer alle `SHADOW`-Clustering-Versionen aktuelle
+`story_article_inputs`. Verwendbare, normalisierte Titel werden mit dem in der jeweiligen Version
+gespeicherten Modell eingebettet. Identische fachliche Artefaktschluessel verwenden genau eine
+Zeile in `story_embedding_artifacts`; jeder Provider-Versuch steht dauerhaft in
+`story_embedding_attempts`.
+
+```properties
+stories.embeddings.api-key=${OPENAI_API_KEY:}
+stories.embeddings.base-url=https://api.openai.com/v1
+stories.embeddings.timeout=PT30S
+stories.embeddings.batch-size=100
+stories.embeddings.max-batches-per-run=10
+stories.embeddings.incremental.enabled=true
+stories.embeddings.incremental.initial-delay=PT45S
+stories.embeddings.incremental.poll-interval=PT5M
+stories.embeddings.repair.enabled=true
+stories.embeddings.repair.batch-size=500
+stories.embeddings.repair.cron=0 15 3 * * *
+stories.embeddings.repair.zone=UTC
+```
+
+Der API-Schluessel wird ausschliesslich aus `OPENAI_API_KEY` beziehungsweise einer externen
+Spring-Konfigurationsquelle gelesen und nie protokolliert. Ohne Schluessel bleiben verwendbare
+Artefakte `PENDING`; `StoryEmbeddingHealth.report()` meldet `MODEL_CALLS_DISABLED`. Temporaere
+Fehler verwenden 1 Minute, 5 Minuten, 15 Minuten, 1 Stunde und 6 Stunden Backoff, wobei
+`Retry-After` bei Rate Limits Vorrang hat. Nach fuenf retryfaehigen Fehlern bleibt das Artefakt mit
+leerem `next_retry_at` sichtbar und wird nicht automatisch erneut aufgerufen.
+
+Operative Zustaende und Rueckstand:
+
+```powershell
+docker compose exec postgres psql -U gne -d gne -c "select status, count(*) from story_embedding_artifacts group by status order by status;"
+docker compose exec postgres psql -U gne -d gne -c "select status, attempt_count, count(*) from story_embedding_artifacts where status <> 'READY' group by status, attempt_count order by status, attempt_count;"
+docker compose exec postgres psql -U gne -d gne -c "select status, error_code, count(*) from story_embedding_attempts group by status, error_code order by status, error_code;"
+```
+
+Micrometer stellt die Zaehler `stories.embedding.model.calls`, `stories.embedding.attempts`,
+`stories.embedding.failures`, `stories.embedding.inputs.processed` und den Timer
+`stories.embedding.provider.latency` bereit. `stories.embedding.artifacts` weist die Zustaende
+per `status`-Tag aus; `stories.embedding.backlog` misst den offenen Rueckstand.
+
 ## Importstatus
 
 Letzte erfolgreich importierte Dateien:

@@ -1,6 +1,6 @@
 # ART-035: Story-Titel-Inputs und Embeddings erzeugen
 
-Status: offen
+Status: erledigt
 Bereich: stories, articles, operations
 
 ## Kontext
@@ -179,3 +179,16 @@ Snapshot-Erzeugung, exakte Cosine-Kandidatensuche, Pair-Entscheidung, Medoid-Clu
 Story-Publishing, Merge, Split, Backfill des Cluster-Ergebnisses und Story REST API sind nicht
 Teil dieses Tickets. Das Ticket aktiviert keine Clustering-Version und macht keine Shadow-Daten
 produktsichtbar.
+
+## Implementierungskommentar
+
+Implementiert wurde ein neues `stories.embedding`-Modul mit deterministischer Titel-Normalisierung,
+versionierten Input-Fingerprints, atomarer Artefakt-Wiederverwendung und einem konfigurierbaren
+OpenAI-Embedding-Client. Inkrementeller und taeglicher Reparaturlauf synchronisieren ausschliesslich
+Inputs fuer `SHADOW`-Versionen, historisieren geaenderte Inputs und persistieren Provider-Versuche,
+Backoff, terminale Vektorfehler sowie kanonisch L2-normalisierte Float32-Vektoren. Fehlende
+Zugangsdaten deaktivieren nur Modellaufrufe und werden ueber den Health-Report sichtbar; Metriken
+decken Inputs, Modellaufrufe, Versuche, Fehler und Provider-Latenz ab. Ergaenzt wurden Unit-,
+Client-, Service-/Concurrency- und PostgreSQL-Integrationstests sowie die Betriebsdokumentation.
+Snapshots, Kandidaten, Stories, Mitgliedschaften, vorhandene Artikeldaten und die REST API werden
+nicht veraendert.
