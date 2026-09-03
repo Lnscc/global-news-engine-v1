@@ -1,6 +1,6 @@
 # ART-036: Story-Snapshots und exakte Kandidatenpaare erzeugen
 
-Status: offen
+Status: erledigt
 Bereich: stories, operations
 
 ## Kontext
