@@ -33,7 +33,7 @@ public class GdeltRawImporter {
             GdeltRawImportRepository repository,
             TransactionTemplate transactionTemplate,
             GdeltRawDownloader downloader,
-            @Value("${gdelt.download-base-url:http://data.gdeltproject.org/gdeltv2}") URI downloadBaseUri
+            @Value("${gdelt.download-base-url:https://data.gdeltproject.org/gdeltv2}") URI downloadBaseUri
     ) {
         this.repository = repository;
         this.transactionTemplate = transactionTemplate;
