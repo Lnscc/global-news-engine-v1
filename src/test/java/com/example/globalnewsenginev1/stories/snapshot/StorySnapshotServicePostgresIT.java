@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.postgresql.ds.PGSimpleDataSource;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import javax.sql.DataSource;
 import java.nio.ByteBuffer;
@@ -202,6 +203,70 @@ class StorySnapshotServicePostgresIT {
     }
 
     @Test
+    void freshRunBlocksANewSnapshotAndStaleRunResumesTheExistingSnapshot() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        insertReadyInput(VERSION_24, "b", vector(0.8f, 0.6f), effectiveAt, null);
+        StorySnapshotRepository repository = new StorySnapshotRepository(jdbc);
+        DataSourceTransactionManager transactionManager =
+                new DataSourceTransactionManager(dataSource);
+        StorySnapshotRepository.RunClaim originalClaim =
+                new TransactionTemplate(transactionManager).execute(status -> {
+                    StorySnapshotRepository.ClusteringVersion version =
+                            repository.findShadowVersions(1).getFirst();
+                    repository.lockVersion(version.id());
+                    List<StorySnapshotRepository.SnapshotInput> inputs =
+                            repository.findReadyInputs(version.id(), watermark);
+                    String inputHash = StorySnapshotCanonicalizer.snapshotInputHash(
+                            version.key(), watermark, inputs);
+                    String snapshotKey = StorySnapshotCanonicalizer.snapshotKey(
+                            version.key(), watermark, inputHash);
+                    StorySnapshotRepository.Snapshot snapshot =
+                            repository.ensureSnapshot(version, watermark, snapshotKey,
+                                    inputHash, inputs, clock.instant());
+                    String runKey = StorySnapshotCanonicalizer.runKey(
+                            version.key(), inputHash,
+                            StorySnapshotService.RunMode.INCREMENTAL,
+                            version.pairRuleVersion());
+                    return repository.claimRun(version, snapshot,
+                            StorySnapshotService.RunMode.INCREMENTAL, runKey,
+                            clock.instant(), Duration.ofMinutes(30)).orElseThrow();
+                });
+
+        StorySnapshotService.ProcessingResult blocked = service().process(
+                StorySnapshotService.RunMode.INCREMENTAL,
+                watermark.plusSeconds(300), 1);
+
+        assertThat(blocked.reusedVersions()).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_snapshots", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_processing_runs", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT status FROM story_processing_runs", String.class))
+                .isEqualTo("RUNNING");
+
+        Clock afterTimeout = Clock.fixed(
+                clock.instant().plus(Duration.ofMinutes(31)), ZoneOffset.UTC);
+        StorySnapshotService.ProcessingResult resumed =
+                service(afterTimeout).process(StorySnapshotService.RunMode.INCREMENTAL,
+                        watermark.plusSeconds(600), 1);
+
+        assertThat(resumed.succeededVersions()).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_snapshots", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_processing_runs", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT status FROM story_processing_runs", String.class))
+                .isEqualTo("SUCCEEDED");
+        assertThat(jdbc.queryForObject(
+                "SELECT fencing_token FROM story_processing_runs", Long.class))
+                .isGreaterThan(originalClaim.fencingToken());
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_pair_decisions", Integer.class)).isOne();
+    }
+
+    @Test
     void invalidVectorFailsOnlyItsVersionAndDoesNotReachSearch() {
         insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt,
                 "corrupt-hash");
@@ -244,11 +309,15 @@ class StorySnapshotServicePostgresIT {
     }
 
     private StorySnapshotService service() {
+        return service(clock);
+    }
+
+    private StorySnapshotService service(Clock serviceClock) {
         StorySnapshotRepository repository = new StorySnapshotRepository(jdbc);
         return new StorySnapshotService(
                 repository,
                 new DataSourceTransactionManager(dataSource),
-                clock,
+                serviceClock,
                 Duration.ofMinutes(30),
                 new StorySnapshotMetrics(new SimpleMeterRegistry()));
     }

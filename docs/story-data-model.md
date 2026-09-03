@@ -83,12 +83,16 @@ Persistenz auf PostgreSQL-Mikrosekunden normalisiert. Snapshot-Inputs sind nach
 `effective_at, article_ref` sortiert. Transaktionale Advisory Locks und die vorhandenen Unique
 Constraints sorgen dafuer, dass konkurrierende Worker dieselbe fachliche Snapshot- und Run-Zeile
 verwenden. Ein abgebrochener oder fehlgeschlagener Run wird nach Ablauf seines Claim-Timeouts mit
-demselben Snapshot und einem neuen Fencing-Token fortgesetzt.
+demselben Snapshot und einem neuen Fencing-Token fortgesetzt. Snapshot-Materialisierung und
+Run-Claim erfolgen atomar unter diesem Versions-Lock; ein frischer `RUNNING`-Run blockiert deshalb
+einen zweiten Snapshot derselben Version auch nach einem Anwendungsneustart.
 
 Die exakte Kandidatensuche dekodiert die big-endian Float32-Bytefolge dimensionsgetreu, prueft
 Byte-Laenge, SHA-256, endliche Werte und positive Norm und akkumuliert Skalarprodukt und Normen
 mit Float64. Der persistierte Score wird auf sechs Nachkommastellen gerundet. Paarreihenfolge,
-Rangfolge und Top-1-Tie-Breaks sind deterministisch.
+Rangfolge und Top-1-Tie-Breaks sind deterministisch. Aufgrund der kanonischen zeitlichen
+Sortierung endet die Suche je linkem Artikel am ersten rechten Artikel ausserhalb des
+versionierten Zeitfensters.
 
 ### Auditdaten
 

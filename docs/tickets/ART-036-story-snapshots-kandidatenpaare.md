@@ -185,3 +185,11 @@ Implementiert am 2026-07-25:
 - Das vorhandene Datenbankschema wird unveraendert verwendet. REST API und Postman-Collection
   bleiben unveraendert; es werden keine Stories, Mitgliedschaften, Merge- oder Split-Ergebnisse
   erzeugt.
+- Nach einem Realbestandstest wurden Snapshot-Materialisierung und Run-Claim in dieselbe
+  transaktionale Advisory-Lock-Phase gezogen. Ein frischer `RUNNING`-Run blockiert nun auch nach
+  einem Neustart jeden neuen Snapshot derselben Version; ein veralteter Run verwendet weiterhin
+  dieselbe Snapshot- und Run-Identitaet mit erhoehtem Fencing-Token.
+- Die nach `effectiveAt, articleRef` sortierte exakte Suche bricht den inneren Scan am ersten
+  Artikel ausserhalb des Zeitfensters ab. Ein Unit-Test prueft neben der unveraenderten
+  Kandidatenmenge auch die reduzierte Zahl untersuchter Paare; ein PostgreSQL-Test prueft
+  Neustart-Blockade, Timeout und Wiederaufnahme.

@@ -129,12 +129,17 @@ auf `effective_at <= watermark` und macht wiederholte Aufrufe idempotent. Fuer e
 Reprocessing-Aufruf steht `StorySnapshotService.reprocess(watermark, maxVersions)` bereit.
 `max-versions-per-run` begrenzt jeweils die Anzahl der Versionen. Ein `RUNNING`-Claim darf nach
 `claim-timeout` mit demselben Snapshot, derselben Run-Zeile und einem neuen Fencing-Token
-wiederaufgenommen werden.
+wiederaufgenommen werden. Snapshot-Erzeugung und Run-Claim liegen unter demselben
+transaktionalen Versions-Lock. Solange ein frischer `RUNNING`-Run fuer eine Version existiert,
+erzeugt auch ein neu gestarteter oder konkurrierender Worker fuer diese Version keinen weiteren
+Snapshot.
 
 Persistiert werden alle quantisierten Treffer ab `0.700000` als `SAME_STORY` sowie die
 deterministische beste exakte Vergleichsdiagnose fuer Artikel ohne positiven Treffer als
 `UNCERTAIN`. Der Job erzeugt keine Stories, Mitgliedschaften, Assignment-, Merge- oder
-Split-Ergebnisse.
+Split-Ergebnisse. Da Snapshot-Mitglieder nach `effective_at, article_ref` sortiert sind, beendet
+die exakte Suche den inneren Scan am ersten Artikel ausserhalb des Zeitfensters. Sie bleibt
+vollstaendig exakt, untersucht aber keine nachweislich unzulaessigen spaeteren Paare.
 
 Operative Kontrollen:
 

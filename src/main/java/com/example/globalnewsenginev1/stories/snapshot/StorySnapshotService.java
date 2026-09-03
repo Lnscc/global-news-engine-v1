@@ -112,40 +112,48 @@ public class StorySnapshotService {
     ) {
         validateVersion(version);
         Instant now = StorySnapshotCanonicalizer.normalizeWatermark(clock.instant());
-        Optional<StorySnapshotRepository.RetrySnapshot> retry =
-                repository.findRetryableSnapshot(
-                        version.id(), mode, now, claimTimeout);
-        SnapshotWork work;
-        if (retry.isPresent()) {
-            work = new SnapshotWork(
-                    retry.get().snapshot(), retry.get().memberCount());
-        } else {
-            work = snapshotTransaction.execute(status -> {
-                repository.lockVersion(version.id());
+        PreparedWork work = snapshotTransaction.execute(status -> {
+            repository.lockVersion(version.id());
+            if (repository.hasFreshRunningRun(
+                    version.id(), now, claimTimeout)) {
+                return PreparedWork.blocked();
+            }
+            Optional<StorySnapshotRepository.RetrySnapshot> retry =
+                    repository.findRetryableSnapshot(
+                            version.id(), mode, now, claimTimeout);
+            StorySnapshotRepository.Snapshot snapshot;
+            int memberCount;
+            if (retry.isPresent()) {
+                snapshot = retry.get().snapshot();
+                memberCount = retry.get().memberCount();
+            } else {
                 List<StorySnapshotRepository.SnapshotInput> inputs =
                         repository.findReadyInputs(version.id(), watermark);
                 String inputHash = StorySnapshotCanonicalizer.snapshotInputHash(
                         version.key(), watermark, inputs);
                 String snapshotKey = StorySnapshotCanonicalizer.snapshotKey(
                         version.key(), watermark, inputHash);
-                StorySnapshotRepository.Snapshot snapshot = repository.ensureSnapshot(
+                snapshot = repository.ensureSnapshot(
                         version, watermark, snapshotKey, inputHash, inputs,
                         StorySnapshotCanonicalizer.normalizeWatermark(clock.instant()));
-                return new SnapshotWork(snapshot, inputs.size());
-            });
-        }
+                memberCount = inputs.size();
+            }
+            String runKey = StorySnapshotCanonicalizer.runKey(
+                    version.key(), snapshot.inputHash(), mode,
+                    version.pairRuleVersion());
+            StorySnapshotRepository.RunClaim claim = repository.claimRun(
+                    version, snapshot, mode, runKey, now, claimTimeout)
+                    .orElse(null);
+            return new PreparedWork(snapshot, memberCount, claim);
+        });
         if (work == null) {
-            throw new IllegalStateException("Snapshot transaction returned no result");
+            throw new IllegalStateException("Story run preparation returned no result");
+        }
+        if (work.snapshot() == null) {
+            return VersionResult.REUSED;
         }
         metrics.snapshot(work.snapshot().created(), work.memberCount());
-
-        String runKey = StorySnapshotCanonicalizer.runKey(
-                version.key(), work.snapshot().inputHash(), mode, version.pairRuleVersion());
-        Instant claimTime = StorySnapshotCanonicalizer.normalizeWatermark(clock.instant());
-        Optional<StorySnapshotRepository.RunClaim> claim = transaction.execute(status ->
-                repository.claimRun(version, work.snapshot(), mode, runKey,
-                        claimTime, claimTimeout));
-        if (claim == null || claim.isEmpty()) {
+        if (work.claim() == null) {
             return VersionResult.REUSED;
         }
 
@@ -160,10 +168,10 @@ public class StorySnapshotService {
                     String decisionHash = StorySnapshotCanonicalizer.decisionHash(
                             work.snapshot(), decision.left(), decision.right(),
                             decision, version.pairRuleVersion());
-                    repository.insertDecision(version, work.snapshot(), claim.get(),
+                    repository.insertDecision(version, work.snapshot(), work.claim(),
                             decision, decisionHash, completedAt);
                 }
-                repository.completeRun(claim.get(), frozenInputs.size(),
+                repository.completeRun(work.claim(), frozenInputs.size(),
                         search.changedArticles(), frozenInputs.size() - search.changedArticles(),
                         search.comparedPairs(), completedAt);
             });
@@ -174,13 +182,13 @@ public class StorySnapshotService {
             return VersionResult.SUCCEEDED;
         } catch (RuntimeException exception) {
             transaction.executeWithoutResult(status -> repository.failRun(
-                    claim.get(), 1,
+                    work.claim(), 1,
                     StorySnapshotCanonicalizer.normalizeWatermark(clock.instant())));
             throw exception;
         }
     }
 
-    private PairSearchResult search(
+    static PairSearchResult search(
             StorySnapshotRepository.ClusteringVersion version,
             List<StorySnapshotRepository.SnapshotInput> inputs
     ) {
@@ -198,6 +206,7 @@ public class StorySnapshotService {
         List<PairDecision> sameStory = new ArrayList<>();
         Map<String, BestComparison> bestComparison = new HashMap<>();
         Set<String> articlesWithPositive = new HashSet<>();
+        long examinedPairs = 0;
         long comparedPairs = 0;
         Duration window = Duration.ofHours(version.windowHours());
 
@@ -205,10 +214,15 @@ public class StorySnapshotService {
             for (int rightIndex = leftIndex + 1; rightIndex < inputs.size(); rightIndex++) {
                 StorySnapshotRepository.SnapshotInput first = inputs.get(leftIndex);
                 StorySnapshotRepository.SnapshotInput second = inputs.get(rightIndex);
+                examinedPairs++;
                 Duration distance = Duration.between(
-                        first.effectiveAt(), second.effectiveAt()).abs();
+                        first.effectiveAt(), second.effectiveAt());
+                if (distance.isNegative()) {
+                    throw new IllegalArgumentException(
+                            "Snapshot inputs are not ordered by effectiveAt");
+                }
                 if (distance.compareTo(window) > 0) {
-                    continue;
+                    break;
                 }
                 comparedPairs++;
                 StorySnapshotRepository.SnapshotInput left =
@@ -270,11 +284,11 @@ public class StorySnapshotService {
             changedArticles.add(decision.left().articleRef());
             changedArticles.add(decision.right().articleRef());
         }
-        return new PairSearchResult(List.copyOf(ranked), comparedPairs,
+        return new PairSearchResult(List.copyOf(ranked), examinedPairs, comparedPairs,
                 changedArticles.size());
     }
 
-    private void updateBest(
+    private static void updateBest(
             Map<String, BestComparison> comparisons,
             StorySnapshotRepository.SnapshotInput article,
             StorySnapshotRepository.SnapshotInput other,
@@ -339,10 +353,14 @@ public class StorySnapshotService {
         REUSED
     }
 
-    private record SnapshotWork(
+    private record PreparedWork(
             StorySnapshotRepository.Snapshot snapshot,
-            int memberCount
+            int memberCount,
+            StorySnapshotRepository.RunClaim claim
     ) {
+        static PreparedWork blocked() {
+            return new PreparedWork(null, 0, null);
+        }
     }
 
     private record BestComparison(
@@ -355,8 +373,9 @@ public class StorySnapshotService {
     private record PairKey(String leftArticleRef, String rightArticleRef) {
     }
 
-    private record PairSearchResult(
+    record PairSearchResult(
             List<PairDecision> decisions,
+            long examinedPairs,
             long comparedPairs,
             int changedArticles
     ) {

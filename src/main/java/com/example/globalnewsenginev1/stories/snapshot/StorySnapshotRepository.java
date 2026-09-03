@@ -80,6 +80,23 @@ class StorySnapshotRepository {
                 .stream().findFirst();
     }
 
+    boolean hasFreshRunningRun(
+            long versionId,
+            Instant now,
+            Duration claimTimeout
+    ) {
+        return Boolean.TRUE.equals(jdbcTemplate.queryForObject("""
+                SELECT EXISTS (
+                    SELECT 1
+                    FROM story_processing_runs
+                    WHERE clustering_version_id = ?
+                      AND status = 'RUNNING'
+                      AND started_at > ?
+                )
+                """, Boolean.class, versionId,
+                Timestamp.from(now.minus(claimTimeout))));
+    }
+
     List<SnapshotInput> findReadyInputs(long versionId, Instant watermark) {
         return jdbcTemplate.query("""
                 SELECT input.id AS article_input_id, input.article_ref,
