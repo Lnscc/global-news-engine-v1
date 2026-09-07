@@ -10,7 +10,7 @@ GDELT files -> temporary payloads -> durable domain rows -> articles -> REST API
                                                               +-> event, mention, and GKG signals
 ```
 
-Story clustering, topics, themes, embeddings, and LLM-generated summaries are planned but are not part of the application yet.
+Versioned title embeddings, immutable snapshots, and exact candidate-pair decisions are also implemented in shadow mode. Story assignment and publication, topics, themes, and LLM-generated summaries are not implemented yet. See the [project overview](docs/global_event_analysis_platform_architecture.md) for the architecture and current scope.
 
 ## Technology
 
@@ -121,7 +121,7 @@ docs/analysis                 Supporting technical analysis
 
 ## Further documentation
 
-- [`docs/global_event_analysis_platform_architecture.md`](docs/global_event_analysis_platform_architecture.md) — target architecture and product direction
+- [`docs/global_event_analysis_platform_architecture.md`](docs/global_event_analysis_platform_architecture.md) — project overview, implemented architecture, and product direction
 - [`docs/gdelt_events_mentions_gkg_data_model_overview.md`](docs/gdelt_events_mentions_gkg_data_model_overview.md) — GDELT data model overview
 - [`docs/articles.md`](docs/articles.md) — article model, normalization, and extraction behavior
 - [`docs/operations.md`](docs/operations.md) — operational queries for import status and failures

@@ -11,7 +11,7 @@ GDELT ist die Quelle, nicht das zentrale Produktmodell. Artikel buendeln Inhalte
 Stories sollen Berichte ueber dasselbe konkrete Geschehen gruppieren. Topics und Themes sind
 spaetere Aggregationsstufen.
 
-## Stand
+## Umfang
 
 Implementiert sind:
 
@@ -78,6 +78,11 @@ versionierten Zeitfensters alle zulaessigen Paare mit exakter Cosine Similarity.
 `0.700000` werden als `SAME_STORY`, die beste Diagnose ohne Treffer als `UNCERTAIN` gespeichert.
 Der Job erzeugt noch keine Stories oder Mitgliedschaften.
 
+Die initialen Clustering-Versionen verwenden `text-embedding-3-small` mit 1536 Dimensionen
+und getrennten Zeitfenstern von 24, 48 und 72 Stunden. `effectiveAt` ist der projizierte
+Publikationszeitpunkt, ersatzweise `firstSeenAt`. Modell, Dimension und Paarregeln gehoeren
+zur gespeicherten Clustering-Version, nicht zur Scheduler-Konfiguration.
+
 ## REST API
 
 | Methode | Pfad | Zweck |
@@ -107,8 +112,13 @@ Anwendung weiter; Embedding-Artefakte bleiben `PENDING`.
 Die Defaults stehen in
 [`application.properties`](../src/main/resources/application.properties). Die Praefixe
 `gdelt.ingestion.*`, `gdelt.staging.*`, `gdelt.retention.*`, `articles.*`,
-`stories.embeddings.*` und `stories.snapshots.*` steuern die jeweiligen Jobs. Snapshot-Backfill
-ist standardmaessig deaktiviert.
+`stories.embeddings.*` und `stories.snapshots.*` steuern die jeweiligen Jobs.
+
+Ingestion, Parsing, Retention, Artikel-Extraktion, inkrementelle Embeddings und Snapshots sowie
+Embedding-Repair sind standardmaessig aktiv. Die Schalter fuer Story-Jobs sind
+`stories.embeddings.incremental.enabled`, `stories.embeddings.repair.enabled`,
+`stories.snapshots.incremental.enabled` und `stories.snapshots.backfill.enabled`.
+Snapshot-Backfill ist standardmaessig deaktiviert; Payload-Retention betraegt sieben Tage.
 
 ```powershell
 docker compose up -d
@@ -116,14 +126,42 @@ docker compose up -d
 ```
 
 Die Anwendung startet auf `http://localhost:8080`; PostgreSQL laeuft lokal auf Port `5432`.
+Spring Boots Docker-Compose-Integration uebernimmt lokal die Datenbankverbindung aus
+[`compose.yaml`](../compose.yaml). Flyway fuehrt beim Start SQL- und Java-Migrationen aus.
+Fuer den Betrieb ausserhalb dieser Entwicklungsumgebung muessen Datenbankverbindung und
+Zugangsdaten separat konfiguriert werden.
+
+## Entwicklung und Verifikation
+
+Voraussetzungen sind JDK 21 und fuer PostgreSQL-Tests Docker Compose. Maven wird ueber den
+Wrapper bereitgestellt; unter Linux/macOS ersetzt `./mvnw` den Windows-Aufruf.
+
+`.\mvnw.cmd test` fuehrt die Unit- und H2-Tests aus. Die vollstaendige Maven-Verifikation
+schliesst ueber Failsafe die PostgreSQL-Tests mit Namen `*IT.java` ein:
 
 ```powershell
 docker compose up -d
 .\mvnw.cmd verify
 ```
 
-PostgreSQL-Integrationstests verwenden temporaere Schemas. Eine produktive Deployment- oder
-Infrastrukturdefinition ist nicht vorhanden.
+PostgreSQL-Integrationstests verwenden temporaere Schemas. Die Story-Snapshot-Tests werden
+bei nicht erreichbarer Datenbank uebersprungen; ein erfolgreicher Maven-Lauf allein belegt
+deshalb nicht, dass diese Tests ausgefuehrt wurden. Ihr Standardziel ist
+`jdbc:postgresql://localhost:5432/gne`; Overrides sind `it.postgres.jdbc-url`,
+`it.postgres.username` und `it.postgres.password`.
+
+`verify` erzeugt auch das ausfuehrbare Spring-Boot-JAR unter `target`; `package` baut es ohne
+Failsafe-Verifikation. Eine produktive Deployment- oder Infrastrukturdefinition ist nicht vorhanden.
+
+Wichtige Einstiegspunkte:
+
+- [`pom.xml`](../pom.xml) - Abhaengigkeiten, Packaging und Testphasen
+- [`gdelt`](../src/main/java/com/example/globalnewsenginev1/gdelt) - Import-Pipeline
+- [`articles`](../src/main/java/com/example/globalnewsenginev1/articles) - Extraktion und API
+- [`stories`](../src/main/java/com/example/globalnewsenginev1/stories) - Embeddings und Snapshots
+- [`SQL-Migrationen`](../src/main/resources/db/migration) und
+  [`Java-Migrationen`](../src/main/java/db/migration) - persistiertes Modell und Invarianten
+- [`Tests`](../src/test/java) - Parser, API, Migrationen und Story-Verarbeitung
 
 ## Leitplanken
 
