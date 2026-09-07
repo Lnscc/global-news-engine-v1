@@ -173,6 +173,7 @@ Wichtige Einstiegspunkte:
 
 ## Vertiefung
 
+- [`database-overview.md`](database-overview.md) - Beziehungen, Datenansichten und Datenfluss
 - [`articles.md`](articles.md) - Artikelmodell und Extraktion
 - [`gdelt_events_mentions_gkg_data_model_overview.md`](gdelt_events_mentions_gkg_data_model_overview.md) - GDELT-Fachmodell
 - [`stories.md`](stories.md) - fachliche Story-Definition
