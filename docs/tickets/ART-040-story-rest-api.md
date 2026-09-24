@@ -6,13 +6,13 @@ Bereich: stories
 ## Kontext
 
 Nach der Promotion einer Clustering-Version sind Stories produktsichtbar, koennen aber noch nicht
-ueber HTTP abgefragt werden. Alte, durch Merge oder Split abgeloeste Story-IDs muessen weiterhin
-nachvollziehbar bleiben.
+ueber HTTP abgefragt werden. Nach ART-041 ist nur der aktuelle Stand erforderlich;
+abgeloeste Story-IDs benoetigen keine Nachfolgeraufloesung.
 
 ## Ziel
 
 Eine lesende REST API stellt Stories der aktuellen `ACTIVE`-Clustering-Version mit stabilen DTOs,
-Mitgliedern und nachvollziehbarer Lineage bereit.
+Mitgliedern bereit.
 
 ## Umfang
 
@@ -23,7 +23,7 @@ GET /stories/{id}
 
 - Story-Liste begrenzt und validiert paginieren
 - Story-Detail mit Zustand, Zeitraum, repraesentativem Artikel und aktuellen Mitgliedern liefern
-- `SUPERSEDED`-IDs mit ihren direkten Nachfolgern aufloesbar halten
+- abgeloeste IDs mit `404` beantworten, ohne Nachfolgerverweise
 - ausschliesslich die aktuelle `ACTIVE`-Version als produktsichtbar behandeln
 - API-Vertrag und Betriebsdokumentation ergaenzen
 - Postman-Collection und Postman-Tests aktualisieren
@@ -34,11 +34,11 @@ GET /stories/{id}
 - `GET /stories/{id}` liefert Story-Metadaten und aktuelle Mitgliedschaften
 - eine unbekannte ID liefert `404`
 - ungueltige Pagination liefert `400`
-- eine bekannte `SUPERSEDED`-ID bleibt abrufbar und nennt ihre Nachfolger
+- eine abgeloeste ID liefert `404`; weiterverwendete IDs liefern den aktualisierten Stand
 - Shadow- und ausgemusterte Versionen erscheinen nicht als aktuelle Stories
 - Responses verwenden stabile DTOs und keine DB-internen Row-Maps
 - Controller- und PostgreSQL-Integrationstests pruefen Statuscodes, leere Ergebnisse,
-  Mitgliedschaften und Lineage
+  aktuelle Mitgliedschaften, aktualisierte Stories und abgeloeste IDs
 - die Postman-Collection prueft die betroffenen Statuscodes und Response-Vertraege
 - die aktualisierte Postman-Collection ist valides JSON
 

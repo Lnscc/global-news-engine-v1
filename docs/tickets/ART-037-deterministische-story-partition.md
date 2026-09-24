@@ -45,3 +45,8 @@ Clustering-Versionsstatus. Publishing, Merge-/Split-Lineage, REST API und UI sin
 ## Offene Fragen
 
 Keine.
+
+## Abgleich ART-041
+
+Der Clusterkern bleibt unveraendert erforderlich. Er liefert die aktuelle Partition mit
+Evidenz; dauerhafte Zuordnungshistorie und Story-Identitaeten gehoeren nicht in diesen Kern.

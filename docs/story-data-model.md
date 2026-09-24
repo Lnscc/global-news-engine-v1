@@ -2,6 +2,20 @@
 
 ## Zweck
 
+Diese Dokumentation beschreibt den implementierten Ist-Zustand aus ART-034 bis ART-036.
+ART-041 hat den fachlichen Zielumfang inzwischen reduziert: nur aktuelle Zuordnungen mit
+Begruendung, keine erforderliche Merge-/Split-Historie, ein produktives Verfahren und
+Weiterverwendung bestehender Story-IDs auch bei Regelwechsel. Die unten beschriebenen
+Historientabellen und Schutztrigger existieren weiterhin; sie sind nicht mehr pauschal
+fachliche MVP-Anforderungen. ART-042 prueft ihre technischen Abhaengigkeiten, ART-043
+setzt gegebenenfalls eine bestaetigte Migration um. Keine bestehende Migration wird geaendert.
+
+Besonders zu pruefen sind der bisher nur inputbezogene Zuordnungsschluessel bei geaenderter
+Nachbarschaft, aktuelle Zuordnungen ohne Historienpflicht, interne Versions-Fremdschluessel
+bei stabilen oeffentlichen IDs sowie Publish-Nachweise gegen veraltete Retries. Ein
+Verfahrenswechsel darf technisch neue Zeilen erzeugen, aber nicht alle Story-IDs ersetzen.
+Die vorhandenen 48-/72-h-Versionen erfordern keinen dauerhaften Parallelbetrieb.
+
 Migration `V22__create_story_domain_model.sql` bildet den fachlichen Verarbeitungsvertrag aus
 `story-processing-contract.md` als persistierbares PostgreSQL-Schema ab. Migration
 `V23__enforce_story_model_immutability` ergaenzt PostgreSQL-Schutztrigger. Das Schema speichert

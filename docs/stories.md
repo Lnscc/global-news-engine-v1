@@ -89,7 +89,7 @@ Stunden- oder Tagesgrenze.
 Das MVP muss fuer jede Story fachlich mindestens festhalten koennen:
 
 ```text
-- eine stabile Story-Referenz innerhalb einer Clustering-Version
+- eine stabile Story-Referenz bei Erweiterungen und Weiterverwendung auch bei Regelwechsel
 - mindestens einen Mitgliedsartikel und genau einen repraesentativen Artikel
 - den effektiven fruehesten und spaetesten Mitgliedszeitpunkt
 - die verwendete Clustering-Regel beziehungsweise -Version
@@ -150,6 +150,12 @@ oder unsichere Evidenz fuehrt konservativ zu einem Singleton oder einem unzugeor
 Volltext-Embeddings und generative LLM-Aufrufe bleiben ausserhalb des MVP.
 
 ## Mindestbegruendung einer automatischen Zuordnung
+
+Nach ART-041 gilt dies fuer den aktuellen Stand. Fruehere Artikelzuordnungen sowie
+Zusammenfuehrungen und Aufteilungen muessen nicht dauerhaft nachvollziehbar bleiben.
+Die deterministischen Regeln zur Weiterverwendung bestehender IDs stehen im
+Story-Verarbeitungsvertrag. Ein verbessertes Gruppierungsverfahren wird vor seinem
+Einsatz getestet und ersetzt das bisherige; dauerhafte Vergleichsvarianten sind vertagt.
 
 Eine Zuordnung muss ohne erneuten Modellaufruf reproduzierbar erklaeren koennen:
 

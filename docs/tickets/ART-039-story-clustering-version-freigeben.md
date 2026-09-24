@@ -12,15 +12,17 @@ werden.
 ## Ziel
 
 Eine fachlich freigegebene und technisch vollstaendige Shadow-Version kann atomar zur aktuellen
-`ACTIVE`-Version promoviert werden. Die vorherige Version und ihre Auditdaten bleiben lesbar.
+`ACTIVE`-Version promoviert werden. Es laeuft genau ein Verfahren produktiv. Bestehende
+Stories werden weiterverwendet und aktualisiert; die technische Freigabehistorie bleibt lesbar.
 
 ## Umfang
 
 - technische Vollstaendigkeit und Embedding-Dimension pruefen
-- versionierte Evaluations-Gates gegen das Korpus aus ART-032 auswerten
+- versionierte Evaluations-Gates auf einem neuen unabhaengigen Holdout auswerten;
+  der fuer die Schwellenwahl verwendete ART-032-Split ist kein Freigabenachweis
 - Diff fuer Storyanzahl, Singleton-Anteil, Mitgliedschaften, Merge und Split bereitstellen
 - dokumentierte fachliche Freigabe verlangen
-- Public IDs nach den Membership-Overlap- und Tie-Break-Regeln des Vertrags zuordnen
+- bestehende Public IDs nach denselben Merge-/Split-Regeln wie im normalen Lauf weiterverwenden
 - den sichtbaren Versionswechsel atomar und historisiert ausfuehren
 - fehlgeschlagene oder wiederholte Promotion ohne Teilzustand behandeln
 
@@ -31,11 +33,15 @@ Eine fachlich freigegebene und technisch vollstaendige Shadow-Version kann atoma
 - eine erfolgreiche Promotion macht genau eine Clustering-Version zur aktuellen `ACTIVE`-Version
 - der Wechsel ist fuer Leser atomar sichtbar
 - Public IDs werden bei gleicher Eingabe deterministisch zugeordnet
+- unveraenderte und erweiterte Stories behalten ihre IDs; neue oder abgetrennte Komponenten
+  erhalten neue IDs, ohne erforderliche Nachfolgerhistorie
+- ein inzwischen geaenderter sichtbarer Stand erzwingt vor dem Wechsel einen neuen ID-Abgleich
+- dauerhafte Challenger-Laeufe sind keine Freigabevoraussetzung
 - die vorherige Version wird nicht geloescht oder nachtraeglich veraendert
 - Statuswechsel und Freigabegrund sind auditierbar
 - die Wiederholung einer erfolgreichen Promotion ist ein No-op
 - PostgreSQL-Integrationstests decken erfolgreiche, abgelehnte, wiederholte und konkurrierende
-  Promotion ab
+  Promotion sowie ID-Erhalt, Merge/Split und Aenderung des Ausgangsstandes ab
 
 ## Abgrenzung
 

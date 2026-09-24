@@ -14,6 +14,12 @@ Cluster-Job muessen die hier beschriebenen Invarianten nachweisbar umsetzen.
 Das mit ART-034 abgeleitete Persistenzschema und seine technischen Entscheidungen sind in
 `story-data-model.md` dokumentiert.
 
+ART-041 begrenzt den MVP auf aktuelle, erklaerbare Zuordnungen und ein produktives
+Gruppierungsverfahren. Stories werden auch bei Regelwechsel weiterverwendet und aktualisiert.
+Eine Historie frueherer Zuordnungen sowie Merge-/Split-Nachfolger sind nicht erforderlich.
+Die Entscheidungsmatrix steht in `analysis/ART-041-story-mvp-scope.md`.
+Dies aendert Anforderungen, nicht bereits gespeicherte Daten oder angewendete Migrationen.
+
 ## Verbindliche Entscheidungen
 
 | Thema | Entscheidung | Begruendung |
@@ -23,11 +29,12 @@ Das mit ART-034 abgeleitete Persistenzschema und seine technischen Entscheidunge
 | Automatische Startregel | Cosine Similarity `>= 0,70` innerhalb des Kandidatenfensters | verwendet wie gewuenscht ausschliesslich Titel-Embedding und Zeit und bleibt auf dem vorhandenen Korpus konservativ |
 | Clusterbildung | deterministisches, radiusbeschraenktes Medoid-Clustering | verhindert Single-Linkage-Ketten und verwendet einen realen Artikel als erklaerbaren Story-Mittelpunkt |
 | Unsicherheit | keine erzwungene Verbindung; Singleton oder `UNASSIGNED` | falsche Zusammenfuehrungen sind schwerer reversibel und erklaerbar als zusaetzliche Singletons |
-| Mitgliedschaft | hoechstens eine aktuelle Story je Artikel und Clustering-Version | entspricht der fachlichen Definition und macht Partition und Historie eindeutig |
+| Mitgliedschaft | hoechstens eine aktuelle Story je Artikel und Clustering-Version | entspricht der fachlichen Definition und macht die aktuelle Partition eindeutig |
 | Suche | exakte Cosine-Suche fuer veroeffentlichende Laeufe | identischer Embedding-Bestand liefert identische Kandidaten; approximative Suche bleibt zunaechst Shadow-Modus |
 | Generische Titel | versionierter Eingangsfilter, keine Story-Zuordnung | ein inhaltsarmer Titel mit hoher Similarity ist kein belastbarer Ereignisanker |
 | Parallelitaet | Embeddings und reine Berechnung duerfen parallel laufen; genau ein Publisher je Clustering-Version | verhindert konkurrierende, reihenfolgeabhaengige Mitgliedschaften |
-| Historie | append-only Entscheidungen und Gueltigkeitsintervalle; keine stille Ueberschreibung | Retry, Merge, Split und Neubewertung bleiben erklaerbar |
+| Historie | nur aktuelle Zuordnung mit Begruendung erforderlich | vergangene Zuordnungen und Merge-/Split-Verlaeufe sind kein Produktbedarf; Retry-Sicherheit bleibt erforderlich |
+| Betrieb | genau ein produktives Verfahren; Verbesserungen vor Einsatz testen | kein dauerhafter Parallelbetrieb von Vergleichsvarianten |
 | Regel- oder Modellwechsel | neue Clustering-Version und vollstaendiges Shadow-Reprocessing | ein Modellwechsel ist keine Wiederholung desselben Laufs |
 | Erste Betriebsphase | ausschliesslich Shadow-Modus bis zur Freigabe auf einem neuen Holdout | verhindert, dass ein bereits zur Schwellenwahl verwendeter Datensatz als scheinbar unabhaengiger Nachweis dient |
 
@@ -53,14 +60,15 @@ Jede konforme Implementierung muss folgende Eigenschaften einhalten:
    Partition.
 2. Ein Artikel besitzt je Clustering-Version hoechstens eine aktuelle Mitgliedschaft. Historische
    Mitgliedschaften duerfen erhalten bleiben, sind aber nicht gleichzeitig aktuell.
-3. Derselbe Artikel-Input-Fingerprint wird in derselben Version hoechstens einmal wirksam
-   entschieden. Retries duerfen keine zweite Story, Mitgliedschaft oder Embedding-Zuordnung
-   erzeugen.
+3. Ein Retry desselben Snapshots erzeugt keine zweite Story, Mitgliedschaft oder
+   Embedding-Zuordnung. Neue Nachbarartikel koennen trotz unveraendertem eigenen
+   Input-Fingerprint eine neue aktuelle Zuordnung erfordern.
 4. Embedding-Artefakte sind unveraenderlich. Ein anderer Titel, eine andere Normalisierung, ein
    anderes Modell oder eine andere Vektordimension erzeugt einen neuen Schluessel.
-5. Eine sichtbare Story-ID wird nie geloescht oder neu vergeben. Merge und Split erzeugen
-   nachvollziehbare Nachfolgerbeziehungen.
-6. Eine automatische Mitgliedschaft ist ohne erneuten Embedding-Aufruf aus den gespeicherten
+5. Erweiterungen erhalten die Story-ID. Bei Merge und Split sowie Regelwechsel werden
+   bestehende IDs nach den untenstehenden Regeln weiterverwendet. Abgeloeste IDs duerfen
+   nicht anderweitig neu vergeben werden; ihre Aufloesung und Nachfolgerhistorie sind vertagt.
+6. Eine aktuelle automatische Mitgliedschaft ist ohne erneuten Embedding-Aufruf aus den gespeicherten
    Eingaben, Kandidaten, Scores, Regeln und Entscheidungen erklaerbar.
 7. Inkrementelle Verarbeitung ist eine Optimierung. Ihr veroeffentlichtes Ergebnis muss dem
    kanonischen Ergebnis eines vollstaendigen Laufs auf demselben Snapshot entsprechen.
@@ -106,17 +114,10 @@ componentRuleVersion = medoid-radius-agglomerative-v1
 versionStatus = SHADOW
 ```
 
-Parallel werden zwei Challenger-Versionen mit identischem Modell, Schwellwert und
-Komponentenverfahren berechnet:
-
-```text
-Challenger 1: candidateWindowHours = 48
-Challenger 2: candidateWindowHours = 72
-```
-
-Die 24-h-Version bleibt die Freigabeempfehlung, solange keine Challenger-Version auf einem neuen
-Holdout zusaetzlichen Recall zeigt, ohne Precision `0,98` zu unterschreiten. Das Zeitfenster wird
-nicht innerhalb derselben Clustering-Version dynamisch gewechselt.
+Die 24-h-Version bleibt die Startversion. Bereits vorbereitete 48- und 72-h-Versionen
+begruenden keinen dauerhaften Vergleichsbetrieb. Eine Verbesserung wird bei Bedarf vor
+dem Einsatz separat getestet. Das Zeitfenster wird nicht innerhalb derselben
+Clustering-Version dynamisch gewechselt; die Qualitaets-Gates bleiben unveraendert.
 
 Eine Clustering-Version besitzt unabhaengig vom Zustand einzelner Stories einen Betriebsstatus:
 
@@ -129,10 +130,12 @@ RETIRED -> ACTIVE nur durch expliziten Rollback
 `SHADOW` berechnet den vollstaendigen Lebenszyklus und alle Metriken in einem getrennten Namespace,
 ist aber fuer Produktfunktionen und externe IDs nicht verbindlich. Die erste Version startet
 ausschliesslich in diesem Zustand. `ACTIVE` erfordert einen neuen unabhaengigen Holdout, die
-definierten Qualitaets-Gates, einen dokumentierten Diff zu den Challenger-Versionen und eine
+definierten Qualitaets-Gates, bei Ersatz einen dokumentierten Diff zum aktuellen Stand und eine
 bewusste Freigabe. `RETIRED` bleibt lesbar und auditierbar, erhaelt aber keine normalen
 inkrementellen Eingaben mehr. Ein Rollback darf den unveraenderten vorherigen Versionsdatensatz
 explizit erneut aktivieren und wird als eigener Aktivierungsvorgang historisiert.
+Auch ein Rollback verwendet den unten definierten ID-Abgleich gegen den aktuell sichtbaren
+Stand; er darf inzwischen weiterverwendete IDs nicht blind auf alte Zuordnungen zuruecksetzen.
 
 Die konkrete `clusteringVersion` wird bei der Implementierung als unveraenderliche, semantisch
 versionierte Kennung angelegt. Eine Aenderung, die Kandidaten, Paarentscheidungen oder Partitionen
@@ -157,7 +160,8 @@ Die Story-ID wird durch spaetere Erweiterung oder Schliessung nicht veraendert. 
 historische Referenz erhalten bleiben, auch wenn der Artikel nach einer Neubewertung nicht mehr
 aktuell zur Story gehoert. Eine frische Umgebung darf intern deterministische IDs aus
 Clustering-Version und Anker ableiten; nach einer bereits veroeffentlichten Version hat die
-persistierte Identitaets- und Nachfolgerhistorie Vorrang.
+persistierte aktuelle Story-Identitaet Vorrang. Auch ein Wechsel des Gruppierungsverfahrens
+setzt bestehende Story-IDs nicht pauschal zurueck.
 
 ## Artikel-Input
 
@@ -175,7 +179,8 @@ zusaetzlich als Betriebszeit und fuer Revisit, Schliessung und Audit erhalten.
 
 Kommt `publishedAt` spaeter hinzu oder aendert sich der persistierte Wert, entsteht ein neuer
 Artikel-Input-Fingerprint und eine explizite Neubewertung. Eine vorherige Mitgliedschaft darf sich
-dabei aendern; die alte Entscheidung wird beendet, nicht ueberschrieben.
+dabei aendern; Zuordnung und aktuelle Begruendung werden atomar ersetzt. Eine Historie
+der vorherigen Zuordnung ist nicht erforderlich.
 
 ### Verwendbarer Titel
 
@@ -412,7 +417,7 @@ ohne verwendbaren Titel oder ohne `READY`-Embedding bleibt dagegen `UNASSIGNED`;
 vorzeitig als dauerhafter Singleton veroeffentlicht.
 
 Der Medoid ist zugleich der repraesentative Artikel der aktuellen Story. Aendert er sich, bleibt
-die Story-ID stabil und der Vertreterwechsel wird mit altem und neuem Medoid auditiert. Der
+die Story-ID stabil; der aktuelle Medoid wird gespeichert. Der
 Identitaetsanker bleibt davon getrennt und unveraendert.
 
 Ein inkrementeller Lauf darf nur die Aenderungsmenge und ihre transitive Kandidaten- und
@@ -446,8 +451,8 @@ SUPERSEDED -> kein weiterer fachlicher Zustand
   Ingest- oder Bewertungsereignis, seitdem gab es keine Aenderung, und es existiert kein
   ausstehender retryfaehiger Input eines aktuellen Mitglieds. Die Frist verwendet Betriebszeit,
   nicht den eventuell historischen `effectiveAt`.
-- `SUPERSEDED`: Die Story wurde durch Merge oder Split abgeloest. Sie bleibt aufloesbar und
-  verweist auf mindestens einen Nachfolger.
+- `SUPERSEDED`: Die Story wurde abgeloest und ist nicht mehr aktuell. Dies darf als interner
+  Zustand erhalten bleiben; Abrufbarkeit oder Nachfolgerverweise sind nicht erforderlich.
 
 Schliessen ist eine Sichtbarkeits- und Betriebsentscheidung, kein Schreibschutz. Ein neuer
 akzeptierter Artikel, eine Titelkorrektur, ein spaetes Signal oder ein Backfill darf eine
@@ -456,7 +461,7 @@ bleibt sie `CLOSED` und erhaelt nur einen Audit-Eintrag.
 
 ## Mitgliedschaft, Merge und Split
 
-### Historisierte Mitgliedschaft
+### Aktuelle Mitgliedschaft
 
 Eine Mitgliedschaft enthaelt mindestens:
 
@@ -464,16 +469,15 @@ Eine Mitgliedschaft enthaelt mindestens:
 storyId
 articleRef
 clusteringVersion
-validFromRunId
-validToRunId oder null
+runId
 articleInputFingerprint
 decisionId
 assignmentReason
 ```
 
 Eine neue Entscheidung mit identischem fachlichem Inhalt ist ein No-op. Bei einer Neuzuordnung
-wird die bisherige aktuelle Mitgliedschaft und die neue Mitgliedschaft atomar im selben
-Veroeffentlichungsschritt historisiert.
+werden aktuelle Mitgliedschaft und Begruendung atomar ersetzt. Eine Historie frueherer
+Zuordnungen ist nicht erforderlich. Aktuelle Evidenz muss auch nach einem No-op erhalten bleiben.
 
 ### Erweitern
 
@@ -485,9 +489,8 @@ Repraesentant, Zustand und Erklaerungsdaten werden aus der aktuellen Mitgliedsch
 
 Wenn eine kanonische Komponente aktuelle Mitglieder mehrerer Story-IDs enthaelt, ist dies ein
 Merge. Es ueberlebt deterministisch die Story mit dem kleinsten Tupel
-`(createdAt, storyId)`. Alle anderen IDs wechseln zu `SUPERSEDED` und verweisen mit Grund,
-Run-ID und Clustering-Version auf die ueberlebende ID. Ein Abruf einer alten ID kann dadurch
-eindeutig zum Nachfolger aufgeloest werden.
+`(createdAt, storyId)`. Alle anderen Stories sind danach nicht mehr aktuell. Es werden
+keine Nachfolgerverweise verlangt. Die API darf fuer abgeloeste IDs `404` liefern.
 
 Die Wahl ueber `createdAt` bezieht sich auf persistierte, bereits veroeffentlichte Identitaeten
 und nicht auf die aktuelle Worker-Reihenfolge. Bei einer erstmaligen Gesamtverarbeitung wird die
@@ -499,13 +502,19 @@ festgelegt.
 Wenn die Mitglieder einer Story in mehrere kanonische Komponenten zerfallen, behaelt die
 Komponente mit dem historischen Identitaetsanker die alte Story-ID. Die uebrigen Komponenten
 erhalten neue IDs in der stabilen Reihenfolge ihres jeweiligen
-`(kleinsten effectiveAt, kleinsten articleRef)`. Die alte Story dokumentiert alle Split-Nachfolger.
+`(kleinsten effectiveAt, kleinsten articleRef)`. Eine Split-Historie ist nicht erforderlich.
 
 Ist der Identitaetsanker nicht mehr zuordenbar, etwa weil sein korrigierter Titel unbrauchbar ist,
-wird die alte Story `SUPERSEDED`; alle verbleibenden Komponenten erhalten neue IDs. Auch dann
-bleibt die alte ID mit ihren Nachfolgern und dem Grund aufloesbar. Ein Artikel, der aus einer Story
-herausfaellt und keine neue Komponente erhaelt, wird mit historisierter Entscheidung
-`UNASSIGNED`.
+behaelt die Komponente mit den meisten bisherigen Mitgliedern die alte ID; bei Gleichstand
+gewinnt ihr kleinstes Tupel `(effectiveAt, articleRef)`. Der Identitaetsanker bleibt eine
+stabile Referenz. Ohne verbleibende Komponente ist die Story nicht mehr aktuell. Ein Artikel,
+der keine neue Komponente erhaelt, wird mit aktueller Begruendung `UNASSIGNED`.
+
+Bei gleichzeitigen Splits und Merges nominiert jede bisherige Story zuerst genau eine
+Komponente nach der Split-Regel. Nominieren mehrere Stories dieselbe Komponente,
+entscheidet die Merge-Regel. Nicht nominierte Komponenten erhalten neue IDs. Damit wird
+keine ID doppelt vergeben. Dieselben Regeln gelten beim Wechsel des Gruppierungsverfahrens;
+der zuletzt sichtbare Stand bildet die Identitaetsgrundlage, keine historische Zuordnung.
 
 ## Idempotenz, Retry und konkurrierende Laeufe
 
@@ -513,7 +522,7 @@ Fachliche Idempotenzschluessel sind:
 
 ```text
 Embedding:  Modell-/Dimensions-/Normalisierungsvertrag + titleInputHash
-Bewertung:  clusteringVersion + articleRef + articleInputFingerprint
+Bewertung:  clusteringVersion + snapshotInputHash + articleRef + articleInputFingerprint
 Snapshot:   clusteringVersion + snapshotInputHash + runMode
 Entscheid:  Hash aus Snapshot, Pair-Input, Regelversion und Ergebnis
 Publish:    clusteringVersion + snapshotInputHash
@@ -521,7 +530,9 @@ Publish:    clusteringVersion + snapshotInputHash
 
 Ein Retry verwendet denselben Snapshot und dieselben gespeicherten Embeddings. Ist der
 Publish-Schluessel bereits erfolgreich, liefert er das vorhandene Ergebnis. Ein Retry darf keine
-neuen IDs erzeugen.
+neuen IDs erzeugen. Ein Retry eines inzwischen abgeloesten Laufs bleibt ein No-op und darf
+keinen alten Zuordnungsstand wieder sichtbar machen. Dafuer erforderliche technische
+Publish-Nachweise bleiben erhalten, auch ohne fachliche Mitgliedschaftshistorie.
 
 Embedding-Erzeugung und reine Pair-Berechnung duerfen parallelisiert werden. Fuer das MVP besitzt
 jedoch jede Clustering-Version genau einen aktiven Publisher mit Lease und monotonem Fencing-
@@ -529,7 +540,7 @@ Token. Jeder Publish prueft zusaetzlich die gelesenen Story-Versionen optimistis
 Publisher oder eine geaenderte Story-Version darf nicht teilweise schreiben; sein Plan wird
 verworfen und auf einem neuen Snapshot berechnet.
 
-Mitgliedschaften, Story-Ableitungen, Zustandswechsel und Lineage eines Laufs werden atomar
+Aktuelle Mitgliedschaften, Begruendungen, Story-Ableitungen und Publish-Nachweis werden atomar
 veroeffentlicht. Eine konkrete Implementierung darf diese Atomizitaet technisch aufteilen, muss
 dann aber ein gleichwertiges, fuer Leser unsichtbares Staging-/Commit-Protokoll besitzen.
 
@@ -545,8 +556,8 @@ wiedereroeffnen, mergen oder splitten. Er aendert nie die Definition seiner Vers
 
 Ein Backfill fuellt fehlende Artikel oder Embeddings mit derselben Clustering-Version und
 denselben Regeln nach. Er ist durch ein halboffenes Zeit- oder Referenzintervall, einen benannten
-Snapshot und begrenzte Batches definiert. Nach jedem Batch wird ueber denselben Publisher- und
-Lineage-Vertrag reconciled. Wiederholung desselben Backfills ist idempotent.
+Snapshot und begrenzte Batches definiert. Nach jedem Batch werden die aktuellen Stories nach
+demselben Publisher- und Identitaetsvertrag abgeglichen. Wiederholung ist idempotent.
 
 Ein Backfill darf historische `CLOSED`-Stories wiedereroeffnen und kontrolliert umbauen, aber nur
 innerhalb seiner nachweislich geschlossenen Impact-Closure. Anzahl geaenderter Mitgliedschaften,
@@ -567,10 +578,15 @@ Veroeffentlichung der neuen Version erfordert:
 4. dokumentierte Freigabe und
 5. atomaren Wechsel der als aktuell sichtbaren Clustering-Version.
 
-Public IDs werden bei der Promotion durch deterministisches Membership-Overlap zugeordnet:
-groesste gemeinsame Artikelanzahl, danach groesster Anteil an der alten Story, danach alte
-`storyId` aufsteigend. Bei Merge und Split gelten anschliessend dieselben Gewinner- und
-Ankerregeln wie oben. Nicht mehr aktuelle Versionen und ihre Auditdaten werden nicht geloescht.
+Bei der Promotion werden bestehende Stories anhand des zuletzt sichtbaren Standes nach
+denselben Split-/Merge-Regeln wie im normalen Lauf weiterverwendet und aktualisiert.
+Unveraenderte und lediglich erweiterte Stories behalten ihre oeffentliche ID. Nur neue
+oder abgetrennte Komponenten erhalten neue IDs. Versionsinterne Datenbankzeilen duerfen
+neu entstehen, ohne die oeffentliche Identitaet zurueckzusetzen.
+Der sichtbare Versionswechsel und die ID-Zuordnung sind ein atomarer Vorgang. Aendert sich
+waehrend der Vorbereitung der sichtbare Stand, wird der Abgleich vor Publish neu berechnet.
+Die vorhandene technische Versions- und Freigabehistorie bleibt erhalten; daraus folgt
+kein Produktzugriff auf fruehere Artikelzuordnungen. Bestehende Daten werden nicht geloescht.
 
 ## Health, Audit und Erklaerbarkeit
 
@@ -606,7 +622,7 @@ Rueckstand, nach dem fuenften retryfaehigen Fehler sowie bei einem ungewoehnlich
 
 ### Pro Entscheidung
 
-Jede Paar- und Mitgliedschaftsentscheidung enthaelt mindestens:
+Die Evidenz jeder aktuellen Paar- und Mitgliedschaftsentscheidung enthaelt mindestens:
 
 ```text
 clusteringVersion, runId und snapshotId
@@ -617,7 +633,7 @@ Embedding-Artefaktschluessel, Vektor-Hashes und Cosine Similarity
 Kandidatenrang, Zeitfenster und Similarity-Schwellwert
 optionale strukturierte Diagnoseevidenz mit Herkunft und Kennzeichnung `non_decisive`
 Pair-Rule-Version, Ergebnis und ausgeloste Regel
-Komponentenentscheidung sowie vorherige und neue storyId
+Komponentenentscheidung sowie aktuelle storyId oder UNASSIGNED-Grund
 ```
 
 Alle Kandidaten oberhalb der Similarity-Grenze werden je Bewertung gespeichert oder ueber einen
@@ -625,26 +641,32 @@ unveraenderlichen Snapshot rekonstruierbar referenziert. Fuer Artikel ohne Kandi
 beste exakte Score unterhalb der Grenze als Diagnose gespeichert. Eine Erklaerung nennt damit die
 ausgeloeste Schwellenregel und den knappsten abgelehnten Vergleich.
 
+Inputs, Embeddings, Snapshots und Scores bleiben erhalten, solange sie fuer aktuelle
+Ergebnisse oder offene Laeufe und Retries erforderlich sind. Eine dauerhafte Rekonstruktion
+aller abgeloesten Zuordnungen ist nicht erforderlich. ART-042 prueft technische Abhaengigkeiten;
+Aufbewahrungsfristen und Bereinigung werden erst fuer einen konkreten Vorschlag in ART-043
+festgelegt. Dieser Vertrag erlaubt keine unmittelbare Loeschung vorhandener Daten.
+
 ## Ende-zu-Ende-Szenarien
 
 | Nr. | Eingang | Erwarteter Ausgang | Geschuetzte Invariante |
 |---:|---|---|---|
 | 1 | neuer Artikel mit verwendbarem, bisher unbekanntem Titel und erfolgreichem Embedding | neue `ACTIVE`-Singleton-Story im Shadow-Namespace; noch nicht produktsichtbar | kein erzwungener unsicherer Merge und keine Veroeffentlichung ohne Freigabe |
 | 2 | drei Agenturartikel mit paarweiser beziehungsweise Medoid-Similarity mindestens 0,70 innerhalb 24 h | eine Story mit drei Mitgliedern und Medoid als Vertreter | deterministische Kandidaten und hoechstens eine Mitgliedschaft |
-| 3 | neuer Artikel ohne Titel, GKG-Titel kommt 20 h spaeter | zuerst `UNASSIGNED/TITLE_MISSING`, danach Embedding und normale Bewertung | fehlender Titel ist nicht dauerhaft, Historie bleibt erhalten |
+| 3 | neuer Artikel ohne Titel, GKG-Titel kommt 20 h spaeter | zuerst `UNASSIGNED/TITLE_MISSING`, danach Embedding und normale Bewertung | aktuelle Zuordnung wird korrigiert und bleibt erklaerbar |
 | 4 | `publishedAt` kommt spaeter und verschiebt den Artikel aus dem bisherigen Kandidatenfenster | neuer Fingerprint, alte Mitgliedschaft beendet, deterministische Repartition | Zeitwechsel ist Neubewertung, kein Retry |
 | 5 | Archivartikel von 1977 wird 2026 erstmals importiert | `effectiveAt` liegt 1977; keine Mischung mit aktuellen Artikeln nur wegen Ingestion | eindeutige Zeit-Fallback-Regel |
 | 6 | derselbe Import und Job werden mehrfach zugestellt | vorhandenes Embedding und Publish-Ergebnis werden wiederverwendet | keine doppelten Artefakte, Stories oder Mitgliedschaften |
 | 7 | Embedding-Aufruf laeuft in Timeout oder Rate Limit | retryfaehiger Zustand und Backoff; bis `READY` keine Story-Zuordnung | technische Fehler veraendern keine Fachentscheidung |
 | 8 | Anbieter liefert 1.535 statt 1.536 Dimensionen | terminaler Fehler, Quarantaene und Alarm; kein Kandidatenscore | fehlerhafte Vektoren werden nicht still angepasst |
-| 9 | Titel wird nach erfolgreichem Embedding korrigiert | neuer Input-Hash und neues Artefakt; altes Artefakt bleibt; Mitgliedschaft wird historisiert | Titelwechsel ist explizite Neubewertung |
+| 9 | Titel wird nach erfolgreichem Embedding korrigiert | neuer Input-Hash und neues Artefakt; aktuelle Mitgliedschaft und Begruendung werden ersetzt | Titelwechsel ist explizite Neubewertung |
 | 10 | Ankuendigung und Ruecknahme derselben Hormus-Gebuehr liegen im bisherigen Korpus unter Cosine 0,70 | zwei Story-Komponenten | reine Embedding-Zeit-Regel wird exakt angewendet; oberhalb 0,70 waere ein Fehl-Merge bewusst moeglich |
 | 11 | spaetes Signal trifft auf eine seit mehr als 72 h `CLOSED`-Story | neue Bewertung; bei Mitgliedschaftsaenderung `CLOSED -> ACTIVE`, sonst nur Audit | kontrollierte Wiedereroeffnung |
 | 12 | zwei Publisher berechnen denselben Snapshot parallel | nur gueltiger Fencing-Token publiziert; der andere Lauf ist No-op oder rechnet neu | Parallelitaet erzeugt keine konkurrierenden Ergebnisse |
-| 13 | eine Titelkorrektur verbindet zwei bisherige Stories | deterministischer Merge; aeltere Story-ID bleibt, andere wird `SUPERSEDED` | sichtbare IDs besitzen Lineage |
-| 14 | eine Korrektur trennt eine Story in zwei Komponenten | Ankerkomponente behaelt ID, zweite erhaelt neue ID, Mitgliedschaften werden historisiert | Split ist deterministisch und erklaerbar |
+| 13 | eine Titelkorrektur verbindet zwei bisherige Stories | deterministischer Merge; aeltere Story-ID bleibt, andere ist nicht mehr aktuell | bestehende Identitaet bleibt ohne Lineage erhalten |
+| 14 | eine Korrektur trennt eine Story in zwei Komponenten | Ankerkomponente oder deterministischer Ersatz behaelt ID, zweite erhaelt neue ID | aktueller Stand ist eindeutig, keine Split-Historie erforderlich |
 | 15 | Backfill wird nach einem Abbruch erneut gestartet | bereits publizierte Batches sind No-op; offene Batches laufen weiter | Backfill ist begrenzt und idempotent |
-| 16 | Embedding-Modell oder Pair-Rule wird geaendert | neue Shadow-Clustering-Version und vollstaendiges Reprocessing; Promotion erst nach bewusster Freigabe | Regelwechsel ist vom normalen Lauf getrennt |
+| 16 | Embedding-Modell oder Pair-Rule wird geaendert | separat testen, dann atomar ersetzen; bestehende Stories nach Split-/Merge-Regeln aktualisieren | genau ein produktives Verfahren; kein pauschaler ID-Neustart |
 | 17 | `Deadline` oder ein anderer versioniert generischer Titel trifft ein | `UNASSIGNED/TITLE_GENERIC`, kein Embedding und keine Story | inhaltsarme Eingaben erzeugen keine falschen Cluster |
 | 18 | `A-B` und `B-C` liegen ueber 0,70, aber kein Medoid der Vereinigungsmenge erreicht jedes Mitglied mit 0,70 | Merge der drei Artikel wird abgelehnt; mindestens zwei Stories bleiben | keine Single-Linkage-Kette |
 

@@ -5,25 +5,26 @@ Bereich: stories, operations
 
 ## Kontext
 
-Das Story-Datenmodell enthaelt Stories, Zuordnungsentscheidungen, historisierte Mitgliedschaften,
-Zustandswechsel, Lineage und Publish-Commits. Nach ART-037 liegt eine deterministische Partition
-vor, wird aber noch nicht in dieses Lebenszyklusmodell ueberfuehrt.
+Nach ART-037 liegt eine deterministische Partition vor. ART-041 begrenzt das Produkt auf
+aktuelle Stories und begruendete Zuordnungen ohne erforderliche Mitgliedschafts- oder
+Merge-/Split-Historie. Das bestehende Schema enthaelt noch weitergehende Historienstrukturen;
+deren Anpassungsbedarf ist mit ART-042/ART-043 abzugleichen.
 
 ## Ziel
 
 Ein Publisher ueberfuehrt ein Clusterergebnis atomar und idempotent in Stories und
 Mitgliedschaften der zugehoerigen Clustering-Version. Erweiterungen, Wiedereroeffnungen, Merge,
-Split und `UNASSIGNED` bleiben nachvollziehbar und wiederholbar.
+Split und `UNASSIGNED` liefern einen erklaerbaren aktuellen Stand und sind retry-sicher.
 
 ## Umfang
 
 - Komponenten gegen den zuletzt publizierten Zustand derselben Clustering-Version abgleichen
 - stabile Story-IDs, Identitaetsanker und repraesentative Artikel bestimmen
-- Assignment-Entscheidungen und Mitgliedschaftsintervalle historisieren
+- aktuelle Assignment-Entscheidungen und Mitgliedschaften mit Begruendung schreiben
 - Story-Zustaende und erlaubte Uebergaenge anwenden
-- Merge- und Split-Lineage nach dem Story-Verarbeitungsvertrag erzeugen
+- bestehende IDs nach den Merge-/Split-Regeln erhalten, ohne Nachfolgerhistorie
 - Publish mit Lease, Fencing-Token, optimistischer Versionierung und Publish-Key absichern
-- Story-Ableitungen, Mitgliedschaften, Zustandswechsel, Lineage und Commit atomar schreiben
+- aktuelle Story-Ableitungen, Mitgliedschaften, Begruendungen und Commit atomar schreiben
 - Run-, Konflikt- und Ergebnismetriken bereitstellen
 
 ## Akzeptanzkriterien
@@ -33,12 +34,15 @@ Split und `UNASSIGNED` bleiben nachvollziehbar und wiederholbar.
 - unveraenderte Zuordnungen sind ein No-op und erzeugen keine neue Mitgliedschaft
 - Erweiterung, Schliessen und Wiedereroeffnen erhalten die Story-ID
 - bei einem Merge ueberlebt deterministisch die im Vertrag festgelegte Story-ID
-- bei einem Split behaelt die Ankerkomponente ihre Story-ID; alle Nachfolger sind aufloesbar
+- bei einem Split behaelt die Ankerkomponente oder der vertragliche Ersatz ihre Story-ID;
+  nur abgetrennte Komponenten erhalten neue IDs, auch bei gleichzeitigem Merge und Split
 - unbrauchbare oder nicht entscheidbare Artikel erhalten eine begruendete `UNASSIGNED`-Entscheidung
-- ein Retry desselben Snapshots erzeugt weder neue IDs noch doppelte Historien- oder Lineage-Daten
+- ein Retry desselben Snapshots erzeugt weder neue IDs noch doppelte aktuelle Zuordnungen
+- ein veralteter Retry kann keinen abgeloesten Stand wieder sichtbar machen
+- geaenderte Nachbarartikel koennen bei gleichem eigenem Input-Fingerprint neu zugeordnet werden
 - ein Publisher mit abgelaufenem Fencing-Token kann keinen Teilzustand veroeffentlichen
 - PostgreSQL-Integrationstests decken Neuaufnahme, No-op, Erweiterung, Merge, Split, Retry und
-  konkurrierende Publisher ab
+  konkurrierende Publisher, fehlenden Anker, kombinierte Merge/Split-Faelle und veraltete Retries ab
 - der Lauf bleibt fuer eine `SHADOW`-Version nicht produktsichtbar
 
 ## Abgrenzung
