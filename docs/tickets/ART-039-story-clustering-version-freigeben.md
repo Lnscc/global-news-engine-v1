@@ -47,7 +47,14 @@ Stories werden weiterverwendet und aktualisiert; die technische Freigabehistorie
 
 Dieses Ticket aendert weder Clustering-Regeln noch Story-Inhalte und stellt keine REST API oder UI
 bereit.
+Die zurueckgestellte Schemavereinfachung aus ART-042/ART-043 ist keine Voraussetzung.
+Das bestehende Schema ist Ausgangspunkt; notwendige Korrekturen fuer den Versionswechsel
+vor einer Schemaaenderung konkret mit dem Nutzer klaeren. Kein allgemeiner Datenbankumbau.
 
 ## Offene Fragen
 
-Keine.
+- Wie bleiben oeffentliche Story-IDs beim Versionswechsel erhalten, obwohl der bestehende
+  globale Story-Primaerschluessel dieselbe ID an eine einzige Versionszeile bindet?
+
+Diese Frage bei der Umsetzung gegen den aktuellen Code pruefen; die Zurueckstellung
+der Vereinfachung hebt den geforderten ID-Erhalt nicht auf.

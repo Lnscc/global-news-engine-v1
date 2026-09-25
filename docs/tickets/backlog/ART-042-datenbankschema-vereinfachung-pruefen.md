@@ -2,6 +2,13 @@
 
 Status: offen
 Bereich: architecture, stories, gdelt, articles
+Prioritaet: zurueckgestellt
+
+## Zurueckstellung
+
+2026-09-25: Auf Nutzerwunsch zurueckgestellt, bis das Projekt fachlich und funktional
+steht. Keine weitere Schemaanalyse oder Vereinfachung als Voraussetzung fuer ART-037
+bis ART-040. Wiederaufnahme nur nach ausdruecklicher Priorisierung.
 
 ## Kontext
 
@@ -14,6 +21,8 @@ ART-041 klaert den fachlichen Mindestumfang.
 
 Eine priorisierte, nachvollziehbare Bewertung benennt konkrete Vereinfachungen mit ihrem Nutzen,
 ihren Kosten und den zu erhaltenden Garantien. Reine Darstellungsprobleme werden als solche erkannt.
+Ziel sind weniger Tabellen und ein besser verstaendliches Datenmodell. Bei Wiederaufnahme
+ein kleineres Zielmodell pruefen; bestehende Codezugriffe allein begruenden keine eigene Tabelle.
 
 ## Umfang
 
@@ -45,3 +54,9 @@ Keine pauschale Zusammenlegung von Tabellen und keine Zielvorgabe fuer deren Anz
 
 - Welche konkrete Abfrage oder Wartungsaufgabe verursacht heute den groessten Aufwand?
 - Steht eine repraesentative Datenbank fuer eine lesende Nutzungspruefung zur Verfuegung?
+
+## Umsetzungskommentar
+
+2026-09-25: Den vorlaeufigen Analysebericht auf Nutzerwunsch entfernt, damit er die
+spaetere Planung nicht vorgibt. Bei Wiederaufnahme neu gegen den dann aktuellen
+Projektstand bewerten. Schema und Daten wurden nicht geaendert.

@@ -7,8 +7,10 @@ Bereich: stories, operations
 
 Nach ART-037 liegt eine deterministische Partition vor. ART-041 begrenzt das Produkt auf
 aktuelle Stories und begruendete Zuordnungen ohne erforderliche Mitgliedschafts- oder
-Merge-/Split-Historie. Das bestehende Schema enthaelt noch weitergehende Historienstrukturen;
-deren Anpassungsbedarf ist mit ART-042/ART-043 abzugleichen.
+Merge-/Split-Historie. Das bestehende Schema enthaelt noch weitergehende Historienstrukturen.
+ART-042/ART-043 sind auf Nutzerwunsch zurueckgestellt und keine Voraussetzung fuer dieses
+Ticket. Vorhandene Strukturen duerfen intern weiterverwendet werden, ohne eine fachliche
+Historienfunktion anzubieten.
 
 ## Ziel
 
@@ -48,7 +50,15 @@ Split und `UNASSIGNED` liefern einen erklaerbaren aktuellen Stand und sind retry
 ## Abgrenzung
 
 Die Promotion einer Clustering-Version, eine REST API und eine UI sind nicht enthalten.
+Keine allgemeine Schemavereinfachung oder Entfernung bestehender Historienstrukturen.
+Falls das bestehende Schema eine geforderte Funktion verhindert, den konkreten Konflikt
+und die kleinste notwendige Korrektur vor einer Schemaaenderung mit dem Nutzer klaeren.
 
 ## Offene Fragen
 
-Keine.
+- Wie wird eine neue Entscheidung bei gleichem Input, aber geaenderter Nachbarschaft
+  trotz des bisherigen inputbezogenen Unique-Constraints gespeichert?
+- Wie erhalten unbrauchbare Inputs einen eingefrorenen Snapshot-Kontext fuer UNASSIGNED?
+
+Diese Fragen bei der Umsetzung gegen den aktuellen Code pruefen; sie legen keine
+Schemaaenderung fest.

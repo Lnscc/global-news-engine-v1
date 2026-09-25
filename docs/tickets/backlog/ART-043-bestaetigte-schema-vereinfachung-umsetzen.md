@@ -2,6 +2,14 @@
 
 Status: offen
 Bereich: architecture
+Prioritaet: zurueckgestellt
+
+## Zurueckstellung
+
+2026-09-25: Auf Nutzerwunsch zusammen mit ART-042 zurueckgestellt, bis das Projekt
+fachlich und funktional steht. Das bestehende Schema bleibt vorerst bestehen.
+Keine Tabellenzusammenlegung, Historienentfernung oder Indexbereinigung im Rahmen
+der weiteren Story-Tickets. Wiederaufnahme nur nach ausdruecklicher Priorisierung.
 
 ## Kontext
 
@@ -12,6 +20,8 @@ Vorschlaege aus ART-042. Konkrete Tabellen oder Felder fuer einen Umbau sind noc
 
 Die kleinste bestaetigte Schemavereinfachung reduziert nachweislich Pflege- oder Abfrageaufwand
 und erhaelt alle vereinbarten fachlichen Garantien sowie weiterhin benoetigte Daten.
+Massgeblich sind weniger Tabellen und ein besserer Ueberblick im spaeter abgestimmten
+Zielmodell. Die bisherigen Einzelvorschlaege sind noch nicht zur Umsetzung ausgewaehlt.
 
 ## Umfang
 
