@@ -82,6 +82,14 @@ class StorySnapshotServicePostgresIT {
                 "SELECT COUNT(*) FROM story_snapshots", Integer.class)).isOne();
         long frozenSnapshot = jdbc.queryForObject(
                 "SELECT id FROM story_snapshots", Long.class);
+        StoryPartitionService partitionService = new StoryPartitionService(new StorySnapshotRepository(jdbc));
+        StoryPartitionService.Partition partition = partitionService.calculate(frozenSnapshot);
+        assertThat(partition.snapshot().versionKey()).isEqualTo(VERSION_24);
+        assertThat(partition.components()).extracting(StoryPartitionService.Component::medoidArticleRef)
+                .containsExactly(ref("a"), ref("c"), ref("d"), ref("e"));
+        assertThat(partition.components().getFirst().members())
+                .extracting(StoryPartitionService.MemberEvidence::articleRef)
+                .containsExactly(ref("a"), ref("b"));
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_snapshot_members WHERE snapshot_id = ?
                 """, Integer.class, frozenSnapshot)).isEqualTo(5);
@@ -173,6 +181,7 @@ class StorySnapshotServicePostgresIT {
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT snapshot_input_hash) FROM story_snapshots
                 """, Integer.class)).isEqualTo(2);
+        assertThat(partitionService.calculate(frozenSnapshot)).isEqualTo(partition);
         assertNoStoryOutputs();
     }
 

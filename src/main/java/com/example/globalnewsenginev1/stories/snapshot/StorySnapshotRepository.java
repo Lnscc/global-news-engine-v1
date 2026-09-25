@@ -252,6 +252,25 @@ class StorySnapshotRepository {
         return Optional.of(new RunClaim(state.id(), fencingToken));
     }
 
+    StoryPartitionService.SnapshotRules loadPartitionRules(long snapshotId) {
+        return jdbcTemplate.queryForObject("""
+                SELECT snapshot.id, snapshot.snapshot_key, snapshot.snapshot_input_hash,
+                       version.version_key, version.embedding_dimension,
+                       version.candidate_window_hours, version.candidate_similarity_threshold,
+                       version.candidate_search_mode, version.component_rule_version
+                FROM story_snapshots snapshot
+                JOIN story_clustering_versions version ON version.id = snapshot.clustering_version_id
+                WHERE snapshot.id = ?
+                  AND EXISTS (SELECT 1 FROM story_processing_runs run WHERE run.snapshot_id = snapshot.id)
+                """, (resultSet, rowNum) -> new StoryPartitionService.SnapshotRules(
+                resultSet.getLong("id"), resultSet.getString("snapshot_key"),
+                resultSet.getString("snapshot_input_hash"), resultSet.getString("version_key"),
+                resultSet.getInt("embedding_dimension"), resultSet.getInt("candidate_window_hours"),
+                resultSet.getBigDecimal("candidate_similarity_threshold"),
+                resultSet.getString("candidate_search_mode"), resultSet.getString("component_rule_version")),
+                snapshotId);
+    }
+
     List<SnapshotInput> loadSnapshotInputs(long snapshotId) {
         return jdbcTemplate.query("""
                 SELECT input.id AS article_input_id, input.article_ref,

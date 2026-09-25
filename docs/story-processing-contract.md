@@ -425,6 +425,52 @@ Story-Nachbarschaft berechnen. Vor Veroeffentlichung muss er zeigen, dass an der
 Impact-Closure keine offene Kandidatenkante liegt; andernfalls wird die Closure erweitert. Ein
 vollstaendiges Reprocessing auf demselben Snapshot ist die Referenz fuer Tests und Reparatur.
 
+### Implementierter Clusterkern (ART-037)
+
+`StoryPartitionService.calculate(snapshotId)` liest den Versionsvertrag und die eingefrorenen
+Snapshot-Mitglieder samt Vektorartefakten. Das Ergebnis enthaelt Snapshot-Key, Input-Hash,
+Clustering-Version, Komponenten mit Medoid sowie akzeptierte und abgelehnte Merge-Versuche.
+Je Mitglied werden Fingerprint, Artefakt-ID, Vektor-Hash, quantisierte Similarity und der genaue
+Zeitabstand zum vorgeschlagenen beziehungsweise finalen Medoid ausgegeben. Zusammen mit dem
+referenzierten Snapshot bleiben damit Eingaben und Tie-Breaks rekonstruierbar.
+
+Die Berechnung verwendet `ExactCosine` aus ART-036. Fuer die Medoid-Wahl werden auch Scores
+unterhalb der Kandidatenschwelle und ausserhalb des Kandidatenzeitfensters aus den eingefrorenen
+Vektoren berechnet: Die gespeicherten positiven Pair-Entscheidungen allein enthalten nicht alle
+fuer den Mittelwert benoetigten Vergleiche. Summen der auf sechs Nachkommastellen quantisierten
+Scores bestimmen den Medoid ohne zusaetzliche Rundung des Mittelwerts.
+
+Der Dienst arbeitet rein lesend und wird noch nicht vom Snapshot-Scheduler aufgerufen.
+Publishing folgt in ART-038. Unterstuetzt wird `medoid-radius-agglomerative-v1` mit den
+vorhandenen versionierten Fenstern 24/48/72 Stunden und der Schwelle `0.700000`.
+Der einfache Kern scannt Clusterpaare nach jedem Merge erneut und speichert Scores bei Bedarf
+zwischen. Das kann kubisch viele Paarpruefungen und quadratischen Score-Speicher benoetigen;
+vor einem automatischen Einsatz auf grossen Snapshots ist die Kapazitaet zu messen.
+
+Die ART-032-Auswertung nutzt denselben Java-Kern und den bereits lokal gespeicherten
+Embedding-Cache, ohne neue Embedding-Aufrufe. Voraussetzung ist Python mit NumPy.
+Vom Repository-Verzeichnis aus:
+
+```powershell
+python scripts/prepare_art037_evaluation.py
+.\mvnw.cmd test "-Dtest=StoryPartitionCorpusTests" "-Dart037.inputs=target/art037-inputs.json"
+python scripts/art032_evaluation.py docs/analysis/ART-032-corpus.json --predictions target/art037-calibration-predictions.json --split calibration
+python scripts/art032_evaluation.py docs/analysis/ART-032-corpus.json --predictions target/art037-evaluation-predictions.json --split evaluation
+```
+
+Der Export prueft Korpus, Modell, Titel-Hashes und Vektoren. Artikel und Referenz-Stories
+bleiben zwischen Kalibrierung und Evaluation disjunkt; die Partition wird pro Split separat
+berechnet. Labels gehen nur in die anschliessende Auswertung ein. Ohne expliziten
+`art037.inputs`-Parameter wird dieser lokale Korpustest uebersprungen.
+
+Verifiziert am 2026-09-25: Kalibrierung `12 TP / 0 FP / 2 FN / 29 TN`, Evaluation
+`18 TP / 0 FP / 1 FN / 41 TN` (F1 `0,9730`). Die erzeugten Predictions enthalten ausserdem
+die tatsaechlichen Komponenten und ihre Medoide. Fuer die Bewertung sind die Paarmetriken
+massgeblich; `candidateRecall` des alten Auswerters faellt ohne Kandidatenprognosen auf die
+Paarprognosen zurueck, und dessen `singletonShare` ist aus gelabelten Paaren abgeleitet.
+Dieser bekannte Korpus bleibt gemaess ART-033 ein Regressionstest, kein unabhaengiger
+Freigabenachweis fuer ART-039.
+
 ## Story-Zustaende und Uebergaenge
 
 Eine veroeffentlichte Story besitzt genau einen Zustand:

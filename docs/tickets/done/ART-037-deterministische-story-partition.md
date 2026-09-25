@@ -1,6 +1,6 @@
 # ART-037: Deterministische Story-Partition berechnen
 
-Status: offen
+Status: erledigt
 Bereich: stories
 
 ## Kontext
@@ -50,3 +50,36 @@ Keine.
 
 Der Clusterkern bleibt unveraendert erforderlich. Er liefert die aktuelle Partition mit
 Evidenz; dauerhafte Zuordnungshistorie und Story-Identitaeten gehoeren nicht in diesen Kern.
+
+## Implementierungskommentar
+
+Implementiert am 2026-09-25:
+
+- `StoryPartitionService.calculate(snapshotId)` berechnet die kanonische Partition aus
+  eingefrorenen Snapshot-Mitgliedern und dem gespeicherten Versionsvertrag.
+- Singleton-Start, quantisierte Medoid-Wahl, stabile Zeit-/Referenz-Tie-Breaks und
+  Radius-/Zeitpruefung entsprechen dem Verarbeitungsvertrag. Abgelehnte Vereinigungen
+  werden nach Aenderung einer beteiligten Komponente erneut geprueft.
+- Das Ergebnis enthaelt Komponenten, Medoide, Snapshot-Referenzen sowie Mitgliedsevidenz
+  fuer akzeptierte und abgelehnte Merge-Versuche. `ExactCosine` und die bestehende
+  Vektorvalidierung werden wiederverwendet.
+- Unit-Tests decken leere Snapshots, Singletons, Medoid-Wahl, Gleichstaende, quantisierte
+  Schwellen, Zeitgrenzen, Ketten, abgelehnte Merges, erneute Versuche und Eingabepermutationen ab.
+- Der PostgreSQL-Snapshot-Test prueft die Berechnung aus gespeicherten Artefakten und
+  identische Ergebnisse eines alten Snapshots nach Aenderung aktueller Inputs.
+- Ein lokaler Korpusexport und Java-Korpustest berechnen Kalibrierung und Evaluation
+  getrennt ohne Story-Leakage. Ergebnis: `12/0/2/29` beziehungsweise `18/0/1/41`
+  fuer TP/FP/FN/TN; dies ist kein neuer Holdout-Freigabenachweis.
+- Aufruf, Korpusauswertung und Kapazitaetsgrenzen sind in `docs/story-processing-contract.md`
+  dokumentiert. Der Kern publiziert und persistiert keine Stories und wird noch nicht
+  automatisch vom Scheduler ausgefuehrt.
+
+Validierung: 77 Java-Tests einschliesslich des lokalen Korpustests und vier bestehende
+Python-Auswertungstests erfolgreich. Nach dem Start der lokalen PostgreSQL-Compose-Instanz
+wurden am 2026-09-25 auch die vier PostgreSQL-Snapshot-Integrationstests erfolgreich ausgefuehrt
+(keine Fehler, keine uebersprungenen Tests). Die sechs Clusterkern-Unit-Tests bestanden im
+selben Lauf erneut:
+
+```powershell
+.\mvnw.cmd verify "-Dtest=StoryPartitionServiceTests" "-Dit.test=StorySnapshotServicePostgresIT"
+```
