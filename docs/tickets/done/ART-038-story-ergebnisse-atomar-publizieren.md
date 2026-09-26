@@ -1,6 +1,6 @@
 # ART-038: Story-Ergebnisse atomar publizieren
 
-Status: offen
+Status: erledigt
 Bereich: stories, operations
 
 ## Kontext
@@ -109,3 +109,12 @@ Schemaaenderung fest.
   belegt, nicht durch diesen ersten Live-Lauf. Fuer die Betriebsabnahme noch einen
   erfolgreichen Folgelauf pruefen. Die alten RUNNING-Claims der Versionen 2 und 3 haben
   noch keinen Publish-Commit; Lease-Enden: 20:28:50 und 20:39:05 MESZ.
+
+### Abschluss, 2026-09-26
+
+Auf ausdruecklichen Nutzerwunsch abgeschlossen und nach `done` verschoben.
+Die technische Publikation ist durch Integrationstests und den erfolgreichen Live-Lauf
+belegt. Die Wiederaufnahme der beiden anderen Shadow-Versionen bleibt ein Betriebscheck.
+Die [inhaltliche Stichprobe](../../analysis/ART-038-story-quality-spotcheck.md) zeigt
+Verbesserungsbedarf bei der Clustering-Qualitaet; dieser ist gesondert zu bearbeiten
+und kein Bestandteil der atomaren Publikation dieses Tickets.
