@@ -23,7 +23,7 @@ Stories werden weiterverwendet und aktualisiert; die technische Freigabehistorie
 - Diff fuer Storyanzahl, Singleton-Anteil, Mitgliedschaften, Merge und Split bereitstellen
 - dokumentierte fachliche Freigabe verlangen
 - bestehende Public IDs nach denselben Merge-/Split-Regeln wie im normalen Lauf weiterverwenden
-- den sichtbaren Versionswechsel atomar und historisiert ausfuehren
+- den sichtbaren Versionswechsel atomar ausfuehren und die technische Freigabe protokollieren
 - fehlgeschlagene oder wiederholte Promotion ohne Teilzustand behandeln
 
 ## Akzeptanzkriterien
@@ -37,7 +37,8 @@ Stories werden weiterverwendet und aktualisiert; die technische Freigabehistorie
   erhalten neue IDs, ohne erforderliche Nachfolgerhistorie
 - ein inzwischen geaenderter sichtbarer Stand erzwingt vor dem Wechsel einen neuen ID-Abgleich
 - dauerhafte Challenger-Laeufe sind keine Freigabevoraussetzung
-- die vorherige Version wird nicht geloescht oder nachtraeglich veraendert
+- der vorherige Story-Stand mit seinen Mitgliedschaften muss nach erfolgreicher Promotion
+  nicht erhalten bleiben; bestehende Stories duerfen unter Erhalt ihrer Public IDs aktualisiert werden
 - Statuswechsel und Freigabegrund sind auditierbar
 - die Wiederholung einer erfolgreichen Promotion ist ein No-op
 - PostgreSQL-Integrationstests decken erfolgreiche, abgelehnte, wiederholte und konkurrierende
@@ -53,8 +54,19 @@ vor einer Schemaaenderung konkret mit dem Nutzer klaeren. Kein allgemeiner Daten
 
 ## Offene Fragen
 
-- Wie bleiben oeffentliche Story-IDs beim Versionswechsel erhalten, obwohl der bestehende
-  globale Story-Primaerschluessel dieselbe ID an eine einzige Versionszeile bindet?
+- Welche minimale Schemaanpassung erlaubt das Aktualisieren bestehender Stories auf die
+  neue Version unter Erhalt ihrer Public IDs? Der globale Story-Primaerschluessel allein
+  loest dies nicht: Fremdschluessel binden Stories, Mitgliedschaften und Entscheidungen
+  an dieselbe Clustering-Version; bestehende Historientabellen sind gegen Aenderungen geschuetzt.
 
 Diese Frage bei der Umsetzung gegen den aktuellen Code pruefen; die Zurueckstellung
 der Vereinfachung hebt den geforderten ID-Erhalt nicht auf.
+
+## Anforderungsentscheidung (2026-09-26)
+
+Mit dem Nutzer abgestimmt: Der alte Story-Stand muss nach einer erfolgreichen Promotion
+nicht aufbewahrt werden. Erforderlich bleibt die technische Freigabehistorie mit vorheriger
+und neuer Version, Zeitpunkt, dokumentierter fachlicher Freigabe und Freigabegrund.
+Eine Rekonstruktion alter Story-Mitgliedschaften ist keine Anforderung.
+Public-ID-Erhalt, atomarer Wechsel und unveraenderter sichtbarer Stand bei fehlgeschlagener
+Promotion bleiben erforderlich. Diese Entscheidung legt noch keine Schemaaenderung fest.
