@@ -62,3 +62,50 @@ und die kleinste notwendige Korrektur vor einer Schemaaenderung mit dem Nutzer k
 
 Diese Fragen bei der Umsetzung gegen den aktuellen Code pruefen; sie legen keine
 Schemaaenderung fest.
+
+## Implementierungskommentar
+
+- Der Snapshot-Lauf publiziert Partition, Stories, aktuelle Mitgliedschaften,
+  Assignment-/Paarentscheidungen und Publish-Commit atomar. Lease, monotones Fencing,
+  optimistische Story-Versionen und Snapshot-Reihenfolge sichern konkurrierende Laeufe
+  sowie bereits publizierte und veraltete Retries ab.
+- Split-Nominierung (Anker, sonst groesste Ueberlappung und stabiler Tie-Break) erfolgt
+  vor der Merge-Auswahl. Erweiterung, Schliessen und Wiedereroeffnen erhalten IDs;
+  No-ops erzeugen keine neuen Mitgliedschaften. Lineage wird nicht geschrieben.
+- Mit ausdruecklicher Nutzerfreigabe erweitert V24 den Assignment-Unique-Schluessel um
+  den Snapshot. Unbrauchbare und nicht fertige Inputs werden ohne Vektor eingefroren
+  und begruendet UNASSIGNED; dafuer ist keine weitere Schemaaenderung erforderlich.
+- Run-/Konflikt-/Ergebnismetriken sind vorhanden. SHADOW-Versionen bleiben SHADOW.
+- PostgreSQL-Integrationstests pruefen Neuaufnahme, No-op, Erweiterung, Schliessen,
+  Wiedereroeffnung, Merge, Split, fehlenden Anker, kombinierte Merge/Split-Faelle,
+  Retry, veraltete Retries, konkurrierende Worker, Lease-Ablauf mit Rollback,
+  Fencing-/Versionskonflikte, eingefrorene Nichtverfuegbarkeit und Legacy-Runs.
+- Verifiziert am 2026-09-25: 76 regulaere Tests erfolgreich; der optionale ART-037-
+  Korpustest ist ohne `art037.inputs` uebersprungen. Alle 31 PostgreSQL-Integrationstests
+  sind erfolgreich, davon 14 fuer den Story-Lauf. Im Gesamtprueflauf wurde die feste
+  Migrationserwartung des Importtests von 23 auf 24 angepasst; dessen gezielter
+  Wiederholungslauf ist ebenfalls erfolgreich.
+- Nach dem gemeldeten Heap-Abbruch bei ca. 12.000 Snapshot-Artikeln: Score-Cache auf
+  65.536 Eintraege begrenzt, Auswahl ohne vollstaendige Merge-Kandidatenliste,
+  keine Merge-Diagnosehistorie im Publisher, Wiederverwendung der geladenen Vektoren
+  und weniger Zwischenkopien der Paarentscheidungen. Der Publisher verarbeitet
+  unabhaengige Gruppen des exakten Kandidatengraphen separat bei identischer Partition.
+  Ein Regressionstest prueft 2.200 Artikel / 2.418.900 Paare mit 64 MB Heap.
+
+### Pruefung der laufenden Datenbank, 2026-09-25, 20:29 MESZ
+
+- V24 ist angewendet. Run 164 / Snapshot 163 der 24-h-SHADOW-Version wurde nach
+  Wiederaufnahme erfolgreich publiziert: 11.536 Snapshot-Mitglieder und ebenso viele
+  Entscheidungen, 11.506 aktuelle Mitgliedschaften in 6.855 Stories sowie 30 UNASSIGNED
+  (29 TITLE_MISSING, 1 TITLE_GENERIC). Laufzeit: 101,49 Sekunden.
+- Rein lesende Konsistenzpruefung: keine doppelten aktuellen Mitgliedschaften,
+  keine Story-/Assignment-/Mitgliedschafts-Erzeugung ohne Publish-Commit, keine Commits
+  fehlgeschlagener Runs, keine aktuellen Mitglieder supersedierter Stories.
+- Aktuelle Entscheidungen stimmen mit Mitgliedschaften ueberein. Repraesentanten sind
+  Mitglieder; Zeitspannen, gespeicherte Medoid-Scores und Zeitfenster sind konsistent.
+  Alle drei Clustering-Versionen bleiben SHADOW. Die Scores wurden hier nicht neu berechnet.
+- Der Live-Stand enthaelt bisher eine Publikation; No-op, Merge/Split, Schliessen,
+  Wiedereroeffnung und Konflikt-Rollback sind durch die 14 erfolgreichen PostgreSQL-Tests
+  belegt, nicht durch diesen ersten Live-Lauf. Fuer die Betriebsabnahme noch einen
+  erfolgreichen Folgelauf pruefen. Die alten RUNNING-Claims der Versionen 2 und 3 haben
+  noch keinen Publish-Commit; Lease-Enden: 20:28:50 und 20:39:05 MESZ.

@@ -105,8 +105,9 @@ per `status`-Tag aus; `stories.embedding.backlog` misst den offenen Rueckstand.
 ## Story-Snapshots und Kandidatenpaare
 
 Der inkrementelle Snapshot-Job verarbeitet die `SHADOW`-Clustering-Versionen in der Reihenfolge
-ihrer Datenbank-ID. Pro Version friert er alle zum Lauf-Watermark aktuellen, verwendbaren
-`READY`-Inputs atomar in `story_snapshots` und `story_snapshot_members` ein. Anschliessend
+ihrer Datenbank-ID. Pro Version friert er die aktuellen Inputs bis zum Lauf-Watermark
+atomar in `story_snapshots` und `story_snapshot_members` ein, auch unbrauchbare Titel und
+Inputs ohne fertiges Embedding. Nur eingefrorene `READY`-Vektoren gehen in die Paarberechnung ein. Anschliessend
 validiert er die kanonischen Float32-Vektoren und berechnet innerhalb des versionierten
 24-, 48- oder 72-Stunden-Fensters alle Cosine-Similarities ohne Top-k-Begrenzung.
 
@@ -136,8 +137,9 @@ Snapshot.
 
 Persistiert werden alle quantisierten Treffer ab `0.700000` als `SAME_STORY` sowie die
 deterministische beste exakte Vergleichsdiagnose fuer Artikel ohne positiven Treffer als
-`UNCERTAIN`. Der Job erzeugt keine Stories, Mitgliedschaften, Assignment-, Merge- oder
-Split-Ergebnisse. Da Snapshot-Mitglieder nach `effective_at, article_ref` sortiert sind, beendet
+`UNCERTAIN`. Seit ART-038 berechnet der Job auch die Partition und publiziert Stories,
+Mitgliedschaften, Assignment-Entscheidungen, Paarentscheidungen und den Publish-Nachweis
+in einer Transaktion. Da Snapshot-Mitglieder nach `effective_at, article_ref` sortiert sind, beendet
 die exakte Suche den inneren Scan am ersten Artikel ausserhalb des Zeitfensters. Sie bleibt
 vollstaendig exakt, untersucht aber keine nachweislich unzulaessigen spaeteren Paare.
 
@@ -153,6 +155,35 @@ Micrometer stellt `stories.snapshot.created`, `stories.snapshot.reused`,
 `stories.snapshot.members`, `stories.snapshot.candidates`, `stories.snapshot.failures`, den
 resultatgetaggten Zaehler `stories.snapshot.pairs` und den Timer
 `stories.snapshot.processing.latency` bereit.
+
+Der Publisher prueft den Claim-Timeout als Lease, den neuesten Fencing-Token und den
+optimistischen Story-Stand. Bei Konflikt oder Ablauf rollt die gesamte Publish-Transaktion
+zurueck; der Run wird als fehlgeschlagen markiert und ist retryfaehig. Ein bereits publizierter
+Snapshot bleibt ein No-op. Noch nicht publizierte Snapshots hinter einem neueren Commit
+(geordnet nach Watermark, dann Snapshot-ID) werden `DISCARDED`.
+
+Split-Nominierung und anschliessende Merge-Auswahl erhalten bestehende IDs deterministisch.
+Unveraenderte Mitgliedschaften erzeugen keine neuen Mitgliedschaftszeilen. Stories schliessen
+nach 72 Stunden ohne Aenderung beziehungsweise neues Input-Ereignis und oeffnen bei Aenderungen
+wieder. Titel ohne Inhalt erhalten `TITLE_MISSING` oder `TITLE_GENERIC`; ein im Snapshot
+fehlender fertiger Vektor ergibt `EMBEDDING_NOT_READY`, auch wenn er beim Retry inzwischen
+vorliegt. Bisherige Mitglieder mit einer Zeitkorrektur hinter dem Watermark werden ebenfalls
+eingefroren und mit `AFTER_WATERMARK` abgemeldet. Alle Ergebnisse bleiben versionsintern im
+`SHADOW`-Status; eine Promotion erfolgt nicht.
+
+Zusaetzlich melden `stories.publish.runs` (`result`), `stories.publish.conflicts` und
+`stories.publish.results` (`kind`) Publikationen, Wiederholungen, verworfene Laeufe,
+Konflikte sowie neue, erweiterte, geschlossene, wiedereroeffnete, gemergte, gesplittete und
+abgeloeste Stories, Singletons, Mitgliedschaften und `UNASSIGNED` nach Grund. Ergebniszaehler
+werden erst nach erfolgreichem Commit erhoeht und summieren die Ergebnisse je Lauf.
+
+Nach einem JVM-Heap-Abbruch die Anwendung mit dem korrigierten Build neu starten.
+Ein dabei hinterlassener `RUNNING`-Claim wird nach seinem regulaeren 30-Minuten-Timeout
+automatisch erneut aufgenommen; der Timeout beginnt bei `started_at`, nicht beim Neustart.
+Der Partitionscache ist auf 65.536 Scores begrenzt. Die Publikation clustert unabhaengige
+Gruppen des exakten Kandidatengraphen separat und behaelt keine Merge-Diagnosehistorie im Heap.
+Die Paarberechnung bleibt exakt; grosse zusammenhaengende Gruppen und dichte Paarmengen
+muessen weiterhin hinsichtlich Laufzeit und Speicher vermessen werden.
 
 ## Importstatus
 

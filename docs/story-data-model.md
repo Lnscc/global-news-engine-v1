@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Diese Dokumentation beschreibt den implementierten Ist-Zustand aus ART-034 bis ART-036.
+Diese Dokumentation beschreibt den implementierten Ist-Zustand aus ART-034 bis ART-038.
 ART-041 hat den fachlichen Zielumfang inzwischen reduziert: nur aktuelle Zuordnungen mit
 Begruendung, keine erforderliche Merge-/Split-Historie, ein produktives Verfahren und
 Weiterverwendung bestehender Story-IDs auch bei Regelwechsel. Die unten beschriebenen
@@ -10,9 +10,9 @@ Historientabellen und Schutztrigger existieren weiterhin; sie sind nicht mehr pa
 fachliche MVP-Anforderungen. ART-042 prueft ihre technischen Abhaengigkeiten, ART-043
 setzt gegebenenfalls eine bestaetigte Migration um. Keine bestehende Migration wird geaendert.
 
-Besonders zu pruefen sind der bisher nur inputbezogene Zuordnungsschluessel bei geaenderter
-Nachbarschaft, aktuelle Zuordnungen ohne Historienpflicht, interne Versions-Fremdschluessel
-bei stabilen oeffentlichen IDs sowie Publish-Nachweise gegen veraltete Retries. Ein
+ART-038 ergaenzt snapshotbezogene Zuordnungsschluessel und Publish-Nachweise gegen
+veraltete Retries. Weiter zu pruefen sind aktuelle Zuordnungen ohne Historienpflicht und
+interne Versions-Fremdschluessel bei stabilen oeffentlichen IDs. Ein
 Verfahrenswechsel darf technisch neue Zeilen erzeugen, aber nicht alle Story-IDs ersetzen.
 Die vorhandenen 48-/72-h-Versionen erfordern keinen dauerhaften Parallelbetrieb.
 
@@ -120,7 +120,7 @@ Idempotenzschluessel und Lebenszyklen besitzen:
 
 ```text
 Pair: Entscheidungshash und kanonisches Artikelpaar im Snapshot
-Zuordnung: Version, Artikelreferenz und Artikel-Input-Fingerprint
+Zuordnung: Version, Snapshot, Artikelreferenz und Artikel-Input-Fingerprint (V24)
 Publish: Version und Publish-Schluessel sowie hoechstens ein Commit je Snapshot
 ```
 
@@ -158,8 +158,30 @@ ersten Run eingefroren. Historien- und Entscheidungstabellen sind append-only. E
 Mitgliedschaft darf nur einmalig und ohne Aenderung ihres fachlichen Inhalts beendet werden.
 Ein Regel-, Titel- oder Modellwechsel erzeugt neue Zeilen.
 
-## Nicht enthalten
+## Atomare Publikation (ART-038)
 
-Das Schema enthaelt keinen Embedding-Client, Scheduler, Cluster-Algorithmus, Publisher-Service,
-Backfill-Job oder REST-Endpunkt. Es erzeugt keine Story-Mitgliedschaften und macht keine
-Shadow-Version produktsichtbar.
+V24 erweitert ausschliesslich den Unique-Schluessel der Assignment-Entscheidungen um
+`snapshot_id`. Dadurch koennen neue Nachbarn bei unveraendertem Artikel-Fingerprint eine
+neue Entscheidung ausloesen. Append-only-Schutz und aktuelle Mitgliedschaftseindeutigkeit
+bleiben bestehen. Die Schemaaenderung wurde fuer ART-038 ausdruecklich bestaetigt.
+
+`StoryPublisher` gleicht die Partition gegen die aktuellen Mitgliedschaften derselben
+Clustering-Version ab. Er nominiert pro bisheriger Story eine Split-Komponente und waehlt
+bei mehreren Nominierungen den Merge-Gewinner nach `(created_at, story_id)`. Neue IDs
+werden deterministisch aus Version, Snapshot-Input-Hash und erstem Komponentenmitglied
+gebildet. Bestehende Identitaetsanker bleiben erhalten. Lineage wird nicht geschrieben.
+
+Publikation, Paar- und Assignment-Entscheidungen, Mitgliedschaften und Run-Abschluss teilen
+eine Transaktion. Der Versions-Lock, die Lease mit Fencing-Token und die gelesenen
+optimistischen Story-Versionen verhindern konkurrierende Teilstaende. Publish-Commits
+verhindern doppelte Publikation; die Reihenfolge `(snapshot_watermark, snapshot_id)`
+verhindert das Wiederherstellen abgeloester Staende. Vor ART-038 erfolgreiche Runs ohne
+Publish-Commit koennen mit neuem Fencing-Token publiziert werden.
+
+Ein Snapshot enthaelt auch Inputs ohne verwendbaren Vektor. Nullwerte fuer Artefakt und
+Hash frieren deren Nichtverfuegbarkeit ein; ein spaeter fertiges Embedding wird erst in
+einem neuen Snapshot verwendet. Aktuelle UNASSIGNED-Evidenz liegt in den Entscheidungen
+publizierter Snapshots. Bei einem No-op bleiben die vorhandene Mitgliedschaft und ihre
+Evidenz erhalten; die neue Snapshot-Entscheidung lautet `NO_CHANGE`.
+
+REST-Endpunkte und die Promotion einer Shadow-Version sind nicht enthalten.

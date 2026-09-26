@@ -24,6 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class StorySnapshotServicePostgresIT {
 
@@ -122,7 +123,7 @@ class StorySnapshotServicePostgresIT {
                 SELECT COUNT(*) FROM story_pair_decisions
                 WHERE left_article_ref >= right_article_ref
                 """, Integer.class)).isZero();
-        assertNoStoryOutputs();
+        assertPublishedStories();
 
         long originalRun = jdbc.queryForObject(
                 "SELECT id FROM story_processing_runs", Long.class);
@@ -134,7 +135,7 @@ class StorySnapshotServicePostgresIT {
                 """, originalRun);
         StorySnapshotService.ProcessingResult resumed =
                 service.processBackfill(watermark.plusSeconds(30), 1);
-        assertThat(resumed.succeededVersions()).isOne();
+        assertThat(resumed.reusedVersions()).isOne();
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM story_processing_runs", Integer.class)).isOne();
         assertThat(jdbc.queryForObject(
@@ -182,7 +183,7 @@ class StorySnapshotServicePostgresIT {
                 SELECT COUNT(DISTINCT snapshot_input_hash) FROM story_snapshots
                 """, Integer.class)).isEqualTo(2);
         assertThat(partitionService.calculate(frozenSnapshot)).isEqualTo(partition);
-        assertNoStoryOutputs();
+        assertPublishedStories();
     }
 
     @Test
@@ -209,6 +210,12 @@ class StorySnapshotServicePostgresIT {
                 "SELECT COUNT(*) FROM story_processing_runs", Integer.class)).isOne();
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM story_pair_decisions", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_publish_commits", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM stories", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_memberships WHERE current_marker = 1", Integer.class)).isEqualTo(2);
     }
 
     @Test
@@ -224,7 +231,7 @@ class StorySnapshotServicePostgresIT {
                             repository.findShadowVersions(1).getFirst();
                     repository.lockVersion(version.id());
                     List<StorySnapshotRepository.SnapshotInput> inputs =
-                            repository.findReadyInputs(version.id(), watermark);
+                            repository.findSnapshotInputs(version.id(), watermark);
                     String inputHash = StorySnapshotCanonicalizer.snapshotInputHash(
                             version.key(), watermark, inputs);
                     String snapshotKey = StorySnapshotCanonicalizer.snapshotKey(
@@ -317,6 +324,292 @@ class StorySnapshotServicePostgresIT {
                 """, Integer.class, VERSION_48)).isOne();
     }
 
+    @Test
+    void preservesIdentityAcrossNoOpExtensionClosingAndReopening() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        publish();
+        UUID id = story("a");
+        long membership = jdbc.queryForObject("SELECT id FROM story_memberships", Long.class);
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("a")).isEqualTo(id);
+        assertThat(jdbc.queryForObject("SELECT id FROM story_memberships", Long.class)).isEqualTo(membership);
+        assertThat(jdbc.queryForObject("SELECT optimistic_version FROM stories", Long.class)).isZero();
+
+        insertReadyInput(VERSION_24, "b", vector(1, 0), effectiveAt, null);
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("b")).isEqualTo(id);
+        assertThat(jdbc.queryForObject("SELECT identity_anchor_article_ref FROM stories", String.class))
+                .isEqualTo(ref("a"));
+        advance(Duration.ofHours(73));
+        publish();
+        assertThat(jdbc.queryForObject("SELECT state FROM stories", String.class)).isEqualTo("CLOSED");
+        insertReadyInput(VERSION_24, "c", vector(1, 0), effectiveAt, null);
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("c")).isEqualTo(id);
+        assertThat(jdbc.queryForObject("SELECT state FROM stories", String.class)).isEqualTo("ACTIVE");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships", Integer.class)).isEqualTo(3);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_clustering_versions WHERE status = 'ACTIVE'",
+                Integer.class)).isZero();
+    }
+
+    @Test
+    void mergesAndSplitsWithUnchangedNeighborFingerprintAndDeterministicSurvivor() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        publish();
+        UUID oldest = story("a");
+        advance(Duration.ofMinutes(1));
+        insertReadyInput(VERSION_24, "b", vector(0, 1), effectiveAt, null);
+        publish();
+        UUID second = story("b");
+        assertThat(second).isNotEqualTo(oldest);
+        // B keeps its fingerprint; A's correction makes the two stories merge.
+        replace("a", vector(0, 1), "merge");
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("b")).isEqualTo(oldest);
+        assertThat(jdbc.queryForObject("SELECT state FROM stories WHERE id = ?", String.class, second))
+                .isEqualTo("SUPERSEDED");
+        replace("a", vector(1, 0), "split");
+        advance(Duration.ofMinutes(1));
+        publish();
+        UUID split = story("b");
+        assertThat(story("a")).isEqualTo(oldest);
+        assertThat(split).isNotIn(oldest, second);
+        int memberships = jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships", Integer.class);
+        assertThat(service().processBackfill(watermark, 1).reusedVersions()).isOne();
+        assertThat(story("b")).isEqualTo(split);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships", Integer.class)).isEqualTo(memberships);
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM story_assignment_decisions
+                WHERE article_ref = ? AND result = 'ASSIGNED'
+                """, Integer.class, ref("b"))).isEqualTo(3);
+        // A retry of an already committed older snapshot must not restore its partition.
+        jdbc.update("UPDATE story_processing_runs SET status = 'FAILED' WHERE id = (SELECT MIN(id) FROM story_processing_runs)");
+        assertThat(service().processBackfill(watermark, 1).reusedVersions()).isOne();
+        assertThat(story("b")).isEqualTo(split);
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships", Integer.class)).isEqualTo(memberships);
+    }
+
+    @Test
+    void missingAnchorUsesLargestOverlapAndThenEarliestComponent() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        insertReadyInput(VERSION_24, "b", vector(1, 0), effectiveAt, null);
+        insertReadyInput(VERSION_24, "c", vector(1, 0), effectiveAt, null);
+        insertReadyInput(VERSION_24, "d", vector(1, 0), effectiveAt, null);
+        publish();
+        UUID original = story("a");
+        makeMissing("a");
+        replace("b", vector(0, 1), "split");
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("c")).isEqualTo(original);
+        assertThat(story("d")).isEqualTo(original);
+        assertThat(story("b")).isNotEqualTo(original);
+        replace("d", vector(-1, 0), "tie");
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("c")).isEqualTo(original);
+        assertThat(story("d")).isNotEqualTo(original);
+        assertThat(jdbc.queryForObject("SELECT identity_anchor_article_ref FROM stories WHERE id = ?",
+                String.class, original)).isEqualTo(ref("a"));
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM story_memberships WHERE article_ref = ? AND current_marker = 1
+                """, Integer.class, ref("a"))).isZero();
+        assertThat(jdbc.queryForObject("""
+                SELECT assignment_reason FROM story_assignment_decisions
+                WHERE article_ref = ? ORDER BY id DESC LIMIT 1
+                """, String.class, ref("a"))).isEqualTo("TITLE_MISSING");
+    }
+
+    @Test
+    void simultaneousMergeAndSplitNominatesEachOldIdOnlyOnce() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        insertReadyInput(VERSION_24, "b", vector(1, 0), effectiveAt, null);
+        publish();
+        UUID oldest = story("a");
+        advance(Duration.ofMinutes(1));
+        insertReadyInput(VERSION_24, "c", vector(0, 1), effectiveAt, null);
+        insertReadyInput(VERSION_24, "d", vector(0, 1), effectiveAt, null);
+        publish();
+        UUID other = story("c");
+        replace("c", vector(1, 0), "merge");
+        replace("b", vector(0, 1), "split");
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("a")).isEqualTo(oldest);
+        assertThat(story("c")).isEqualTo(oldest);
+        assertThat(story("b")).isEqualTo(story("d")).isNotIn(oldest, other);
+        assertThat(jdbc.queryForObject("SELECT state FROM stories WHERE id = ?", String.class, other))
+                .isEqualTo("SUPERSEDED");
+    }
+
+    @Test
+    void unavailableSnapshotStaysFrozenWhenEmbeddingBecomesReady() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        jdbc.update("UPDATE story_article_inputs SET embedding_status = 'PENDING'");
+        Work work = prepareWork();
+        jdbc.update("UPDATE story_article_inputs SET embedding_status = 'READY'");
+        StoryPublisher publisher = publisher();
+        StoryPublisher.Plan plan = publisher.prepare(work.snapshot());
+        assertThat(plan.partition().components()).isEmpty();
+        new TransactionTemplate(new DataSourceTransactionManager(dataSource)).executeWithoutResult(status -> {
+            publisher.publish(plan, work.run(), clock.instant(), Duration.ofMinutes(30));
+            new StorySnapshotRepository(jdbc).completeRun(work.run(), 1, 0, 1, 0, clock.instant());
+        });
+        assertThat(jdbc.queryForObject("SELECT assignment_reason FROM story_assignment_decisions", String.class))
+                .isEqualTo("EMBEDDING_NOT_READY");
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(story("a")).isNotNull();
+        assertThat(publisher.prepare(work.snapshot()).partition().components()).isEmpty();
+    }
+
+    @Test
+    void staleUnpublishedSnapshotCannotReplaceNewerPublishedState() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        Work old = prepareWork();
+        new StorySnapshotRepository(jdbc).failRun(old.run(), 1, clock.instant());
+        advance(Duration.ofMinutes(1));
+        insertReadyInput(VERSION_24, "b", vector(1, 0), effectiveAt, null);
+        publish(); // BACKFILL; old work is REPROCESSING and is not retried here.
+        UUID id = story("b");
+        assertThat(service().reprocess(watermark, 1).reusedVersions()).isOne();
+        assertThat(story("b")).isEqualTo(id);
+        assertThat(jdbc.queryForObject("SELECT status FROM story_processing_runs WHERE id = ?",
+                String.class, old.run().id())).isEqualTo("DISCARDED");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_publish_commits", Integer.class)).isOne();
+    }
+
+    @Test
+    void expiredAndSupersededFencingTokensCannotPublishAndExpiryRollsBackAllWrites() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        Work work = prepareWork();
+        StoryPublisher publisher = publisher();
+        StoryPublisher.Plan plan = publisher.prepare(work.snapshot());
+        TransactionTemplate tx = new TransactionTemplate(new DataSourceTransactionManager(dataSource));
+        Instant expired = clock.instant().plus(Duration.ofMinutes(30));
+        assertThatThrownBy(() -> tx.executeWithoutResult(status ->
+                publisher.publish(plan, work.run(), expired, Duration.ofMinutes(30))))
+                .hasMessageContaining("lease expired");
+        assertThatThrownBy(() -> tx.executeWithoutResult(status -> {
+            publisher.publish(plan, work.run(), clock.instant(), Duration.ofMinutes(30));
+            publisher.assertLease(work.snapshot().versionId(), work.run(), expired, Duration.ofMinutes(30));
+        })).hasMessageContaining("lease expired");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM stories", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_assignment_decisions", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships", Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_publish_commits", Integer.class)).isZero();
+        jdbc.update("UPDATE story_processing_runs SET fencing_token = fencing_token + 1 WHERE id = ?", work.run().id());
+        assertThatThrownBy(() -> tx.executeWithoutResult(status ->
+                publisher.publish(plan, work.run(), clock.instant(), Duration.ofMinutes(30))))
+                .hasMessageContaining("fencing token");
+    }
+
+    @Test
+    void optimisticStoryConflictRejectsTheEntirePlan() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        publish();
+        advance(Duration.ofMinutes(1));
+        insertReadyInput(VERSION_24, "b", vector(1, 0), effectiveAt, null);
+        Work work = prepareWork();
+        StoryPublisher publisher = publisher();
+        StoryPublisher.Plan plan = publisher.prepare(work.snapshot());
+        jdbc.update("UPDATE stories SET optimistic_version = optimistic_version + 1");
+        assertThatThrownBy(() -> new TransactionTemplate(new DataSourceTransactionManager(dataSource))
+                .executeWithoutResult(status -> publisher.publish(plan, work.run(), clock.instant(), Duration.ofMinutes(30))))
+                .hasMessageContaining("basis changed");
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_publish_commits", Integer.class)).isOne();
+    }
+
+    @Test
+    void publishesSuccessfulLegacyRunWithoutAnExistingCommit() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        Work work = prepareWork();
+        new StorySnapshotRepository(jdbc).completeRun(work.run(), 1, 0, 1, 0, clock.instant());
+        assertThat(service().reprocess(watermark, 1).succeededVersions()).isOne();
+        assertThat(story("a")).isNotNull();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_processing_runs", Integer.class)).isOne();
+    }
+
+    @Test
+    void futureTimeCorrectionEndsMembershipWithFrozenReason() {
+        insertReadyInput(VERSION_24, "a", vector(1, 0), effectiveAt, null);
+        publish();
+        UUID id = story("a");
+        jdbc.update("UPDATE story_article_inputs SET current_marker = NULL, superseded_at = ? WHERE id = ?",
+                OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC), currentInput(VERSION_24, "a"));
+        insertReadyInput(VERSION_24, "a", vector(1, 0), watermark.plus(Duration.ofDays(1)), "future");
+        advance(Duration.ofMinutes(1));
+        publish();
+        assertThat(jdbc.queryForObject("SELECT COUNT(*) FROM story_memberships WHERE current_marker = 1",
+                Integer.class)).isZero();
+        assertThat(jdbc.queryForObject("SELECT state FROM stories WHERE id = ?", String.class, id))
+                .isEqualTo("SUPERSEDED");
+        assertThat(jdbc.queryForObject("""
+                SELECT assignment_reason FROM story_assignment_decisions ORDER BY id DESC LIMIT 1
+                """, String.class)).isEqualTo("AFTER_WATERMARK");
+    }
+
+    private void publish() {
+        assertThat(service().processBackfill(watermark, 1).succeededVersions()).isOne();
+    }
+
+    private UUID story(String suffix) {
+        return jdbc.queryForObject("SELECT story_id FROM story_memberships WHERE article_ref = ? AND current_marker = 1",
+                UUID.class, ref(suffix));
+    }
+
+    private void advance(Duration duration) {
+        clock = Clock.fixed(clock.instant().plus(duration), ZoneOffset.UTC);
+        watermark = clock.instant();
+    }
+
+    private void replace(String suffix, byte[] vector, String variant) {
+        jdbc.update("UPDATE story_article_inputs SET current_marker = NULL, superseded_at = ? WHERE id = ?",
+                OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC), currentInput(VERSION_24, suffix));
+        insertReadyInput(VERSION_24, suffix, vector, effectiveAt, variant);
+    }
+
+    private void makeMissing(String suffix) {
+        long old = currentInput(VERSION_24, suffix);
+        jdbc.update("UPDATE story_article_inputs SET current_marker = NULL, superseded_at = ? WHERE id = ?",
+                OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC), old);
+        jdbc.update("""
+                INSERT INTO story_article_inputs (clustering_version_id, article_id, article_ref, effective_at,
+                    effective_at_source, title_usability, article_input_fingerprint, embedding_status, current_marker, created_at)
+                SELECT clustering_version_id, article_id, article_ref, effective_at, effective_at_source,
+                    'TITLE_MISSING', ?, 'NOT_REQUIRED', 1, ? FROM story_article_inputs WHERE id = ?
+                """, "0".repeat(64), OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC), old);
+    }
+
+    private StoryPublisher publisher() {
+        return new StoryPublisher(jdbc, new StorySnapshotRepository(jdbc),
+                new DataSourceTransactionManager(dataSource), new SimpleMeterRegistry());
+    }
+
+    private Work prepareWork() {
+        StorySnapshotRepository repository = new StorySnapshotRepository(jdbc);
+        return new TransactionTemplate(new DataSourceTransactionManager(dataSource)).execute(status -> {
+            var version = repository.findShadowVersions(1).getFirst();
+            repository.lockVersion(version.id());
+            var inputs = repository.findSnapshotInputs(version.id(), watermark);
+            String hash = StorySnapshotCanonicalizer.snapshotInputHash(version.key(), watermark, inputs);
+            var snapshot = repository.ensureSnapshot(version, watermark,
+                    StorySnapshotCanonicalizer.snapshotKey(version.key(), watermark, hash), hash, inputs, clock.instant());
+            String key = StorySnapshotCanonicalizer.runKey(version.key(), hash,
+                    StorySnapshotService.RunMode.REPROCESSING, version.pairRuleVersion());
+            var run = repository.claimRun(version, snapshot, StorySnapshotService.RunMode.REPROCESSING,
+                    key, clock.instant(), Duration.ofMinutes(30)).orElseThrow();
+            return new Work(snapshot, run);
+        });
+    }
+
+    private record Work(StorySnapshotRepository.Snapshot snapshot, StorySnapshotRepository.RunClaim run) { }
+
     private StorySnapshotService service() {
         return service(clock);
     }
@@ -328,7 +621,9 @@ class StorySnapshotServicePostgresIT {
                 new DataSourceTransactionManager(dataSource),
                 serviceClock,
                 Duration.ofMinutes(30),
-                new StorySnapshotMetrics(new SimpleMeterRegistry()));
+                new StorySnapshotMetrics(new SimpleMeterRegistry()),
+                new StoryPublisher(jdbc, repository, new DataSourceTransactionManager(dataSource),
+                        new SimpleMeterRegistry()));
     }
 
     private void awaitAndRun(
@@ -442,13 +737,13 @@ class StorySnapshotServicePostgresIT {
         return suffix.repeat(64);
     }
 
-    private void assertNoStoryOutputs() {
+    private void assertPublishedStories() {
         assertThat(jdbc.queryForObject(
-                "SELECT COUNT(*) FROM stories", Integer.class)).isZero();
+                "SELECT COUNT(*) FROM stories", Integer.class)).isEqualTo(4);
         assertThat(jdbc.queryForObject(
-                "SELECT COUNT(*) FROM story_memberships", Integer.class)).isZero();
+                "SELECT COUNT(*) FROM story_memberships WHERE current_marker = 1", Integer.class)).isEqualTo(5);
         assertThat(jdbc.queryForObject(
-                "SELECT COUNT(*) FROM story_assignment_decisions", Integer.class)).isZero();
+                "SELECT COUNT(*) FROM story_assignment_decisions", Integer.class)).isGreaterThanOrEqualTo(5);
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM story_lineage", Integer.class)).isZero();
     }

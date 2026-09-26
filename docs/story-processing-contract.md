@@ -440,12 +440,18 @@ Vektoren berechnet: Die gespeicherten positiven Pair-Entscheidungen allein entha
 fuer den Mittelwert benoetigten Vergleiche. Summen der auf sechs Nachkommastellen quantisierten
 Scores bestimmen den Medoid ohne zusaetzliche Rundung des Mittelwerts.
 
-Der Dienst arbeitet rein lesend und wird noch nicht vom Snapshot-Scheduler aufgerufen.
-Publishing folgt in ART-038. Unterstuetzt wird `medoid-radius-agglomerative-v1` mit den
+Der Partitionsdienst arbeitet rein lesend. Seit ART-038 verwendet ihn der Snapshot-Lauf
+vor der atomaren Publikation durch `StoryPublisher`. Unterstuetzt wird `medoid-radius-agglomerative-v1` mit den
 vorhandenen versionierten Fenstern 24/48/72 Stunden und der Schwelle `0.700000`.
-Der einfache Kern scannt Clusterpaare nach jedem Merge erneut und speichert Scores bei Bedarf
-zwischen. Das kann kubisch viele Paarpruefungen und quadratischen Score-Speicher benoetigen;
-vor einem automatischen Einsatz auf grossen Snapshots ist die Kapazitaet zu messen.
+Der Kern scannt Clusterpaare erneut und waehlt den besten Kandidaten ohne vollstaendige
+Kandidatenliste. Der exakte Score-Cache ist auf 65.536 Eintraege begrenzt; verdraengte Scores
+werden unveraendert neu berechnet. Der Publisher zerlegt den bereits berechneten exakten
+Kandidatengraphen in unabhaengige Zusammenhangskomponenten und clustert diese separat.
+Zwischen diesen Gruppen kann auch nach einem Medoid-Wechsel kein Merge entstehen.
+Der Publisher behaelt nur die finale Komponenten-Evidenz; der lesende Diagnosedienst
+kann weiterhin die Merge-Entscheidungen rekonstruieren. Sehr grosse zusammenhaengende
+Gruppen bleiben rechenintensiv; dichte positive Paarmengen und explizite Diagnosen koennen
+weiterhin quadratisch wachsen. Der Cache-Fix ist keine allgemeine Kapazitaetsgarantie.
 
 Die ART-032-Auswertung nutzt denselben Java-Kern und den bereits lokal gespeicherten
 Embedding-Cache, ohne neue Embedding-Aufrufe. Voraussetzung ist Python mit NumPy.

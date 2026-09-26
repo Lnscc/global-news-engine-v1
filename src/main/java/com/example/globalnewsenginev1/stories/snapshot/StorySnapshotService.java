@@ -16,7 +16,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,15 +35,17 @@ public class StorySnapshotService {
     private final Clock clock;
     private final Duration claimTimeout;
     private final StorySnapshotMetrics metrics;
+    private final StoryPublisher publisher;
 
     @Autowired
     StorySnapshotService(
             StorySnapshotRepository repository,
             PlatformTransactionManager transactionManager,
             @Value("${stories.snapshots.claim-timeout:PT30M}") Duration claimTimeout,
-            StorySnapshotMetrics metrics
+            StorySnapshotMetrics metrics,
+            StoryPublisher publisher
     ) {
-        this(repository, transactionManager, Clock.systemUTC(), claimTimeout, metrics);
+        this(repository, transactionManager, Clock.systemUTC(), claimTimeout, metrics, publisher);
     }
 
     StorySnapshotService(
@@ -52,7 +53,8 @@ public class StorySnapshotService {
             PlatformTransactionManager transactionManager,
             Clock clock,
             Duration claimTimeout,
-            StorySnapshotMetrics metrics
+            StorySnapshotMetrics metrics,
+            StoryPublisher publisher
     ) {
         this.repository = repository;
         this.transaction = new TransactionTemplate(transactionManager);
@@ -60,6 +62,7 @@ public class StorySnapshotService {
         this.clock = clock;
         this.claimTimeout = claimTimeout;
         this.metrics = metrics;
+        this.publisher = publisher;
     }
 
     public ProcessingResult processIncremental(int maxVersions) {
@@ -128,7 +131,7 @@ public class StorySnapshotService {
                 memberCount = retry.get().memberCount();
             } else {
                 List<StorySnapshotRepository.SnapshotInput> inputs =
-                        repository.findReadyInputs(version.id(), watermark);
+                        repository.findSnapshotInputs(version.id(), watermark);
                 String inputHash = StorySnapshotCanonicalizer.snapshotInputHash(
                         version.key(), watermark, inputs);
                 String snapshotKey = StorySnapshotCanonicalizer.snapshotKey(
@@ -161,9 +164,17 @@ public class StorySnapshotService {
             List<StorySnapshotRepository.SnapshotInput> frozenInputs =
                     repository.loadSnapshotInputs(work.snapshot().id());
             PairSearchResult search = search(version, frozenInputs);
-            transaction.executeWithoutResult(status -> {
+            var partition = StoryPartitionService.partitionForPublication(
+                    repository.loadPartitionRules(work.snapshot().id()), frozenInputs, search.decisions());
+            StoryPublisher.Plan plan = publisher.prepare(work.snapshot(), partition);
+            StoryPublisher.Result published = transaction.execute(status -> {
                 Instant completedAt =
                         StorySnapshotCanonicalizer.normalizeWatermark(clock.instant());
+                StoryPublisher.Result result = publisher.publish(plan, work.claim(), completedAt, claimTimeout);
+                if ("DISCARDED".equals(result.outcome())) {
+                    repository.discardRun(work.claim(), completedAt);
+                    return result;
+                }
                 for (PairDecision decision : search.decisions()) {
                     String decisionHash = StorySnapshotCanonicalizer.decisionHash(
                             work.snapshot(), decision.left(), decision.right(),
@@ -171,15 +182,18 @@ public class StorySnapshotService {
                     repository.insertDecision(version, work.snapshot(), work.claim(),
                             decision, decisionHash, completedAt);
                 }
-                repository.completeRun(work.claim(), frozenInputs.size(),
-                        search.changedArticles(), frozenInputs.size() - search.changedArticles(),
+                publisher.assertLease(version.id(), work.claim(), clock.instant(), claimTimeout);
+                repository.completeRun(work.claim(), work.memberCount(),
+                        result.changed(), result.skipped(),
                         search.comparedPairs(), completedAt);
+                return result;
             });
+            publisher.record(published);
             long sameStory = search.decisions().stream()
                     .filter(decision -> "SAME_STORY".equals(decision.result())).count();
             metrics.results(search.comparedPairs(), sameStory,
                     search.decisions().size() - sameStory);
-            return VersionResult.SUCCEEDED;
+            return "PUBLISHED".equals(published.outcome()) ? VersionResult.SUCCEEDED : VersionResult.REUSED;
         } catch (RuntimeException exception) {
             transaction.executeWithoutResult(status -> repository.failRun(
                     work.claim(), 1,
@@ -244,11 +258,8 @@ public class StorySnapshotService {
             }
         }
 
-        Map<PairKey, PairDecision> decisions = new LinkedHashMap<>();
-        for (PairDecision decision : sameStory) {
-            decisions.put(new PairKey(
-                    decision.left().articleRef(), decision.right().articleRef()), decision);
-        }
+        List<PairDecision> decisions = sameStory;
+        Set<PairKey> uncertainPairs = new HashSet<>();
         for (StorySnapshotRepository.SnapshotInput input : inputs) {
             if (articlesWithPositive.contains(input.articleRef())) {
                 continue;
@@ -263,28 +274,28 @@ public class StorySnapshotService {
             StorySnapshotRepository.SnapshotInput right = left == input ? best.other() : input;
             long distance = Duration.between(
                     left.effectiveAt(), right.effectiveAt()).abs().toSeconds();
-            decisions.putIfAbsent(new PairKey(left.articleRef(), right.articleRef()),
-                    new PairDecision(left, right, best.similarity(), distance, 0,
-                            "UNCERTAIN", "top-one-below-threshold-v1", true));
+            if (uncertainPairs.add(new PairKey(left.articleRef(), right.articleRef()))) {
+                decisions.add(new PairDecision(left, right, best.similarity(), distance, 0,
+                        "UNCERTAIN", "top-one-below-threshold-v1", true));
+            }
         }
 
         Comparator<PairDecision> order = Comparator
                 .comparing(PairDecision::similarity, Comparator.reverseOrder())
                 .thenComparing(decision -> decision.left().articleRef())
                 .thenComparing(decision -> decision.right().articleRef());
-        List<PairDecision> ordered = decisions.values().stream().sorted(order).toList();
-        List<PairDecision> ranked = new ArrayList<>(ordered.size());
+        decisions.sort(order);
         Set<String> changedArticles = new HashSet<>();
-        for (int index = 0; index < ordered.size(); index++) {
-            PairDecision decision = ordered.get(index);
-            ranked.add(new PairDecision(decision.left(), decision.right(),
+        for (int index = 0; index < decisions.size(); index++) {
+            PairDecision decision = decisions.get(index);
+            decisions.set(index, new PairDecision(decision.left(), decision.right(),
                     decision.similarity(), decision.timeDistanceSeconds(), index + 1,
                     decision.result(), decision.triggeredRule(),
                     decision.topOneBelowThreshold()));
             changedArticles.add(decision.left().articleRef());
             changedArticles.add(decision.right().articleRef());
         }
-        return new PairSearchResult(List.copyOf(ranked), examinedPairs, comparedPairs,
+        return new PairSearchResult(List.copyOf(decisions), examinedPairs, comparedPairs,
                 changedArticles.size());
     }
 

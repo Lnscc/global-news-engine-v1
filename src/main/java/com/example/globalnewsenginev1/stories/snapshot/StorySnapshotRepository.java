@@ -97,7 +97,7 @@ class StorySnapshotRepository {
                 Timestamp.from(now.minus(claimTimeout))));
     }
 
-    List<SnapshotInput> findReadyInputs(long versionId, Instant watermark) {
+    List<SnapshotInput> findSnapshotInputs(long versionId, Instant watermark) {
         return jdbcTemplate.query("""
                 SELECT input.id AS article_input_id, input.article_ref,
                        input.article_input_fingerprint, input.effective_at,
@@ -105,16 +105,16 @@ class StorySnapshotRepository {
                        artifact.id AS embedding_artifact_id, artifact.vector_hash,
                        artifact.vector_bytes, artifact.embedding_dimension
                 FROM story_article_inputs input
-                JOIN story_embedding_artifacts artifact
+                LEFT JOIN story_embedding_artifacts artifact
                   ON artifact.id = input.embedding_artifact_id
+                 AND input.embedding_status = 'READY' AND artifact.status = 'READY'
+                 AND input.effective_at <= ?
                 WHERE input.clustering_version_id = ?
                   AND input.current_marker = 1
-                  AND input.title_usability = 'USABLE'
-                  AND input.embedding_status = 'READY'
-                  AND artifact.status = 'READY'
-                  AND artifact.vector_bytes IS NOT NULL
-                  AND artifact.vector_hash IS NOT NULL
-                  AND input.effective_at <= ?
+                  AND (input.effective_at <= ? OR EXISTS (
+                      SELECT 1 FROM story_memberships membership
+                      WHERE membership.clustering_version_id = input.clustering_version_id
+                        AND membership.article_ref = input.article_ref AND membership.current_marker = 1))
                 ORDER BY input.effective_at, input.article_ref
                 """, (resultSet, rowNum) -> new SnapshotInput(
                 resultSet.getLong("article_input_id"),
@@ -127,7 +127,7 @@ class StorySnapshotRepository {
                 resultSet.getString("vector_hash"),
                 resultSet.getBytes("vector_bytes"),
                 resultSet.getInt("embedding_dimension")),
-                versionId, Timestamp.from(watermark));
+                Timestamp.from(watermark), versionId, Timestamp.from(watermark));
     }
 
     Snapshot ensureSnapshot(
@@ -176,7 +176,8 @@ class StorySnapshotRepository {
                         ON CONFLICT DO NOTHING
                         """, snapshot.id(), version.id(), input.articleInputId(),
                         input.articleRef(), input.articleInputFingerprint(),
-                        input.embeddingArtifactId(), input.vectorHash());
+                        input.embeddingArtifactId() == 0 ? null : input.embeddingArtifactId(),
+                        input.vectorHash());
             }
             memberCount = jdbcTemplate.queryForObject("""
                     SELECT COUNT(*) FROM story_snapshot_members WHERE snapshot_id = ?
@@ -230,7 +231,11 @@ class StorySnapshotRepository {
                 && state.startedAt().equals(now);
         boolean stale = "RUNNING".equals(state.status())
                 && !state.startedAt().plus(claimTimeout).isAfter(now);
-        boolean retryable = "FAILED".equals(state.status()) || stale;
+        boolean unpublished = "SUCCEEDED".equals(state.status())
+                && Boolean.FALSE.equals(jdbcTemplate.queryForObject("""
+                    SELECT EXISTS (SELECT 1 FROM story_publish_commits WHERE snapshot_id = ?)
+                    """, Boolean.class, snapshot.id()));
+        boolean retryable = "FAILED".equals(state.status()) || stale || unpublished;
         if (!newlyInserted && !retryable) {
             return Optional.empty();
         }
@@ -372,6 +377,13 @@ class StorySnapshotRepository {
                 SET status = 'FAILED', completed_at = ?, failed_article_count = ?
                 WHERE id = ? AND status = 'RUNNING' AND fencing_token = ?
                 """, Timestamp.from(now), failedArticles, claim.id(), claim.fencingToken());
+    }
+
+    void discardRun(RunClaim claim, Instant now) {
+        jdbcTemplate.update("""
+                UPDATE story_processing_runs SET status = 'DISCARDED', completed_at = ?
+                WHERE id = ? AND status = 'RUNNING' AND fencing_token = ?
+                """, Timestamp.from(now), claim.id(), claim.fencingToken());
     }
 
     record ClusteringVersion(

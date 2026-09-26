@@ -30,7 +30,7 @@ final class StorySnapshotCanonicalizer {
             field(canonical, "articleRef", input.articleRef());
             field(canonical, "articleInputFingerprint", input.articleInputFingerprint());
             field(canonical, "embeddingArtifactId", Long.toString(input.embeddingArtifactId()));
-            field(canonical, "vectorHash", input.vectorHash());
+            field(canonical, "vectorHash", String.valueOf(input.vectorHash()));
             field(canonical, "effectiveAt", input.effectiveAt().toString());
         }
         return sha256(canonical.toString());
