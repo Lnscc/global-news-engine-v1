@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,8 +29,55 @@ public class StoryPartitionService {
         return partition(rules, repository.loadSnapshotInputs(snapshotId));
     }
 
+    static Partition partitionForPublication(SnapshotRules rules,
+            List<StorySnapshotRepository.SnapshotInput> inputs,
+            List<StorySnapshotService.PairDecision> pairs) {
+        if (inputs.isEmpty()) return partition(rules, inputs, false);
+        Map<String, Integer> indexes = new HashMap<>();
+        int[] parents = new int[inputs.size()];
+        for (int i = 0; i < inputs.size(); i++) {
+            indexes.put(inputs.get(i).articleRef(), i);
+            parents[i] = i;
+        }
+        // Every possible medoid merge is an edge in the already computed exact candidate graph.
+        // Disconnected groups cannot influence each other, even after medoids change.
+        for (var pair : pairs) {
+            if ("SAME_STORY".equals(pair.result())) {
+                int left = root(parents, indexes.get(pair.left().articleRef()));
+                int right = root(parents, indexes.get(pair.right().articleRef()));
+                parents[Math.max(left, right)] = Math.min(left, right);
+            }
+        }
+        Map<Integer, List<StorySnapshotRepository.SnapshotInput>> groups = new LinkedHashMap<>();
+        for (int i = 0; i < inputs.size(); i++) {
+            groups.computeIfAbsent(root(parents, i), ignored -> new ArrayList<>()).add(inputs.get(i));
+        }
+        List<Component> components = new ArrayList<>();
+        for (var group : groups.values()) {
+            components.addAll(partition(rules, group, false).components());
+        }
+        components.sort(Comparator
+                .comparing((Component c) -> inputs.get(indexes.get(c.members().getFirst().articleRef())).effectiveAt())
+                .thenComparing(c -> c.members().getFirst().articleRef()));
+        return new Partition(rules, List.copyOf(components), List.of());
+    }
+
+    private static int root(int[] parents, int index) {
+        while (parents[index] != index) {
+            parents[index] = parents[parents[index]];
+            index = parents[index];
+        }
+        return index;
+    }
+
     static Partition partition(SnapshotRules rules,
                                List<StorySnapshotRepository.SnapshotInput> frozenInputs) {
+        return partition(rules, frozenInputs, true);
+    }
+
+    static Partition partition(SnapshotRules rules,
+                               List<StorySnapshotRepository.SnapshotInput> frozenInputs,
+                               boolean includeMergeDiagnostics) {
         if (!COMPONENT_RULE.equals(rules.componentRuleVersion())
                 || !"exact-cosine-radius-v1".equals(rules.searchMode())
                 || !Set.of(24, 48, 72).contains(rules.windowHours())
@@ -60,10 +108,13 @@ public class StoryPartitionService {
         long threshold = rules.threshold().movePointRight(6).longValueExact();
         Set<Candidate> rejected = new HashSet<>();
         List<MergeDecision> decisions = new ArrayList<>();
+        Comparator<Candidate> order = Comparator.comparingLong(Candidate::similarity).reversed()
+                .thenComparing(c -> inputs.get(c.left().medoid()).articleRef())
+                .thenComparing(c -> inputs.get(c.right().medoid()).articleRef());
         // ponytail: rescan cluster pairs after each merge; use an invalidating priority queue
         // if measured snapshot sizes make these O(n^3) pair scans too slow.
         while (true) {
-            List<Candidate> candidates = new ArrayList<>();
+            Candidate best = null;
             for (int i = 0; i < clusters.size(); i++) {
                 for (int j = i + 1; j < clusters.size(); j++) {
                     Cluster left = clusters.get(i);
@@ -79,39 +130,36 @@ public class StoryPartitionService {
                     }
                     long score = scores.get(left.medoid(), right.medoid());
                     Candidate candidate = new Candidate(left, right, score);
-                    if (score >= threshold && !rejected.contains(candidate)) {
-                        candidates.add(candidate);
+                    if (score >= threshold && !rejected.contains(candidate)
+                            && (best == null || order.compare(candidate, best) < 0)) {
+                        best = candidate;
                     }
                 }
             }
-            candidates.sort(Comparator.comparingLong(Candidate::similarity).reversed()
-                    .thenComparing(c -> inputs.get(c.left().medoid()).articleRef())
-                    .thenComparing(c -> inputs.get(c.right().medoid()).articleRef()));
-            boolean merged = false;
-            for (Candidate candidate : candidates) {
-                List<Integer> members = new ArrayList<>(candidate.left().members());
-                members.addAll(candidate.right().members());
-                members.sort(Integer::compareTo);
-                int medoid = medoid(members, scores);
-                List<MemberEvidence> evidence = evidence(members, medoid, inputs, scores);
-                boolean accepted = evidence.stream().allMatch(member ->
-                        member.similarityToMedoid().compareTo(rules.threshold()) >= 0
-                                && member.timeDistance().compareTo(window) <= 0);
-                decisions.add(new MergeDecision(refs(candidate.left(), inputs),
-                        refs(candidate.right(), inputs), decimal(candidate.similarity()),
-                        inputs.get(medoid).articleRef(), accepted, evidence));
-                if (accepted) {
-                    clusters.remove(candidate.left());
-                    clusters.remove(candidate.right());
-                    clusters.add(new Cluster(List.copyOf(members), medoid));
-                    clusters.sort(Comparator.comparingInt(c -> c.members().getFirst()));
-                    merged = true;
-                    break;
-                }
+            if (best == null) break;
+            Candidate candidate = best;
+            List<Integer> members = new ArrayList<>(candidate.left().members());
+            members.addAll(candidate.right().members());
+            members.sort(Integer::compareTo);
+            int medoid = medoid(members, scores);
+            List<MemberEvidence> evidence = evidence(members, medoid, inputs, scores);
+            boolean accepted = evidence.stream().allMatch(member ->
+                    member.similarityToMedoid().compareTo(rules.threshold()) >= 0
+                            && member.timeDistance().compareTo(window) <= 0);
+            if (includeMergeDiagnostics) decisions.add(new MergeDecision(refs(candidate.left(), inputs),
+                    refs(candidate.right(), inputs), decimal(candidate.similarity()),
+                    inputs.get(medoid).articleRef(), accepted, evidence));
+            if (accepted) {
+                clusters.remove(candidate.left());
+                clusters.remove(candidate.right());
+                clusters.add(new Cluster(List.copyOf(members), medoid));
+                clusters.sort(Comparator.comparingInt(c -> c.members().getFirst()));
+                rejected.removeIf(previous -> previous.left().equals(candidate.left())
+                        || previous.right().equals(candidate.left())
+                        || previous.left().equals(candidate.right())
+                        || previous.right().equals(candidate.right()));
+            } else {
                 rejected.add(candidate);
-            }
-            if (!merged) {
-                break;
             }
         }
         List<Component> components = clusters.stream().map(cluster -> new Component(
@@ -169,8 +217,13 @@ public class StoryPartitionService {
 
     private static final class Scores {
         private final List<float[]> vectors;
-        // ponytail: lazy pair cache can grow quadratically; bound it if memory profiling requires it.
-        private final Map<Long, Long> cache = new HashMap<>();
+        // Eviction only causes exact recomputation; it never changes scores or the partition.
+        private final Map<Long, Long> cache = new LinkedHashMap<>(1024, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<Long, Long> eldest) {
+                return size() > 65_536;
+            }
+        };
 
         Scores(List<float[]> vectors) {
             this.vectors = vectors;

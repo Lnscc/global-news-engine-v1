@@ -122,7 +122,19 @@ class StoryPartitionServiceTests {
     }
 
     private static StoryPartitionService.Partition partition(List<StorySnapshotRepository.SnapshotInput> inputs) {
-        return StoryPartitionService.partition(rules(24), inputs);
+        var diagnostic = StoryPartitionService.partition(rules(24), inputs);
+        var publication = StoryPartitionService.partition(rules(24), inputs, false);
+        assertThat(publication.components()).isEqualTo(diagnostic.components());
+        assertThat(publication.decisions()).isEmpty();
+        var sorted = inputs.stream().sorted(java.util.Comparator
+                .comparing(StorySnapshotRepository.SnapshotInput::effectiveAt)
+                .thenComparing(StorySnapshotRepository.SnapshotInput::articleRef)).toList();
+        var version = new StorySnapshotRepository.ClusteringVersion(1, "version", 2, 24,
+                new BigDecimal("0.700000"), "exact-cosine-radius-v1", "pair-rule");
+        var pairs = StorySnapshotService.search(version, sorted);
+        assertThat(StoryPartitionService.partitionForPublication(rules(24), sorted, pairs.decisions()).components())
+                .isEqualTo(diagnostic.components());
+        return diagnostic;
     }
 
     private static StoryPartitionService.SnapshotRules rules(int window) {
