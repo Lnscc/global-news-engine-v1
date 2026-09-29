@@ -330,12 +330,12 @@ class StoryDomainModelMigrationPostgresIT {
         UUID storyId = UUID.randomUUID();
         jdbcTemplate.update("""
                 INSERT INTO stories (
-                    id, clustering_version_id, identity_anchor_article_ref,
+                    id, public_id, clustering_version_id, identity_anchor_article_ref,
                     representative_article_ref, state, effective_from, effective_to,
                     optimistic_version, created_by_run_id, last_changed_by_run_id,
                     created_at, updated_at
-                ) VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, 0, ?, ?, ?, ?)
-                """, storyId, versionId, articleRef, articleRef, timestamp, timestamp,
+                ) VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?, 0, ?, ?, ?, ?)
+                """, storyId, storyId, versionId, articleRef, articleRef, timestamp, timestamp,
                 runId, runId, timestamp, timestamp);
         return storyId;
     }

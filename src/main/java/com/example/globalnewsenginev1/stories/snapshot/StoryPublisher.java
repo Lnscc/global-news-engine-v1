@@ -11,7 +11,6 @@ import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -101,28 +100,10 @@ class StoryPublisher {
                 componentByArticle.put(member.articleRef(), i);
             }
         }
-        Map<Integer, List<Story>> nominees = new HashMap<>();
+        var identity = StoryIdentity.match(plan.basis().stories(), plan.basis().memberships(), componentByArticle);
+        Map<Integer, List<Story>> nominees = identity.nominees();
         Map<String, Long> counts = new LinkedHashMap<>();
-        for (Story story : plan.basis().stories()) {
-            Map<Integer, Integer> overlap = new HashMap<>();
-            for (Membership member : plan.basis().memberships()) {
-                Integer component = componentByArticle.get(member.ref());
-                if (member.storyId().equals(story.id()) && component != null) {
-                    overlap.merge(component, 1, Integer::sum);
-                }
-            }
-            if (overlap.size() > 1) count(counts, "split");
-            Integer nomination = componentByArticle.get(story.anchor());
-            if (nomination == null || !overlap.containsKey(nomination)) {
-                nomination = overlap.entrySet().stream()
-                        .sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed()
-                                .thenComparing(Map.Entry.comparingByKey()))
-                        .map(Map.Entry::getKey).findFirst().orElse(null);
-            }
-            if (nomination != null) {
-                nominees.computeIfAbsent(nomination, ignored -> new ArrayList<>()).add(story);
-            }
-        }
+        if (identity.splits() > 0) counts.put("split", (long) identity.splits());
         Map<String, UUID> assignments = new HashMap<>();
         Map<String, StoryPartitionService.MemberEvidence> evidence = new HashMap<>();
         Map<String, String> medoids = new HashMap<>();
@@ -130,8 +111,7 @@ class StoryPublisher {
         for (int i = 0; i < components.size(); i++) {
             var component = components.get(i);
             List<Story> candidates = nominees.getOrDefault(i, List.of());
-            Story old = candidates.stream().min(Comparator.comparing(Story::createdAt)
-                    .thenComparing(story -> story.id().toString())).orElse(null);
+            Story old = StoryIdentity.winner(candidates);
             String firstRef = component.members().getFirst().articleRef();
             UUID id = old == null ? UUID.nameUUIDFromBytes((snapshot.versionId() + ":"
                     + snapshot.inputHash() + ":" + firstRef).getBytes(StandardCharsets.UTF_8)) : old.id();
@@ -164,11 +144,11 @@ class StoryPublisher {
             }
             if (old == null) {
                 jdbc.update("""
-                        INSERT INTO stories (id, clustering_version_id, identity_anchor_article_ref,
+                        INSERT INTO stories (id, public_id, clustering_version_id, identity_anchor_article_ref,
                             representative_article_ref, state, effective_from, effective_to,
                             created_by_run_id, last_changed_by_run_id, created_at, updated_at)
-                        VALUES (?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?)
-                        """, id, snapshot.versionId(), firstRef, component.medoidArticleRef(),
+                        VALUES (?, ?, ?, ?, ?, 'ACTIVE', ?, ?, ?, ?, ?, ?)
+                        """, id, id, snapshot.versionId(), firstRef, component.medoidArticleRef(),
                         ts(from), ts(to), run.id(), run.id(), ts(now), ts(now));
                 count(counts, "new");
             } else if (changed || !state.equals(old.state())) {
@@ -275,18 +255,18 @@ class StoryPublisher {
         if (updated != 1) throw conflict("Story optimistic version changed");
     }
 
-    private List<Story> stories(long versionId) {
+    List<Story> stories(long versionId) {
         return jdbc.query("""
                 SELECT * FROM stories WHERE clustering_version_id = ? AND state <> 'SUPERSEDED'
                 ORDER BY created_at, id FOR UPDATE
-                """, (rs, row) -> new Story(rs.getObject("id", UUID.class),
+                """, (rs, row) -> new Story(rs.getObject("id", UUID.class), rs.getObject("public_id", UUID.class),
                 rs.getString("identity_anchor_article_ref"), rs.getString("representative_article_ref"),
                 rs.getString("state"), rs.getTimestamp("effective_from").toInstant(),
                 rs.getTimestamp("effective_to").toInstant(), rs.getLong("optimistic_version"),
                 rs.getTimestamp("created_at").toInstant(), rs.getTimestamp("updated_at").toInstant()), versionId);
     }
 
-    private List<Membership> memberships(long versionId) {
+    List<Membership> memberships(long versionId) {
         return jdbc.query("""
                 SELECT id, story_id, article_ref, article_input_fingerprint FROM story_memberships
                 WHERE clustering_version_id = ? AND current_marker = 1 ORDER BY article_ref
@@ -294,7 +274,7 @@ class StoryPublisher {
                 rs.getString("article_ref"), rs.getString("article_input_fingerprint")), versionId);
     }
 
-    private long latestCommit(long versionId) {
+    long latestCommit(long versionId) {
         return jdbc.queryForObject("SELECT COALESCE(MAX(id), 0) FROM story_publish_commits WHERE clustering_version_id = ?",
                 Long.class, versionId);
     }
@@ -305,7 +285,7 @@ class StoryPublisher {
     }
     private static void count(Map<String, Long> counts, String key) { counts.merge(key, 1L, Long::sum); }
 
-    record Story(UUID id, String anchor, String representative, String state, Instant from, Instant to,
+    record Story(UUID id, UUID publicId, String anchor, String representative, String state, Instant from, Instant to,
                  long version, Instant createdAt, Instant updatedAt) { }
     record Membership(long id, UUID storyId, String ref, String fingerprint) { }
     record Input(long id, long articleId, String ref, String fingerprint, Instant effectiveAt,

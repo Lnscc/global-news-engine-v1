@@ -83,7 +83,7 @@ public class StorySnapshotService {
         }
         Instant watermark = StorySnapshotCanonicalizer.normalizeWatermark(requestedWatermark);
         List<StorySnapshotRepository.ClusteringVersion> versions =
-                repository.findShadowVersions(maxVersions);
+                repository.findProcessingVersions(maxVersions);
         int succeeded = 0;
         int reused = 0;
         int failed = 0;

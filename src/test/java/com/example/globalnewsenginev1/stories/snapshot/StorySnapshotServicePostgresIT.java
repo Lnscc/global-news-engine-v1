@@ -228,7 +228,7 @@ class StorySnapshotServicePostgresIT {
         StorySnapshotRepository.RunClaim originalClaim =
                 new TransactionTemplate(transactionManager).execute(status -> {
                     StorySnapshotRepository.ClusteringVersion version =
-                            repository.findShadowVersions(1).getFirst();
+                            repository.findProcessingVersions(1).getFirst();
                     repository.lockVersion(version.id());
                     List<StorySnapshotRepository.SnapshotInput> inputs =
                             repository.findSnapshotInputs(version.id(), watermark);
@@ -594,7 +594,7 @@ class StorySnapshotServicePostgresIT {
     private Work prepareWork() {
         StorySnapshotRepository repository = new StorySnapshotRepository(jdbc);
         return new TransactionTemplate(new DataSourceTransactionManager(dataSource)).execute(status -> {
-            var version = repository.findShadowVersions(1).getFirst();
+            var version = repository.findProcessingVersions(1).getFirst();
             repository.lockVersion(version.id());
             var inputs = repository.findSnapshotInputs(version.id(), watermark);
             String hash = StorySnapshotCanonicalizer.snapshotInputHash(version.key(), watermark, inputs);

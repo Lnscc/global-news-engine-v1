@@ -19,14 +19,14 @@ class StorySnapshotRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
-    List<ClusteringVersion> findShadowVersions(int limit) {
+    List<ClusteringVersion> findProcessingVersions(int limit) {
         return jdbcTemplate.query("""
                 SELECT id, version_key, embedding_dimension, candidate_window_hours,
                        candidate_similarity_threshold, candidate_search_mode,
                        pair_decision_rule_version
                 FROM story_clustering_versions
-                WHERE status = 'SHADOW'
-                ORDER BY id
+                WHERE status IN ('SHADOW', 'ACTIVE')
+                ORDER BY CASE WHEN status = 'ACTIVE' THEN 0 ELSE 1 END, id
                 LIMIT ?
                 """, (resultSet, rowNum) -> new ClusteringVersion(
                 resultSet.getLong("id"),
@@ -41,7 +41,7 @@ class StorySnapshotRepository {
     void lockVersion(long versionId) {
         jdbcTemplate.query("SELECT pg_advisory_xact_lock(?)", resultSet -> null, versionId);
         jdbcTemplate.queryForObject("""
-                SELECT id FROM story_clustering_versions WHERE id = ? FOR SHARE
+                SELECT id FROM story_clustering_versions WHERE id = ? AND status IN ('SHADOW', 'ACTIVE') FOR SHARE
                 """, Long.class, versionId);
     }
 

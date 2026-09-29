@@ -46,7 +46,7 @@ class StoryEmbeddingRepository {
                   ON current.clustering_version_id = version.id
                  AND current.article_ref = article.url_hash
                  AND current.current_marker = 1
-                WHERE version.status = 'SHADOW'
+                WHERE version.status IN ('SHADOW', 'ACTIVE')
                   AND (
                     current.id IS NULL
                     OR article.updated_at > current.created_at
@@ -56,7 +56,7 @@ class StoryEmbeddingRepository {
                     ) > current.created_at
                     OR %s
                   )
-                ORDER BY article.id, version.id
+                ORDER BY CASE WHEN version.status = 'ACTIVE' THEN 0 ELSE 1 END, article.id, version.id
                 LIMIT ?
                 """.formatted(retryPredicate), (resultSet, rowNum) -> new ArticleCandidate(
                 resultSet.getLong("version_id"),
@@ -71,6 +71,12 @@ class StoryEmbeddingRepository {
                 resultSet.getTimestamp("first_seen_at").toInstant(),
                 resultSet.getString("title"),
                 nullableInstant(resultSet.getTimestamp("published_at"))), limit);
+    }
+
+    boolean lockProcessingVersion(long versionId) {
+        return !jdbcTemplate.queryForList("""
+                SELECT id FROM story_clustering_versions WHERE id = ? AND status IN ('SHADOW', 'ACTIVE') FOR SHARE
+                """, Long.class, versionId).isEmpty();
     }
 
     void lockArticle(long articleId) {

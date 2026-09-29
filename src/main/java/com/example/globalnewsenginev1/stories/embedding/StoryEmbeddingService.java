@@ -86,6 +86,7 @@ public class StoryEmbeddingService {
     }
 
     private boolean processCandidate(StoryEmbeddingRepository.ArticleCandidate candidate) {
+        if (!repository.lockProcessingVersion(candidate.versionId())) return false;
         repository.lockArticle(candidate.articleId());
         TitleInput title = normalizer.normalize(candidate.title());
         Instant now = clock.instant();
