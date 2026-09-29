@@ -1,8 +1,8 @@
 {
   "info": {
     "_postman_id": "33af713d-e32f-4a3d-939e-5bb0bb90d003",
-    "name": "Global News Engine - Article API",
-    "description": "Manuelle Tests fuer die REST-Endpunkte der Article API, einschliesslich nullable GKG-Publikationszeit und GKG-Sharing-Image, normalisierter GKG-Personen, Organisationen, Orte und Tone-Komponenten, Artikelsuche und Extraction Health.",
+    "name": "Global News Engine API",
+    "description": "Manuelle Vertrags- und Statuscode-Tests fuer die Article API und die lesende Story API.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -180,6 +180,132 @@
               "listen": "test",
               "script": {
                 "exec": ["pm.test('Status ist 404', () => pm.response.to.have.status(404));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Stories",
+      "item": [
+        {
+          "name": "Stories auflisten",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stories?offset={{offset}}&limit={{pageLimit}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stories"],
+              "query": [
+                { "key": "offset", "value": "{{offset}}" },
+                { "key": "limit", "value": "{{pageLimit}}" }
+              ]
+            },
+            "description": "Liefert nicht abgeloeste Stories der aktuellen ACTIVE-Clustering-Version."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Response hat stabile Story-Page-Felder', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.all.keys('stories', 'offset', 'limit', 'total');",
+                  "  pm.expect(body.stories).to.be.an('array');",
+                  "  body.stories.forEach(story => {",
+                  "    pm.expect(story).to.have.all.keys('id', 'state', 'effectiveFrom', 'effectiveTo', 'representativeArticle', 'memberCount');",
+                  "    pm.expect(story.state).to.be.oneOf(['ACTIVE', 'CLOSED']);",
+                  "    pm.expect(story.representativeArticle).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'publishedAt', 'mainImageUrl');",
+                  "  });",
+                  "});",
+                  "const body = pm.response.json();",
+                  "if (body.stories.length > 0) pm.environment.set('storyId', body.stories[0].id);"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Storydetails abrufen",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stories/{{storyId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["stories", "{{storyId}}"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Detail hat stabile Story-Felder', () => {",
+                  "  const body = pm.response.json();",
+                  "  pm.expect(body).to.have.all.keys('id', 'state', 'effectiveFrom', 'effectiveTo', 'representativeArticle', 'members');",
+                  "  pm.expect(body.members).to.be.an('array');",
+                  "  body.members.forEach(member => {",
+                  "    pm.expect(member).to.have.all.keys('article', 'assignmentReason');",
+                  "    pm.expect(member.article).to.have.all.keys('id', 'canonicalUrl', 'domain', 'firstSeenAt', 'title', 'publishedAt', 'mainImageUrl');",
+                  "  });",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Unbekannte Story",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stories/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["stories", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": ["pm.test('Status ist 404', () => pm.response.to.have.status(404));"],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ungueltige Story-Pagination",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/stories?offset=-1&limit=101",
+              "host": ["{{baseUrl}}"],
+              "path": ["stories"],
+              "query": [
+                { "key": "offset", "value": "-1" },
+                { "key": "limit", "value": "101" }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status ist 400', () => pm.response.to.have.status(400));",
+                  "pm.test('Fehlervertrag ist stabil', () => pm.expect(pm.response.json()).to.have.all.keys('code', 'message'));"
+                ],
                 "type": "text/javascript"
               }
             }

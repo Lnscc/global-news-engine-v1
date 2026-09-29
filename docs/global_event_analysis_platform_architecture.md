@@ -92,6 +92,8 @@ zur gespeicherten Clustering-Version, nicht zur Scheduler-Konfiguration.
 | `GET` | `/articles/domains/top` | haeufigste Domains |
 | `GET` | `/articles/themes/top` | haeufigste GKG-Themes |
 | `GET` | `/articles/extraction/health` | Pipeline- und Extraktionsfehler |
+| `GET` | `/stories` | aktuelle Stories stabil sortiert und paginiert |
+| `GET` | `/stories/{id}` | Story-Metadaten und aktuelle Mitgliedschaften |
 
 Collection und Vertragstests liegen in [`postman`](postman).
 

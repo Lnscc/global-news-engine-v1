@@ -70,6 +70,8 @@ Add `-v` only when you intentionally want to remove the local database volume as
 | `GET` | `/articles/domains/top?limit=10` | List the most frequent article domains |
 | `GET` | `/articles/themes/top?limit=10` | List the most frequent GDELT themes |
 | `GET` | `/articles/extraction/health` | Show article extraction health and errors |
+| `GET` | `/stories?offset=0&limit=20` | List stories from the active clustering version |
+| `GET` | `/stories/{id}` | Get a current story and its members |
 
 Example:
 

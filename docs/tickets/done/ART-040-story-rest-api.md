@@ -1,6 +1,6 @@
 # ART-040: Story REST API bereitstellen
 
-Status: offen
+Status: erledigt
 Bereich: stories
 
 ## Kontext
@@ -50,3 +50,12 @@ Story-Zusammenfassungen und UI sind nicht enthalten.
 ## Offene Fragen
 
 Keine.
+
+## Implementierungskommentar
+
+`GET /stories` und `GET /stories/{id}` lesen ausschliesslich nicht abgeloeste Stories der aktuellen
+`ACTIVE`-Clustering-Version. Die Liste ist begrenzt, validiert und stabil sortiert; das Detail
+liefert Zustand, Zeitraum, repraesentativen Artikel sowie aktuelle Mitglieder mit Zuordnungsgrund.
+Unbekannte und abgeloeste IDs liefern `404`, weiterverwendete oeffentliche IDs den aktuellen Stand.
+Controller-, JDBC- und PostgreSQL-Integrationstests sowie README, Architektur-, Story- und
+Postman-Dokumentation decken den Vertrag ab.

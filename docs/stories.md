@@ -268,3 +268,14 @@ Vektorkandidatensuche, Regelversionierung sowie Merge und Split. Dabei muss die 
 `hoechstens eine Story je Artikel und Clustering-Version` erhalten bleiben. Eine spaetere
 Mehrfachmitgliedschaft ist nur mit einem neuen fachlichen Vertrag und einer Evaluation gegen die
 hier beschriebenen Sammel- und Liveblogfaelle zulaessig.
+
+## REST API
+
+`GET /stories?offset=0&limit=20` liefert ausschliesslich nicht abgeloeste Stories der aktuellen
+`ACTIVE`-Clustering-Version. Die Sortierung ist `effectiveTo` absteigend und danach Story-ID
+aufsteigend; `offset` muss mindestens 0 und `limit` zwischen 1 und 100 liegen.
+
+`GET /stories/{id}` liefert Zustand, effektiven Zeitraum, repraesentativen Artikel und aktuelle
+Mitgliedschaften mit Zuordnungsgrund. Unbekannte oder abgeloeste IDs liefern `404`. Bei einer
+weiterverwendeten oeffentlichen ID wird der Stand der aktuellen `ACTIVE`-Version geliefert.
+Shadow- und ausgemusterte Versionen sind nicht produktsichtbar.
