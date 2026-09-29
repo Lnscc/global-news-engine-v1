@@ -1,0 +1,248 @@
+{
+  "version": "art044-holdout-v1.0.0",
+  "provenance": "Local GDELT pipeline; effectiveAt from 2026-09-01T00:00:00Z inclusive to 2026-09-03T00:00:00Z exclusive; reviewed in docs/analysis/ART-044-holdout-review.md",
+  "labelledBy": "Linus",
+  "independenceStatement": "The holdout is outside the ART-032 period, excludes all documented ART-038 cases, and was not used to choose clustering rules, thresholds, or release gates.",
+  "pairs": [
+    {
+      "left": "195dce6b97eb276f1e5794af015ce004571b8b55f91680d85b106a562ce3c634",
+      "right": "2dcc78c448b6d245b399e64d81e9513a3d15915147b459fc3f7cc54d3499a854",
+      "sameStory": true,
+      "rationale": "Both articles report the death of Cassandra Wilson."
+    },
+    {
+      "left": "4fbaa96315eeb01352488c5b3827fdccf60412489a6c52968c16c8b8e0124837",
+      "right": "7ebbfc91a88b15c8c2aef90bf0a5364248bd9292517f606386e3708b4ea2c677",
+      "sameStory": true,
+      "rationale": "Both are copies of the same report about Kaepernick's statement on Jay-Z."
+    },
+    {
+      "left": "303a00e7bb399805ec0b22680d7fb2e0268f97f4d3cd622cc31cc9c474c01afc",
+      "right": "7eae3b6654a74c6ef457cd93a10c52f2858d0d8c7755328f5c14a9f97febf73e",
+      "sameStory": true,
+      "rationale": "Both report Dell's same quarterly result and guidance increase."
+    },
+    {
+      "left": "580a2064b4177464864fb251814a0941ca8c7ff2ee77a705b45aa83831d69614",
+      "right": "ce8071fcfc56b9372f7d6854f8f5ebd6dff206484d399ca1e607def8dd35cec4",
+      "sameStory": true,
+      "rationale": "Both are copies of the same AirTag offer report."
+    },
+    {
+      "left": "93dd3be72676c7fa5f49d21dfc1ef2b8d9956fe9c0882ce214148faebf76b1bb",
+      "right": "e4360f2c57b11e04277de852ac464b461ab631cba3a6e989a469a421c1e10606",
+      "sameStory": true,
+      "rationale": "Both are publications of the same NRL finals article."
+    },
+    {
+      "left": "bc00938c5607f0ed6668b3efce3edc470f5a6f57d53c5c6c73fbaba4db924578",
+      "right": "faa71e9f47caedc2bd0f97ad3d3761a7992eeb55910e1bb51b4cfd9098272dff",
+      "sameStory": true,
+      "rationale": "Both report the listing of the same Dolly Parton property at the same price."
+    },
+    {
+      "left": "38e8869d3417a9a2b290256a16960becb3b111b1bd279ad2470c72def6994452",
+      "right": "db8e7c6fa521405ada3b5664bc859701a9ffd88948743e80062548428e114018",
+      "sameStory": true,
+      "rationale": "Both report Kelce's reason for choosing the same wedding venue."
+    },
+    {
+      "left": "18ee8ec367c903f4a3a78399a338331128fdaf5530142a5c1b9b9cd3495f6893",
+      "right": "c9c4afc39a72cc37d8ebc3ffd60cbc3366d4f73a5ed3bb84c900bb665fccdf8a",
+      "sameStory": true,
+      "rationale": "Both are copies of the same LG Physical AI article."
+    },
+    {
+      "left": "6e1d2b6abbf64f3d3648f61d22834f87a2dec9d8138377469710c1a9e1c24276",
+      "right": "cacfc6c2c8e97cfe3757874361916667eba0272df85b5d081b0ead2d643891ff",
+      "sameStory": true,
+      "rationale": "Both report the same Ryanair winter flight cuts."
+    },
+    {
+      "left": "469fab008e041a363d6ffebe9a4a79dd3f7f38e8c8b9e391ba5fb1a9a95ac2b0",
+      "right": "f1a5536aace7b3149c4299b93b988832ba7b8ea31e333f9ef90842a817da1016",
+      "sameStory": true,
+      "rationale": "Both are copies of the same report about the Clippers fine."
+    },
+    {
+      "left": "4bbf8adca71c6235b72f5909775b658d102984820449fb3de70a22e3b23533ef",
+      "right": "bee2546415745109fbf26ebd077a8062ece465606c9ff5c707171d5d0b5ef755",
+      "sameStory": true,
+      "rationale": "Both are copies of the same report about a renter displaced by the Old Trails Fire."
+    },
+    {
+      "left": "42ebe6034a65d87579a87de402983f9aa35f3371eb9c18a0b80545c4c0423ee4",
+      "right": "e21a3aa368d29347cb2c8c99a6f9c8533034969c1d3243a225c0f5dbae0a9394",
+      "sameStory": true,
+      "rationale": "Both URLs report the same Norman Kids Space replacement decision."
+    },
+    {
+      "left": "416e13d7d74ba55be499c4586b41c4abc5936d685170259d6dc581493998424b",
+      "right": "fbbcaf97e7a61ccd6af86117a477b89491c713d500197ffa45dc8fea545b1188",
+      "sameStory": true,
+      "rationale": "Both report the same Grand Canyon flood and its economic effects."
+    },
+    {
+      "left": "763a066775ee6ff8bd12bb4078f48be1fa92b6b8caddabc69d38b337417f4c16",
+      "right": "be65d057d08220a6e56d2c454d2a53bfdeb3b8ee12e4ec3964a7b58423dc87fd",
+      "sameStory": true,
+      "rationale": "Both are copies of the same allegation by an Epstein accuser."
+    },
+    {
+      "left": "08d574d48cddb55d2d33056f95565c1cd64beda57f69f9e8d3fa2b02a9f443ce",
+      "right": "d45bb5c3a68f0fe110e6634f1155e8e1f7f82f40b8d518739606cb94079f3d4d",
+      "sameStory": true,
+      "rationale": "Both are copies of the same article about cuts to federal programs."
+    },
+    {
+      "left": "f42b6ac7d986e5eb39173311a5e19f82538f9d453288b13ac8c659537f677549",
+      "right": "f72344461d23aa5d1f6cc406a4ffbf6e6d939750a8e5f5d87750e2f095a5481c",
+      "sameStory": true,
+      "rationale": "Both are copies of the same report about the Penn State court examination."
+    },
+    {
+      "left": "2b95468caba5b868ee9e27afb27aac16ed534b93ce4da18cc54c4a91cda269ef",
+      "right": "9cc56f0087c5bc75774275635b2512a443183c4b36f1be851a4f2234ac48890a",
+      "sameStory": true,
+      "rationale": "Both report the same severe-weather day at the New York State Fair."
+    },
+    {
+      "left": "68cbcb703921c57a9501dcad659a9b38ac62bf6c5fb4cc4751143a025c6e1440",
+      "right": "b742811b97ff284b1e5323ba9829b58b5c57038b8ee3e4ef04f0d16616d738b7",
+      "sameStory": true,
+      "rationale": "Both are copies of the same article about parents helping children in school."
+    },
+    {
+      "left": "b4f6208ff902929c7626fec771f533d370e0492edf6a21816b66af9d737949c6",
+      "right": "e13705db51983c63370b3b37c61d08e035870db367fb976f1b63e7a2a21325c3",
+      "sameStory": true,
+      "rationale": "Both publish the same opinion article about AI abuse images and free speech."
+    },
+    {
+      "left": "c8c411bb4f6690ff93083b9ee00a8e37ed9d7e5dd2111530bf02a773b84a6a31",
+      "right": "efa4c2dc09bf3bf5650405f3dfb36cd2dd8e888c9131bbf310156b1c0b2bf3b8",
+      "sameStory": true,
+      "rationale": "Both report Dell's same quarterly result and guidance increase."
+    },
+    {
+      "left": "6d5acee93cf9f9a533c9d816420dd53ca58495f66638a8940c568c2c2c985ef8",
+      "right": "ec180387b7c6277fe13343d99eacafe0da934d7b82df821b8773e7b46709e800",
+      "sameStory": false,
+      "rationale": "Quest selection and skill selection are different game guides."
+    },
+    {
+      "left": "4019cbabe287928bcd3a4c25af142e51ebb7f8c2ffb1645dcb6a19660960dc84",
+      "right": "ec180387b7c6277fe13343d99eacafe0da934d7b82df821b8773e7b46709e800",
+      "sameStory": false,
+      "rationale": "Prologue quests and skill selection are different game guides."
+    },
+    {
+      "left": "2ca3b9119d09321184f57d465f375ac64ae4be1f35aff8aefd1577e01fbe53d8",
+      "right": "dd6295d42f634948782acd77ff548cbee4527aa62fd234f4adaa6d6182221aa7",
+      "sameStory": false,
+      "rationale": "A daily Brent price report and a long-term forecast are different publication events."
+    },
+    {
+      "left": "8b0438785e6b2c931f88db4b812ffeda3524233cd7a6032976264bdeb7f72546",
+      "right": "933eddcf1cfcefc49c1842ff340c24359ebd50df7c1edccda693b1114b64e3d2",
+      "sameStory": false,
+      "rationale": "July import volume and March-to-July consumer costs are different reports."
+    },
+    {
+      "left": "1f8eb6a9ed52ca354a994fdb67e8ae6ba8c523247e45a595a52e1535344225d8",
+      "right": "2ca3b9119d09321184f57d465f375ac64ae4be1f35aff8aefd1577e01fbe53d8",
+      "sameStory": false,
+      "rationale": "A broad stock-market report and a separate oil-price report are different events."
+    },
+    {
+      "left": "1677340c6e209def20c54965202cf66d994444ee8d0794dc6ec24045b4ec397b",
+      "right": "45bfd680bf514e33f36f7f9a2dfc55e625e9da42456604160030b9e9e7b615db",
+      "sameStory": false,
+      "rationale": "A technical stock buy point and a revenue comparison are different analyses."
+    },
+    {
+      "left": "9a4746588ad65d506f82969a384fa527866f531a4ca14963bb2f9adb0beb4d64",
+      "right": "ec180387b7c6277fe13343d99eacafe0da934d7b82df821b8773e7b46709e800",
+      "sameStory": false,
+      "rationale": "The Infamy system and skill selection are different game guides."
+    },
+    {
+      "left": "31a314739b3626c2a821f411bc2370152a83005f1f2771fb89a3c92310620f4a",
+      "right": "d292d25f920959b7ba10a8c13d957b92ca3625bc682542604acd5f1914ce3ad2",
+      "sameStory": false,
+      "rationale": "An industry sustainability article and a personnel departure are different events."
+    },
+    {
+      "left": "03c3270d3f5dc84d661f826b47da72d181444d14daa14a02722f656115b896d9",
+      "right": "e479bf26bf321037239ac48134d7a1b594c0cade3a9738113ab677f09bce1834",
+      "sameStory": false,
+      "rationale": "The articles recommend different stock selections for different purposes."
+    },
+    {
+      "left": "31a314739b3626c2a821f411bc2370152a83005f1f2771fb89a3c92310620f4a",
+      "right": "52c24bbecac60cf7a9f64faf215df168279baf6f6501b6fda9729fd4cd9ddf1a",
+      "sameStory": false,
+      "rationale": "Industry sustainability and AI-native production are different topics."
+    },
+    {
+      "left": "1677340c6e209def20c54965202cf66d994444ee8d0794dc6ec24045b4ec397b",
+      "right": "af0648f93ee5602235c0225f4b9ff34de474e712714c0b56ae74896a43fb6925",
+      "sameStory": false,
+      "rationale": "A stock-chart signal and an analyst ranking are different publication events."
+    },
+    {
+      "left": "0a1e1aa69200cb0f2d2b624b32d32eb7507185a6232a7562481e4c8746cdb7f9",
+      "right": "5a79ef9bb2fea7cbae41a6cfcba2741390d9948c2452fd72be9ef12a27583cf0",
+      "sameStory": false,
+      "rationale": "The crimes involve different people, acts, and locations."
+    },
+    {
+      "left": "d292d25f920959b7ba10a8c13d957b92ca3625bc682542604acd5f1914ce3ad2",
+      "right": "e666d243361e1b25c3f682bec12846bddc2c1cb84ed357e00eb211a9ba253804",
+      "sameStory": false,
+      "rationale": "A personnel departure and the appointment of an advisory board are different decisions."
+    },
+    {
+      "left": "3f2331c8a19639a00f6ab151081407a01ada565a152657dd4078c9e85a9ba9be",
+      "right": "58ba4e49a7d10d5262d5941739c3d5ffc7d40577a84d9b3f4ce9e317b0d86b5e",
+      "sameStory": false,
+      "rationale": "The deaths involve different children, families, locations, and investigations."
+    },
+    {
+      "left": "12d969529b9d3ab2694b07eb3d0b1638f1896f90ce1c5c4af6b58d68433a1e63",
+      "right": "f840a56e08c00bf6db6fee4d956bd983e0c41aecb8b074aa942f9dc310e3bbe1",
+      "sameStory": false,
+      "rationale": "The criminal proceedings involve different defendants, places, and alleged acts."
+    },
+    {
+      "left": "4fbd0377d6e060a938a1b9eea57a38828ef0d5afbfe1d1cc662e513fedc734f8",
+      "right": "dece82fb0b46ed13b1cefe44a1db4e3986fc1d7757a75f796f3519b8638929f1",
+      "sameStory": false,
+      "rationale": "A player profile and a specific team practice report are different events."
+    },
+    {
+      "left": "16ab23c7f5e202ebe1412caeea07dba58d2575e9acebeb2577bd4906e698bce1",
+      "right": "641eb1e3ad47c46bedb0d175bd013c3c30a2268033e35d3e229f4321d1e49480",
+      "sameStory": false,
+      "rationale": "An AV partner selection and a management and occupancy report are different events."
+    },
+    {
+      "left": "1cf10b56748e5e329374031743c5c33f1b7c38214f4549fe93c81ceab5fa5925",
+      "right": "9435799be4c88544f608bd88667ca928dbbee8d738607bc21bcdbe18e87db378",
+      "sameStory": false,
+      "rationale": "The articles concern different companies and different stock events."
+    },
+    {
+      "left": "d68be4a7046d342f3c86be9f9de5642ae8b01c978986b7b7a1f15bafc41353bb",
+      "right": "fcb25ef513bf1aadd9da2cba723d3071684c32a2272337773fe2d5654d34c837",
+      "sameStory": false,
+      "rationale": "A capital-project decision and a warning about service costs are different council events."
+    },
+    {
+      "left": "942fa484a84764ea005d15a32bf270a561e144408f5698fb874afdf4f654c11c",
+      "right": "c1935a418ac932e22c6664fb2738d877e4252fdb58e46ea9c556ea1508b375cb",
+      "sameStory": false,
+      "rationale": "A software beta and a hardware leak concern different products and events."
+    }
+  ]
+}
