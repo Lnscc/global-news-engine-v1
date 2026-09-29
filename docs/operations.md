@@ -61,7 +61,7 @@ GKG ab.
 
 ## Story-Titel-Inputs und Embeddings
 
-Der inkrementelle Job erzeugt fuer alle `SHADOW`-Clustering-Versionen aktuelle
+Der inkrementelle Job erzeugt fuer `ACTIVE`- und `SHADOW`-Clustering-Versionen aktuelle
 `story_article_inputs`. Verwendbare, normalisierte Titel werden mit dem in der jeweiligen Version
 gespeicherten Modell eingebettet. Identische fachliche Artefaktschluessel verwenden genau eine
 Zeile in `story_embedding_artifacts`; jeder Provider-Versuch steht dauerhaft in
@@ -104,8 +104,8 @@ per `status`-Tag aus; `stories.embedding.backlog` misst den offenen Rueckstand.
 
 ## Story-Snapshots und Kandidatenpaare
 
-Der inkrementelle Snapshot-Job verarbeitet die `SHADOW`-Clustering-Versionen in der Reihenfolge
-ihrer Datenbank-ID. Pro Version friert er die aktuellen Inputs bis zum Lauf-Watermark
+Der inkrementelle Snapshot-Job verarbeitet zuerst die `ACTIVE`-Version, danach
+`SHADOW`-Versionen in der Reihenfolge ihrer Datenbank-ID. Pro Version friert er die aktuellen Inputs bis zum Lauf-Watermark
 atomar in `story_snapshots` und `story_snapshot_members` ein, auch unbrauchbare Titel und
 Inputs ohne fertiges Embedding. Nur eingefrorene `READY`-Vektoren gehen in die Paarberechnung ein. Anschliessend
 validiert er die kanonischen Float32-Vektoren und berechnet innerhalb des versionierten
@@ -168,8 +168,8 @@ nach 72 Stunden ohne Aenderung beziehungsweise neues Input-Ereignis und oeffnen 
 wieder. Titel ohne Inhalt erhalten `TITLE_MISSING` oder `TITLE_GENERIC`; ein im Snapshot
 fehlender fertiger Vektor ergibt `EMBEDDING_NOT_READY`, auch wenn er beim Retry inzwischen
 vorliegt. Bisherige Mitglieder mit einer Zeitkorrektur hinter dem Watermark werden ebenfalls
-eingefroren und mit `AFTER_WATERMARK` abgemeldet. Alle Ergebnisse bleiben versionsintern im
-`SHADOW`-Status; eine Promotion erfolgt nicht.
+eingefroren und mit `AFTER_WATERMARK` abgemeldet. Shadow-Ergebnisse werden erst nach
+expliziter Promotion produktsichtbar; danach aktualisieren weitere Laeufe die aktive Version.
 
 Zusaetzlich melden `stories.publish.runs` (`result`), `stories.publish.conflicts` und
 `stories.publish.results` (`kind`) Publikationen, Wiederholungen, verworfene Laeufe,
@@ -257,3 +257,57 @@ Payloads ohne Fachzeile fuer alle Datensatztypen:
 ```powershell
 docker compose exec postgres psql -U gne -d gne -c "select * from gdelt_pipeline_health_view where pending_payload_rows > 0 order by dataset_type;"
 ```
+
+
+## Story-Version freigeben (ART-039)
+
+Der interne Spring-Service `StoryPromotionService` bietet `review(versionId, holdout)` und
+`promote(review, holdout, approval)`. Es gibt dafuer keine REST API und keinen automatischen
+Freigabejob. Ein administrativer Aufrufer verwendet denselben Service fuer Pruefung und Wechsel:
+
+```java
+var review = promotion.review(versionId, holdout);
+// Diff und Evaluation fachlich pruefen und die Freigabe dokumentieren.
+var approval = new StoryPromotionService.Approval(approvedBy, documentReference, reason);
+var outcome = promotion.promote(review, holdout, approval);
+```
+
+Der Holdout enthaelt eine eigene Version, Herkunft, verantwortlichen Labelgeber, eine
+Unabhaengigkeitserklaerung und begruendete Artikelpaare (`left`, `right`, `sameStory`, `rationale`).
+Die Artikelreferenzen sind vollstaendige URL-Hashes, pro Paar lexikalisch aufsteigend sortiert.
+Nur eindeutige Labels verwenden; unsichere Paare vorher ausnehmen. Alle Holdout-Artikel muessen
+im veroeffentlichten Kandidaten enthalten sein. Herkunft und Erklaerung muessen belegen, dass
+weder diese Labels noch dieselben Ereignisse zur Schwellenwahl verwendet wurden. Dies ist
+fachlich zu pruefen; das Programm kann eine falsche Unabhaengigkeitserklaerung nicht erkennen.
+
+Die feste Gate-Version `story-release-gates-v1` verlangt mindestens 20 positive und 20 negative
+Paare, Pairwise Precision >= 0,95 und Recall >= 0,90. Das sind konservative initiale
+Freigabegrenzen, keine anhand eines neuen Holdouts optimierten Werte. Aenderungen erfordern
+eine neue Gate-Version und einen weiteren unabhaengigen Holdout. URL- und Titel-Hashes aus
+ART-032 werden durch `src/main/resources/stories/art032-excluded-hashes.txt` ausgeschlossen;
+ein Test gleicht dieses Manifest mit dem gesamten Korpus ab. Die Metriken werden aus den
+veroeffentlichten Mitgliedschaften berechnet, nicht als fertige Erfolgswerte entgegengenommen.
+
+`review` prueft den erfolgreichen Publish-Run, aktuelle vollstaendige Inputs, Modellvertrag,
+Embedding-Dimension und Vektorintegritaet sowie die Uebereinstimmung mit der rekonstruierten
+Partition. Es liefert Storyanzahl, Singleton-Anteil, Mitgliedschaftsanzahl und geaenderte
+Zuordnungen sowie Merge-/Split-Anzahl. `promote` wiederholt diese Pruefung und den ID-Abgleich.
+Ein geaenderter Ausgangsstand oder Holdout verlangt ein neues Review samt Freigabe.
+
+Promotionen werden serialisiert und sperren betroffene Versionen gegen normale Publisher.
+Waehrend der Pruefung sind Input-Schreibzugriffe kurzzeitig gesperrt; bei grossen Datenmengen
+kann die Rekonstruktion dauern. Public IDs, Identitaetsanker, urspruenglicher Entstehungszeitpunkt,
+Versionsstatus und Audit werden gemeinsam committed. Alte Versionen werden `RETIRED`, die
+neue Version `ACTIVE`; ein Unique-Index verhindert mehrere aktive Versionen. Erfolgreiche
+Wiederholungen liefern `ALREADY_PROMOTED`, auch wenn die Version inzwischen wieder abgeloest ist.
+Fehler rollen alle Aenderungen zurueck.
+
+Das Audit in `story_clustering_version_status_history.reason` enthaelt JSON mit Review,
+Gate-Version, Holdout samt Labels, Pruefergebnis und dokumentierter Freigabe. `changed_at`
+protokolliert den Wechselzeitpunkt. `resolvePublicId` loest eine Public ID ausschliesslich
+innerhalb der aktuellen aktiven Version auf. Oeffentliche Leser muessen Version und Story
+in derselben SQL-Abfrage lesen. Interne Fremdschluessel verwenden weiterhin `stories.id`.
+
+Es wurde keine produktive Version freigegeben: Die automatisierten Tests verwenden klar
+gekennzeichnete synthetische Daten. Ein neuer fachlich gelabelter Holdout und die dokumentierte
+fachliche Freigabe muessen fuer einen echten Wechsel noch bereitgestellt werden.

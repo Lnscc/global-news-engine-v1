@@ -2,7 +2,7 @@
 
 ## Zweck
 
-Diese Dokumentation beschreibt den implementierten Ist-Zustand aus ART-034 bis ART-038.
+Diese Dokumentation beschreibt den implementierten Ist-Zustand aus ART-034 bis ART-039.
 ART-041 hat den fachlichen Zielumfang inzwischen reduziert: nur aktuelle Zuordnungen mit
 Begruendung, keine erforderliche Merge-/Split-Historie, ein produktives Verfahren und
 Weiterverwendung bestehender Story-IDs auch bei Regelwechsel. Die unten beschriebenen
@@ -11,8 +11,9 @@ fachliche MVP-Anforderungen. ART-042 prueft ihre technischen Abhaengigkeiten, AR
 setzt gegebenenfalls eine bestaetigte Migration um. Keine bestehende Migration wird geaendert.
 
 ART-038 ergaenzt snapshotbezogene Zuordnungsschluessel und Publish-Nachweise gegen
-veraltete Retries. Weiter zu pruefen sind aktuelle Zuordnungen ohne Historienpflicht und
-interne Versions-Fremdschluessel bei stabilen oeffentlichen IDs. Ein
+veraltete Retries. ART-039 ergaenzt mit V25 die oeffentliche `stories.public_id`, initial gleich der bisherigen
+`id` und eindeutig je Version. Interne Versions-Fremdschluessel bleiben unveraendert.
+V26 erzwingt auf PostgreSQL hoechstens eine `ACTIVE`-Version. Ein
 Verfahrenswechsel darf technisch neue Zeilen erzeugen, aber nicht alle Story-IDs ersetzen.
 Die vorhandenen 48-/72-h-Versionen erfordern keinen dauerhaften Parallelbetrieb.
 
@@ -130,7 +131,8 @@ Veroeffentlichte Story-IDs, Embeddings, Snapshots, Entscheidungen, Mitgliedschaf
 Lineage-Kanten besitzen keine kaskadierenden Loeschregeln. Historische Zeilen werden beendet oder
 ueber Statuswerte aus dem aktiven Pfad genommen, nicht ueberschrieben.
 
-Eine spaetere Bereinigung darf nur nicht referenzierte Shadow-Artefakte entfernen. Sie benoetigt
+ART-039 verlangt keine Aufbewahrung alter Story-Staende, entfernt aber keine technischen Zeilen.
+Eine spaetere Bereinigung muss die bestehenden Referenzen und Schutztrigger beruecksichtigen. Sie benoetigt
 einen eigenen Retention-Vertrag und ist nicht Teil von ART-034.
 
 ## Datenbankseitige Invarianten
