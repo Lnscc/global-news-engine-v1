@@ -1,6 +1,6 @@
 # ART-044: Erste Story-Clustering-Version pruefen und freigeben
 
-Status: offen
+Status: erledigt
 Bereich: stories, operations
 
 ## Kontext
@@ -58,3 +58,15 @@ ein Freigabe-REST-Endpunkt und eine Umgehung der bestehenden Gates sind nicht en
 - Wer uebernimmt fachliches Labeling und Freigabe?
 - Welche unabhaengige Datenquelle beziehungsweise welcher Zeitraum wird fuer den Holdout verwendet?
 
+## Implementierungskommentar (2026-09-30)
+
+Linus bestaetigte den unabhaengigen Holdout mit 20 positiven und 20 negativen Paaren aus dem
+Zeitraum 2026-09-01 bis 2026-09-02. Version 1 erreichte eine Precision von `1.00` und einen Recall
+von `0.95` und bestand damit `story-release-gates-v1`. Review, Story-Diff, Hashes und Zustimmung
+sind unter `docs/analysis/ART-044-release-decision.md` dokumentiert.
+
+`story-mvp-title-embedding-24h-v1.0.0` wurde erfolgreich promoviert und ist die einzige
+`ACTIVE`-Version. Die beiden anderen Versionen blieben `SHADOW`. Die lokale Datenbasis wurde auf
+ausdruecklichen Wunsch auf die 74 Holdout-Artikel reduziert; Rohimporte wurden als
+Wiederherstellungsquelle behalten. `GET /stories` lieferte 53 sichtbare Stories und ein Abruf einer
+gelisteten Story lieferte `200`.
