@@ -1,0 +1,44 @@
+{
+  "corpusVersion": "art045-regression-v1.0.0",
+  "clusteringVersion": "story-mvp-title-embedding-24h-v1.0.0",
+  "observationSource": "ART-038 publish snapshot 163",
+  "relationshipPredictions": {
+    "false-merge-football": "SAME_STORY",
+    "false-merge-controlled-burns": "SAME_STORY",
+    "false-merge-series-c": "SAME_STORY",
+    "missed-merge-goethe-institut": "DIFFERENT_STORY",
+    "missed-merge-ceuta": "DIFFERENT_STORY"
+  },
+  "inputDispositionPredictions": {
+    "navigation-about": "INCLUDE",
+    "navigation-advertise": "INCLUDE",
+    "navigation-team": "INCLUDE",
+    "navigation-privacy": "INCLUDE",
+    "navigation-resources": "INCLUDE",
+    "navigation-support": "INCLUDE",
+    "content-speed-load": "INCLUDE"
+  },
+  "expectedEvaluation": {
+    "corpusVersion": "art045-regression-v1.0.0",
+    "relationshipCases": 5,
+    "uncertainExcluded": 1,
+    "relationshipDeviations": [
+      "false-merge-controlled-burns",
+      "false-merge-football",
+      "false-merge-series-c",
+      "missed-merge-ceuta",
+      "missed-merge-goethe-institut"
+    ],
+    "inputQualityCases": 7,
+    "navigationServiceCases": 6,
+    "inputQualityDeviations": [
+      "navigation-about",
+      "navigation-advertise",
+      "navigation-privacy",
+      "navigation-resources",
+      "navigation-support",
+      "navigation-team"
+    ],
+    "totalDeviations": 11
+  }
+}

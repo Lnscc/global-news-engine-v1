@@ -1,0 +1,170 @@
+{
+  "schemaVersion": "1.0",
+  "corpusVersion": "art045-regression-v1.0.0",
+  "provenance": {
+    "sourceDocument": "docs/analysis/ART-038-story-quality-spotcheck.md",
+    "sourceSnapshot": "publish snapshot 163, observed 2026-09-25T18:24:49Z",
+    "reviewedAt": "2026-09-30",
+    "titleBasis": "Frozen normalized page titles from the ART-038 review; canonical source pages were used to restore stable URL hashes after the operational snapshot was removed.",
+    "usage": "REGRESSION_ONLY",
+    "releaseHoldout": false,
+    "releaseUse": "This corpus is known analysis data and must not be used as an independent release holdout or promotion proof."
+  },
+  "articles": [
+    {
+      "ref": "4122ff80937797d2bbe4383746307543213e8342d44c5900848b70e7a479680e",
+      "canonicalUrl": "https://www.sportsmole.co.uk/football/west-ham-united/preview/west-ham-vs-derby-prediction-team-news-lineups_604412.html",
+      "title": "Preview: West Ham United vs Derby County - prediction, team news, lineups"
+    },
+    {
+      "ref": "46bc7d250091a1dfd752cd9e9eb971c040af8f8cc7a8ddc9d706fc9cfe4ef3a0",
+      "canonicalUrl": "https://www.sportsmole.co.uk/football/west-brom-albion/preview/west-brom-vs-watford-prediction-team-news-lineups_604416.html",
+      "title": "Preview: West Bromwich Albion vs Watford - prediction, team news, lineups"
+    },
+    {
+      "ref": "b6cc13654e0d98e2d97bc72ab5e30dcb86eae3c0c6e109485e81cc93df6acd4d",
+      "canonicalUrl": "https://www.miragenews.com/controlled-burn-in-brimbin-nature-reserve-taree-1738154/",
+      "title": "Controlled Burn in Brimbin Nature Reserve, Taree"
+    },
+    {
+      "ref": "23907439c061173e076dce672825951036ed422045978a44c35f11f2812bdbd1",
+      "canonicalUrl": "https://www.miragenews.com/controlled-burns-set-for-garby-reserve-1738144/",
+      "title": "Controlled Burns Set for Garby Reserve, Woolgoolga Headland"
+    },
+    {
+      "ref": "f6acc130483b89f81bc0ee9a94902e5f3d37e0a791c38833ae024a2bbcc0409a",
+      "canonicalUrl": "https://www.wonderful.ai/blog-articles/wonderful-raises-550m-series-c",
+      "title": "Wonderful Raises $550 Million Series C to Scale the AI Operating System for the Enterprise"
+    },
+    {
+      "ref": "d734987f0d27fd7258051babe090d4b55c2d4dfb4fc7750da4711985355e7f87",
+      "canonicalUrl": "https://lyte.ai/news/series-c",
+      "title": "Lyte Raises $165 Million Series C Led by Maverick Silicon to Give Robots a Trustworthy View of the World"
+    },
+    {
+      "ref": "2985785a24b2b1fcada2c2915f7ccaefb37248679ec1e2d22b9bce3f0236ba22",
+      "canonicalUrl": "https://aa.com.tr/en/eurasia/russia-to-shut-goethe-institut-branches-in-response-to-german-move-lavrov/4045965",
+      "title": "Russia to shut Goethe-Institut branches in response to German move: Lavrov"
+    },
+    {
+      "ref": "36c96ff6aa086b21ca0254de386a26252d537eebffa31ceb80bfbd612ab40d1f",
+      "canonicalUrl": "https://www.aljazeera.com/news/2026/9/3/russia-to-close-goethe-institut-centres-as-germany-tensions-escalate",
+      "title": "Russia to close Goethe-Institut centres as Germany tensions escalate"
+    },
+    {
+      "ref": "dac9d9a263007a90d05b181cd15301343e23aadf0bc7e68f47db5708dc0fb9fc",
+      "canonicalUrl": "https://www.rte.ie/news/2026/0903/1590191-ceuta-spain-morocco",
+      "title": "Spanish PM rejects suggestions Morocco was behind Ceuta border crisis"
+    },
+    {
+      "ref": "f3d0c277b3e0b5e5bf1964a46e39f463725016da310ba10bffcc42b27599d9d6",
+      "canonicalUrl": "https://www.theguardian.com/world/2026/sep/03/spain-pm-evidence-morocco-ceuta-border-breach",
+      "title": "Spain's PM says no evidence 'whatsoever' Morocco behind Ceuta border breach"
+    },
+    {
+      "ref": "03a93cd3d2c08327cdb9714f4caf023cb81ab9f8182834e63e662085a80f23f9",
+      "canonicalUrl": "https://bworldonline.com/world/2026/09/03/774453/supersized-el-nino-may-become-strongest-ever-recorded-un-says",
+      "title": "Supersized El Nino may become strongest ever recorded, UN says"
+    },
+    {
+      "ref": "4e2b957a9a543b525d52ba74fa52b633501bcc6b9e4a430e7d9d527652a5754c",
+      "canonicalUrl": "https://www.rappler.com/environment/un-supersized-el-nino-may-become-strongest-ever-recorded-2026-2027",
+      "title": "'Supersized' El Niño may become strongest ever recorded, UN says"
+    },
+    {
+      "ref": "1dbc001abbab19ced9742077da698cc1027c09d047e08a7828df78cdcb3dad0a",
+      "canonicalUrl": "https://fasterskier.com/about",
+      "title": "About FasterSkier – FasterSkier"
+    },
+    {
+      "ref": "0bad7b91af935bb9d030ead57708cbfc180f2bd4e8007a7a015345ee70ab1d2f",
+      "canonicalUrl": "https://fasterskier.com/advertise",
+      "title": "Advertise with FasterSkier – FasterSkier"
+    },
+    {
+      "ref": "c1e9f0058f556d464aec1b49b326bb62abe3776347c99b4ef79bbecbcb5ea198",
+      "canonicalUrl": "https://fasterskier.com/meet-the-team",
+      "title": "Meet the Team – FasterSkier"
+    },
+    {
+      "ref": "97979201cd36904a3a20db1e197715c5542bb999c6fb0720243caa45c949a9c3",
+      "canonicalUrl": "https://fasterskier.com/privacy",
+      "title": "Privacy Policy – FasterSkier"
+    },
+    {
+      "ref": "6425f4222de70001a169ffd3fffe906efd6c9f9f7ca1797220d1d67c8af30911",
+      "canonicalUrl": "https://fasterskier.com/resources",
+      "title": "Resources – FasterSkier"
+    },
+    {
+      "ref": "e4a0c38d6f497e60addd5caa35645fc946af69f72d446b8fc78e8373f5ebacfc",
+      "canonicalUrl": "https://fasterskier.com/support",
+      "title": "Support FasterSkier – FasterSkier"
+    },
+    {
+      "ref": "19e8a37b92798f42e1aac81940b943c6df97fac980c9b72183061cd7054ded8b",
+      "canonicalUrl": "https://fasterskier.com/2026/07/speed-creates-the-load-not-intensity",
+      "title": "Speed Creates the Load, Not Intensity"
+    }
+  ],
+  "relationshipCases": [
+    {
+      "id": "false-merge-football",
+      "sourceFinding": "ART-038 story 7f98f60e-0258-37c5-8dcd-86508b1301b6",
+      "left": "4122ff80937797d2bbe4383746307543213e8342d44c5900848b70e7a479680e",
+      "right": "46bc7d250091a1dfd752cd9e9eb971c040af8f8cc7a8ddc9d706fc9cfe4ef3a0",
+      "targetLabel": "DIFFERENT_STORY",
+      "rationale": "Different teams and different matches; only the portal's title template is shared."
+    },
+    {
+      "id": "false-merge-controlled-burns",
+      "sourceFinding": "ART-038 story 559868ed-7793-34e5-862b-a9441223a61e",
+      "left": "b6cc13654e0d98e2d97bc72ab5e30dcb86eae3c0c6e109485e81cc93df6acd4d",
+      "right": "23907439c061173e076dce672825951036ed422045978a44c35f11f2812bdbd1",
+      "targetLabel": "DIFFERENT_STORY",
+      "rationale": "The planned burns affect different named reserves and communities."
+    },
+    {
+      "id": "false-merge-series-c",
+      "sourceFinding": "ART-038 story 7a2bb587-bd39-3299-b852-71444a6bf002",
+      "left": "f6acc130483b89f81bc0ee9a94902e5f3d37e0a791c38833ae024a2bbcc0409a",
+      "right": "d734987f0d27fd7258051babe090d4b55c2d4dfb4fc7750da4711985355e7f87",
+      "targetLabel": "DIFFERENT_STORY",
+      "rationale": "Different companies, products, investors, amounts, and financing rounds."
+    },
+    {
+      "id": "missed-merge-goethe-institut",
+      "sourceFinding": "ART-038 stories 774c5c16-a2a6-3111-be99-6659416d00d6 and 013fff7d-6bfc-346b-b078-b432878cc4f0",
+      "left": "2985785a24b2b1fcada2c2915f7ccaefb37248679ec1e2d22b9bce3f0236ba22",
+      "right": "36c96ff6aa086b21ca0254de386a26252d537eebffa31ceb80bfbd612ab40d1f",
+      "targetLabel": "SAME_STORY",
+      "rationale": "Both report the same Russian announcement closing Germany's Goethe-Institut locations in retaliation for German measures."
+    },
+    {
+      "id": "missed-merge-ceuta",
+      "sourceFinding": "ART-038 stories 2a5b8ef6-7e91-3d2a-9c0b-160c08243ffb and 249351ac-f10d-3843-8f56-ad537f105070",
+      "left": "dac9d9a263007a90d05b181cd15301343e23aadf0bc7e68f47db5708dc0fb9fc",
+      "right": "f3d0c277b3e0b5e5bf1964a46e39f463725016da310ba10bffcc42b27599d9d6",
+      "targetLabel": "SAME_STORY",
+      "rationale": "Both report the same statement by Spain's prime minister denying evidence that Morocco organised the Ceuta influx."
+    },
+    {
+      "id": "uncertain-el-nino",
+      "sourceFinding": "ART-038 stories cf4309b3-f26c-3ebe-8347-d4b63180abc2 and 7c13695a-b6f2-36a3-a1aa-e54914ad19e8",
+      "left": "03a93cd3d2c08327cdb9714f4caf023cb81ab9f8182834e63e662085a80f23f9",
+      "right": "4e2b957a9a543b525d52ba74fa52b633501bcc6b9e4a430e7d9d527652a5754c",
+      "targetLabel": "UNCERTAIN",
+      "rationale": "The titles point to the same WMO forecast, but the ART-038 review did not verify full text or publication trigger.",
+      "exclusionReason": "Not scored until source-content review can distinguish copies from separate follow-up reporting."
+    }
+  ],
+  "inputQualityCases": [
+    {"id": "navigation-about", "articleRef": "1dbc001abbab19ced9742077da698cc1027c09d047e08a7828df78cdcb3dad0a", "targetCategory": "NAVIGATION_SERVICE", "expectedDisposition": "EXCLUDE", "rationale": "About page, not an event article."},
+    {"id": "navigation-advertise", "articleRef": "0bad7b91af935bb9d030ead57708cbfc180f2bd4e8007a7a015345ee70ab1d2f", "targetCategory": "NAVIGATION_SERVICE", "expectedDisposition": "EXCLUDE", "rationale": "Advertising service page, not an event article."},
+    {"id": "navigation-team", "articleRef": "c1e9f0058f556d464aec1b49b326bb62abe3776347c99b4ef79bbecbcb5ea198", "targetCategory": "NAVIGATION_SERVICE", "expectedDisposition": "EXCLUDE", "rationale": "Team directory, not an event article."},
+    {"id": "navigation-privacy", "articleRef": "97979201cd36904a3a20db1e197715c5542bb999c6fb0720243caa45c949a9c3", "targetCategory": "NAVIGATION_SERVICE", "expectedDisposition": "EXCLUDE", "rationale": "Privacy policy, not an event article."},
+    {"id": "navigation-resources", "articleRef": "6425f4222de70001a169ffd3fffe906efd6c9f9f7ca1797220d1d67c8af30911", "targetCategory": "NAVIGATION_SERVICE", "expectedDisposition": "EXCLUDE", "rationale": "Resource navigation page, not an event article."},
+    {"id": "navigation-support", "articleRef": "e4a0c38d6f497e60addd5caa35645fc946af69f72d446b8fc78e8373f5ebacfc", "targetCategory": "NAVIGATION_SERVICE", "expectedDisposition": "EXCLUDE", "rationale": "Support service page, not an event article."},
+    {"id": "content-speed-load", "articleRef": "19e8a37b92798f42e1aac81940b943c6df97fac980c9b72183061cd7054ded8b", "targetCategory": "NORMAL_EVENT_ARTICLE", "expectedDisposition": "INCLUDE", "rationale": "Editorial content must not be rejected merely because it shares the FasterSkier suffix."}
+  ]
+}

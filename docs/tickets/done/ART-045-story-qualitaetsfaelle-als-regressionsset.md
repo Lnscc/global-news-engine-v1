@@ -1,6 +1,6 @@
 # ART-045: Story-Qualitaetsfaelle als Regressionsset sichern
 
-Status: offen
+Status: erledigt
 Bereich: stories
 
 ## Kontext
@@ -52,3 +52,16 @@ und die produktive Promotion einer Clustering-Version sind nicht enthalten.
 - Welche der bisher nur als wahrscheinlich bezeichneten Zusammenfuehrungen lassen sich anhand
   der vorhandenen Evidenz eindeutig labeln?
 
+## Implementierungskommentar (2026-10-01)
+
+Das versionierte Set `docs/analysis/ART-045-regression-cases-v1.json` sichert die drei eindeutigen
+Fehl-Merges als `DIFFERENT_STORY`, zwei fachlich bestaetigte verpasste Zusammenfuehrungen als
+`SAME_STORY` und den El-Nino-Fall mangels Volltextpruefung explizit ausgeschlossen als `UNCERTAIN`.
+Sechs Navigations-/Service-Seiten und ein normaler FasterSkier-Inhalt bilden eine getrennte
+Input-Qualitaetskategorie.
+
+`scripts/art045_regression.py` validiert Referenzen, Herkunft, Labels und Kategorien und vergleicht
+die deterministische Auswertung mit `docs/analysis/ART-045-baseline-v1.json`. Die Baseline weist
+die elf bekannten Abweichungen der aktuellen Version sichtbar aus und scheitert bei ungesehenen
+Aenderungen. Die Dokumentation grenzt das Set ausdruecklich vom unabhaengigen ART-044-Holdout und
+von Freigabenachweisen ab.
