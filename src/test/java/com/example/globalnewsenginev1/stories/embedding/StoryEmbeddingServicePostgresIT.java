@@ -80,15 +80,15 @@ class StoryEmbeddingServicePostgresIT {
                 "SELECT COUNT(*) FROM story_embedding_attempts WHERE status = 'READY'", Integer.class)).isOne();
         assertThat(jdbc.queryForObject(
                 "SELECT COUNT(*) FROM story_article_inputs WHERE current_marker = 1", Integer.class))
-                .isEqualTo(12);
+                .isEqualTo(16);
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE title_usability = 'TITLE_MISSING' AND embedding_status = 'NOT_REQUIRED'
-                """, Integer.class)).isEqualTo(3);
+                """, Integer.class)).isEqualTo(4);
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE title_usability = 'TITLE_GENERIC' AND embedding_status = 'NOT_REQUIRED'
-                """, Integer.class)).isEqualTo(3);
+                """, Integer.class)).isEqualTo(4);
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(DISTINCT embedding_artifact_id) FROM story_article_inputs
                 WHERE title_usability = 'USABLE'
@@ -96,11 +96,11 @@ class StoryEmbeddingServicePostgresIT {
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE article_id = ? AND effective_at_source = 'PUBLISHED_AT'
-                """, Integer.class, first)).isEqualTo(3);
+                """, Integer.class, first)).isEqualTo(4);
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE article_id = ? AND effective_at_source = 'FIRST_SEEN_AT'
-                """, Integer.class, second)).isEqualTo(3);
+                """, Integer.class, second)).isEqualTo(4);
         assertThat(service.processIncremental(100).selected()).isZero();
         assertThat(client.calls()).isOne();
 
@@ -131,11 +131,11 @@ class StoryEmbeddingServicePostgresIT {
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE article_id = ? AND current_marker IS NULL AND superseded_at IS NOT NULL
-                """, Integer.class, first)).isEqualTo(3);
+                """, Integer.class, first)).isEqualTo(4);
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE article_id = ? AND current_marker = 1
-                """, Integer.class, first)).isEqualTo(3);
+                """, Integer.class, first)).isEqualTo(4);
     }
 
     @Test
@@ -195,7 +195,65 @@ class StoryEmbeddingServicePostgresIT {
                 "SELECT COUNT(*) FROM story_embedding_artifacts", Integer.class)).isOne();
         assertThat(jdbc.queryForObject("""
                 SELECT COUNT(*) FROM story_article_inputs WHERE current_marker = 1
-                """, Integer.class)).isEqualTo(3);
+                """, Integer.class)).isEqualTo(4);
+    }
+
+    @Test
+    void excludesNavigationServiceInputsBeforeEmbeddingForTheNewVersion() {
+        for (String legacy : List.of(
+                "story-mvp-title-embedding-24h-v1.0.0",
+                "story-mvp-title-embedding-48h-v1.0.0",
+                "story-mvp-title-embedding-72h-v1.0.0")) {
+            jdbc.update("""
+                    UPDATE story_clustering_versions SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP
+                    WHERE version_key = ?
+                    """, legacy);
+            jdbc.update("""
+                    UPDATE story_clustering_versions SET status = 'RETIRED', updated_at = CURRENT_TIMESTAMP
+                    WHERE version_key = ?
+                    """, legacy);
+        }
+        jdbc.update("""
+                UPDATE story_clustering_versions SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP
+                WHERE version_key = 'story-mvp-title-embedding-24h-v1.1.0'
+                """);
+        String[][] articles = {
+                {"https://fasterskier.com/about", "About FasterSkier – FasterSkier"},
+                {"https://fasterskier.com/advertise", "Advertise with FasterSkier – FasterSkier"},
+                {"https://fasterskier.com/meet-the-team", "Meet the Team – FasterSkier"},
+                {"https://fasterskier.com/privacy", "Privacy Policy – FasterSkier"},
+                {"https://fasterskier.com/resources", "Resources – FasterSkier"},
+                {"https://fasterskier.com/support", "Support FasterSkier – FasterSkier"},
+                {"https://fasterskier.com/2026/07/speed-creates-the-load-not-intensity",
+                        "Speed Creates the Load, Not Intensity"}
+        };
+        for (int index = 0; index < articles.length; index++) {
+            long articleId = insertArticleUrl(articles[index][0]);
+            insertGkg(articleId, 400 + index, articles[index][1], null);
+        }
+
+        StoryEmbeddingService.ProcessingResult result = service.processIncremental(articles.length);
+
+        assertThat(result.failed()).isZero();
+        assertThat(client.calls()).isOne();
+        assertThat(service.processIncremental(articles.length).selected()).isZero();
+        assertThat(client.calls()).isOne();
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM story_article_inputs input
+                JOIN story_clustering_versions version ON version.id = input.clustering_version_id
+                WHERE version.version_key = 'story-mvp-title-embedding-24h-v1.1.0'
+                  AND input.input_disposition = 'EXCLUDE'
+                  AND input.exclusion_reason = 'NAVIGATION_SERVICE'
+                  AND input.embedding_status = 'NOT_REQUIRED'
+                  AND input.embedding_artifact_id IS NULL
+                """, Integer.class)).isEqualTo(6);
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM story_article_inputs input
+                JOIN story_clustering_versions version ON version.id = input.clustering_version_id
+                WHERE version.version_key = 'story-mvp-title-embedding-24h-v1.1.0'
+                  AND input.input_disposition = 'INCLUDE'
+                  AND input.embedding_status = 'READY'
+                """, Integer.class)).isOne();
     }
 
     private void awaitAndProcess(CountDownLatch start) {
@@ -213,6 +271,17 @@ class StoryEmbeddingServicePostgresIT {
                 VALUES (?, ?, 'example.org', ?, ?, ?)
                 """, "https://example.org/" + suffix, hash(suffix), timestamp, timestamp, timestamp);
         return articleId(suffix);
+    }
+
+    private long insertArticleUrl(String canonicalUrl) {
+        String articleRef = StoryTitleNormalizer.sha256(
+                canonicalUrl.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        jdbc.update("""
+                INSERT INTO articles (canonical_url, url_hash, domain, first_seen_at, created_at, updated_at)
+                VALUES (?, ?, 'fasterskier.com', ?, ?, ?)
+                """, canonicalUrl, articleRef, timestamp, timestamp, timestamp);
+        return jdbc.queryForObject("SELECT id FROM articles WHERE url_hash = ?",
+                Long.class, articleRef);
     }
 
     private long articleId(String suffix) {

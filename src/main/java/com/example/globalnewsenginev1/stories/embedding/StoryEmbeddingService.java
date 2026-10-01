@@ -89,13 +89,16 @@ public class StoryEmbeddingService {
         if (!repository.lockProcessingVersion(candidate.versionId())) return false;
         repository.lockArticle(candidate.articleId());
         TitleInput title = normalizer.normalize(candidate.title());
+        StoryInputEligibilityRule.Decision eligibility = StoryInputEligibilityRule.evaluate(
+                candidate.inputEligibilityRuleVersion(), candidate.canonicalUrl(),
+                title.normalizedTitle());
         Instant now = clock.instant();
         Instant effectiveAt = candidate.publishedAt() != null
                 ? candidate.publishedAt() : candidate.firstSeenAt();
         String effectiveAtSource = candidate.publishedAt() != null ? "PUBLISHED_AT" : "FIRST_SEEN_AT";
         StoryEmbeddingRepository.Artifact artifact = null;
 
-        if (title.usability() == TitleInput.TitleUsability.USABLE) {
+        if (title.usability() == TitleInput.TitleUsability.USABLE && !eligibility.excluded()) {
             long artifactId = repository.ensureArtifact(candidate, title.titleInputHash(), now);
             artifact = repository.lockArtifact(artifactId).orElse(null);
             if (artifact == null) {
@@ -104,8 +107,9 @@ public class StoryEmbeddingService {
             artifact = processArtifact(candidate, title, artifact);
         }
 
-        String fingerprint = fingerprint(candidate, title, artifact, effectiveAt, effectiveAtSource);
-        repository.synchronizeInput(candidate, title, artifact, fingerprint,
+        String fingerprint = fingerprint(candidate, title, eligibility, artifact,
+                effectiveAt, effectiveAtSource);
+        repository.synchronizeInput(candidate, title, eligibility, artifact, fingerprint,
                 effectiveAt, effectiveAtSource, clock.instant());
         return true;
     }
@@ -168,6 +172,7 @@ public class StoryEmbeddingService {
     private String fingerprint(
             StoryEmbeddingRepository.ArticleCandidate candidate,
             TitleInput title,
+            StoryInputEligibilityRule.Decision eligibility,
             StoryEmbeddingRepository.Artifact artifact,
             Instant effectiveAt,
             String effectiveAtSource
@@ -177,9 +182,12 @@ public class StoryEmbeddingService {
                 effectiveAt.toString(),
                 effectiveAtSource,
                 title.usability().name(),
+                eligibility.disposition(),
+                value(eligibility.reason()),
                 value(title.titleInputHash()),
                 candidate.titleNormalizationVersion(),
                 candidate.genericTitleRuleVersion(),
+                candidate.inputEligibilityRuleVersion(),
                 candidate.embeddingModelId(),
                 candidate.embeddingModelVersion(),
                 Integer.toString(candidate.embeddingDimension()),

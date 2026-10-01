@@ -28,9 +28,11 @@ class StoryEmbeddingRepository {
         return jdbcTemplate.query("""
                 SELECT version.id AS version_id, version.version_key,
                        version.title_normalization_version, version.generic_title_rule_version,
+                       version.input_eligibility_rule_version,
                        version.embedding_model_id, version.embedding_model_version,
                        version.embedding_dimension,
                        article.id AS article_id, article.url_hash AS article_ref,
+                       article.canonical_url,
                        article.first_seen_at,
                        (SELECT g.page_title FROM gdelt_gkg g
                         WHERE g.article_id = article.id
@@ -63,11 +65,13 @@ class StoryEmbeddingRepository {
                 resultSet.getString("version_key"),
                 resultSet.getString("title_normalization_version"),
                 resultSet.getString("generic_title_rule_version"),
+                resultSet.getString("input_eligibility_rule_version"),
                 resultSet.getString("embedding_model_id"),
                 resultSet.getString("embedding_model_version"),
                 resultSet.getInt("embedding_dimension"),
                 resultSet.getLong("article_id"),
                 resultSet.getString("article_ref"),
+                resultSet.getString("canonical_url"),
                 resultSet.getTimestamp("first_seen_at").toInstant(),
                 resultSet.getString("title"),
                 nullableInstant(resultSet.getTimestamp("published_at"))), limit);
@@ -181,6 +185,7 @@ class StoryEmbeddingRepository {
     void synchronizeInput(
             ArticleCandidate candidate,
             TitleInput title,
+            StoryInputEligibilityRule.Decision eligibility,
             Artifact artifact,
             String fingerprint,
             Instant effectiveAt,
@@ -196,8 +201,10 @@ class StoryEmbeddingRepository {
                 resultSet.getLong("id"), resultSet.getString("article_input_fingerprint")),
                 candidate.versionId(), candidate.articleRef());
         String embeddingStatus = title.usability() == TitleInput.TitleUsability.USABLE
+                && !eligibility.excluded()
                 ? artifact.status() : "NOT_REQUIRED";
-        Long artifactId = title.usability() == TitleInput.TitleUsability.USABLE ? artifact.id() : null;
+        Long artifactId = title.usability() == TitleInput.TitleUsability.USABLE
+                && !eligibility.excluded() ? artifact.id() : null;
         int attempts = artifact == null ? 0 : artifact.attemptCount();
         Instant nextRetry = artifact == null ? null : artifact.nextRetryAt();
 
@@ -221,9 +228,10 @@ class StoryEmbeddingRepository {
                 INSERT INTO story_article_inputs (
                     clustering_version_id, article_id, article_ref, effective_at,
                     effective_at_source, normalized_title, title_input_hash, title_usability,
-                    article_input_fingerprint, embedding_status, embedding_artifact_id,
+                    input_disposition, exclusion_reason, article_input_fingerprint,
+                    embedding_status, embedding_artifact_id,
                     attempt_count, next_retry_at, current_marker, created_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?)
                 ON CONFLICT (clustering_version_id, article_ref, article_input_fingerprint)
                 DO UPDATE SET current_marker = 1, superseded_at = NULL,
                     embedding_status = EXCLUDED.embedding_status,
@@ -232,7 +240,8 @@ class StoryEmbeddingRepository {
                     next_retry_at = EXCLUDED.next_retry_at
                 """, candidate.versionId(), candidate.articleId(), candidate.articleRef(),
                 Timestamp.from(effectiveAt), effectiveAtSource, title.normalizedTitle(),
-                title.titleInputHash(), title.usability().name(), fingerprint, embeddingStatus,
+                title.titleInputHash(), title.usability().name(), eligibility.disposition(),
+                eligibility.reason(), fingerprint, embeddingStatus,
                 artifactId, attempts, timestamp(nextRetry), Timestamp.from(now));
     }
 
@@ -297,11 +306,13 @@ class StoryEmbeddingRepository {
             String versionKey,
             String titleNormalizationVersion,
             String genericTitleRuleVersion,
+            String inputEligibilityRuleVersion,
             String embeddingModelId,
             String embeddingModelVersion,
             int embeddingDimension,
             long articleId,
             String articleRef,
+            String canonicalUrl,
             Instant firstSeenAt,
             String title,
             Instant publishedAt

@@ -111,6 +111,7 @@ class StorySnapshotRepository {
                  AND input.effective_at <= ?
                 WHERE input.clustering_version_id = ?
                   AND input.current_marker = 1
+                  AND input.input_disposition = 'INCLUDE'
                   AND (input.effective_at <= ? OR EXISTS (
                       SELECT 1 FROM story_memberships membership
                       WHERE membership.clustering_version_id = input.clustering_version_id

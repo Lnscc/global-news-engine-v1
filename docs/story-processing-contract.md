@@ -85,6 +85,7 @@ Eine Clustering-Version ist ein unveraenderlicher Vertrag mit mindestens folgend
 clusteringVersion
 titleNormalizationVersion
 genericTitleRuleVersion
+inputEligibilityRuleVersion
 embeddingModelId
 embeddingModelVersion
 embeddingDimension
@@ -102,6 +103,7 @@ Fuer die erste Shadow-Version gelten:
 ```text
 titleNormalizationVersion = art031-title-nfkc-ws-v1
 genericTitleRuleVersion = art031-generic-title-v1
+inputEligibilityRuleVersion = all-articles-v1
 embeddingModelId = text-embedding-3-small
 embeddingModelVersion = openai:text-embedding-3-small@2026-07-20
 embeddingDimension = 1536
@@ -207,6 +209,17 @@ Artikel ohne verwendbaren Titel sind `UNASSIGNED` mit Grund `TITLE_MISSING` oder
 `TITLE_GENERIC`. Sie werden bei neuen Titeldaten sowie nach 24 und 72 Stunden erneut betrachtet;
 sie erhalten kein erfundenes Ersatzmerkmal und kein Embedding fuer diese Clustering-Version.
 
+### Navigations- und Serviceseiten
+
+`story-mvp-title-embedding-24h-v1.1.0` verwendet die Eingangsregel
+`navigation-service-exact-path-title-v1`. Sie schliesst nur die exakten kanonischen Pfade
+`/about`, `/advertise`, `/meet-the-team`, `/privacy`, `/resources` und `/support` aus, wenn der
+normalisierte Titel zugleich den passenden Seitentyp bestaetigt. Ein Begriff in einem laengeren
+Artikelpfad oder nur im Titel reicht nicht aus. Ausgeschlossene Inputs speichern Disposition
+`EXCLUDE` und Grund `NAVIGATION_SERVICE`, erhalten kein Embedding und gelangen nicht in Snapshots.
+Die bisherige Version behaelt unveraendert `all-articles-v1`; die neue Version startet als
+`SHADOW` und benoetigt vor einer Aktivierung den bestehenden Freigabeprozess.
+
 ### Artikel-Input-Fingerprint
 
 Der Fingerprint wird deterministisch ueber kanonisch serialisierte Werte gebildet:
@@ -215,6 +228,7 @@ Der Fingerprint wird deterministisch ueber kanonisch serialisierte Werte gebilde
 articleRef
 effectiveAt und verwendete Zeitquelle
 titleInputHash oder expliziter Missing-/Generic-Grund
+Input-Disposition, Ausschlussgrund und Eligibility-Regelversion
 Embedding-Artefaktschluessel und Vektor-Hash
 zugehoerige Titel- und Modellversionen
 ```

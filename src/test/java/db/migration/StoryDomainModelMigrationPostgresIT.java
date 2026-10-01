@@ -59,17 +59,21 @@ class StoryDomainModelMigrationPostgresIT {
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM articles WHERE id = ?", Integer.class, existingArticleId)).isOne();
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM story_clustering_versions", Integer.class)).isEqualTo(3);
+                "SELECT COUNT(*) FROM story_clustering_versions", Integer.class)).isEqualTo(4);
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM story_clustering_versions WHERE status = 'SHADOW'", Integer.class))
-                .isEqualTo(3);
+                .isEqualTo(4);
         assertThat(jdbcTemplate.queryForList("""
                 SELECT candidate_window_hours
                 FROM story_clustering_versions
                 ORDER BY candidate_window_hours
-                """, Integer.class)).containsExactly(24, 48, 72);
+                """, Integer.class)).containsExactly(24, 24, 48, 72);
         assertThat(jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM story_clustering_version_status_history", Integer.class)).isEqualTo(3);
+                "SELECT COUNT(*) FROM story_clustering_version_status_history", Integer.class)).isEqualTo(4);
+        assertThat(jdbcTemplate.queryForObject("""
+                SELECT input_eligibility_rule_version FROM story_clustering_versions
+                WHERE version_key = 'story-mvp-title-embedding-24h-v1.1.0'
+                """, String.class)).isEqualTo("navigation-service-exact-path-title-v1");
         assertThat(jdbcTemplate.queryForObject(
                 "SELECT to_regclass('story_memberships')", String.class)).isEqualTo("story_memberships");
         assertThat(jdbcTemplate.queryForObject(
@@ -235,6 +239,8 @@ class StoryDomainModelMigrationPostgresIT {
     private long versionId(int windowHours) {
         return jdbcTemplate.queryForObject("""
                 SELECT id FROM story_clustering_versions WHERE candidate_window_hours = ?
+                ORDER BY id
+                LIMIT 1
                 """, Long.class, windowHours);
     }
 

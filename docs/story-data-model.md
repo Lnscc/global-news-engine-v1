@@ -16,6 +16,8 @@ veraltete Retries. ART-039 ergaenzt mit V25 die oeffentliche `stories.public_id`
 V26 erzwingt auf PostgreSQL hoechstens eine `ACTIVE`-Version. Ein
 Verfahrenswechsel darf technisch neue Zeilen erzeugen, aber nicht alle Story-IDs ersetzen.
 Die vorhandenen 48-/72-h-Versionen erfordern keinen dauerhaften Parallelbetrieb.
+V27 ergaenzt die versionierte Eingangsregel sowie Disposition und Ausschlussgrund am Artikel-Input
+und legt `story-mvp-title-embedding-24h-v1.1.0` als neue `SHADOW`-Version an.
 
 Migration `V22__create_story_domain_model.sql` bildet den fachlichen Verarbeitungsvertrag aus
 `story-processing-contract.md` als persistierbares PostgreSQL-Schema ab. Migration
@@ -78,6 +80,10 @@ Artefakte fuer denselben fachlichen Schluessel.
 
 Ein Input ist ueber Clustering-Version, `article_ref` und `article_input_fingerprint` eindeutig.
 `article_ref` verweist gemeinsam mit der lokalen ID auf `(articles.id, articles.url_hash)`.
+`input_eligibility_rule_version` gehoert zum unveraenderlichen Versionsvertrag.
+`input_disposition` und `exclusion_reason` halten die konkrete Entscheidung fest. Ein
+`EXCLUDE`-Input ist `NOT_REQUIRED`, besitzt kein Embedding-Artefakt und wird nicht in einen
+Snapshot aufgenommen.
 
 Aktuelle Inputs und Mitgliedschaften tragen `current_marker = 1`; historische Zeilen tragen
 `NULL` und ein Ende. Ein Unique Constraint auf Version, Artikelreferenz und Marker erlaubt

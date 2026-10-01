@@ -201,7 +201,13 @@ public class StoryPromotionService {
             throw new IllegalStateException("Candidate is older than the active version");
         }
         var inputRefs = inputs.stream().map(StorySnapshotRepository.SnapshotInput::articleRef).collect(java.util.stream.Collectors.toSet());
-        if (oldMembers.stream().anyMatch(member -> !inputRefs.contains(member.ref()))) {
+        var excludedRefs = new java.util.HashSet<>(jdbc.queryForList("""
+                SELECT article_ref FROM story_article_inputs
+                WHERE clustering_version_id = ? AND current_marker = 1
+                  AND input_disposition = 'EXCLUDE'
+                """, String.class, target));
+        if (oldMembers.stream().anyMatch(member ->
+                !inputRefs.contains(member.ref()) && !excludedRefs.contains(member.ref()))) {
             throw new IllegalStateException("Candidate omits current active members");
         }
         var match = StoryIdentity.match(old, oldMembers, componentByArticle);

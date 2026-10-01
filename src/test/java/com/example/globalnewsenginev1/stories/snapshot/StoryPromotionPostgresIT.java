@@ -37,6 +37,8 @@ class StoryPromotionPostgresIT {
             "story-mvp-title-embedding-24h-v1.0.0";
     private static final String VERSION_48 =
             "story-mvp-title-embedding-48h-v1.0.0";
+    private static final String VERSION_24_ELIGIBILITY =
+            "story-mvp-title-embedding-24h-v1.1.0";
 
     private DataSource adminDataSource;
     private DataSource dataSource;
@@ -119,6 +121,30 @@ class StoryPromotionPostgresIT {
         assertThat(after.get(ref("a0"))).isEqualTo(before.get(ref("a0")));
         assertThat(service().processBackfill(watermark.plusSeconds(1), 1).succeededVersions()).isOne();
         assertThat(publicAssignments(VERSION_48)).isEqualTo(after);
+    }
+
+    @Test
+    void promotionAllowsExplicitlyExcludedActiveMembers() {
+        seed(VERSION_24, false);
+        seed(VERSION_24_ELIGIBILITY, false);
+        excludeCurrentInput(VERSION_24_ELIGIBILITY, "x0");
+        assertThat(service().processBackfill(watermark, 4).failedVersions()).isZero();
+        var promotion = promotion();
+        promotion.promote(promotion.review(versionId(VERSION_24), holdout(false)),
+                holdout(false), approval());
+        Map<String, UUID> before = publicAssignments(VERSION_24);
+
+        var review = promotion.review(versionId(VERSION_24_ELIGIBILITY), holdout(false));
+
+        assertThat(review.diff().candidateMemberships())
+                .isEqualTo(review.diff().previousMemberships() - 1);
+        assertThat(review.diff().changedMemberships()).isOne();
+        assertThat(promotion.promote(review, holdout(false), approval()))
+                .isEqualTo(StoryPromotionService.Outcome.PROMOTED);
+        assertThat(publicAssignments(VERSION_24_ELIGIBILITY))
+                .doesNotContainKey(ref("x0"));
+        assertThat(publicAssignments(VERSION_24_ELIGIBILITY).get(ref("x1")))
+                .isEqualTo(before.get(ref("x0")));
     }
 
     @Test
@@ -386,6 +412,31 @@ class StoryPromotionPostgresIT {
                 OffsetDateTime.ofInstant(inputEffectiveAt, ZoneOffset.UTC),
                 "Title " + suffix, titleHash, fingerprint, artifactId,
                 OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
+    }
+
+    private void excludeCurrentInput(String versionKey, String suffix) {
+        long current = currentInput(versionKey, suffix);
+        OffsetDateTime now = OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC);
+        jdbc.update("""
+                UPDATE story_article_inputs
+                SET current_marker = NULL, superseded_at = ?
+                WHERE id = ?
+                """, now, current);
+        jdbc.update("""
+                INSERT INTO story_article_inputs (
+                    clustering_version_id, article_id, article_ref, effective_at,
+                    effective_at_source, normalized_title, title_input_hash,
+                    title_usability, input_disposition, exclusion_reason,
+                    article_input_fingerprint, embedding_status, attempt_count,
+                    current_marker, created_at
+                )
+                SELECT clustering_version_id, article_id, article_ref, effective_at,
+                       effective_at_source, normalized_title, title_input_hash,
+                       title_usability, 'EXCLUDE', 'NAVIGATION_SERVICE', ?,
+                       'NOT_REQUIRED', 0, 1, ?
+                FROM story_article_inputs WHERE id = ?
+                """, StoryReleaseEvaluation.hash("excluded:" + versionKey + ":" + suffix),
+                now, current);
     }
 
     private byte[] vector(float first, float second) {

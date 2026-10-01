@@ -32,6 +32,8 @@ class StorySnapshotServicePostgresIT {
             "story-mvp-title-embedding-24h-v1.0.0";
     private static final String VERSION_48 =
             "story-mvp-title-embedding-48h-v1.0.0";
+    private static final String VERSION_24_ELIGIBILITY =
+            "story-mvp-title-embedding-24h-v1.1.0";
 
     private DataSource adminDataSource;
     private DataSource dataSource;
@@ -184,6 +186,29 @@ class StorySnapshotServicePostgresIT {
                 """, Integer.class)).isEqualTo(2);
         assertThat(partitionService.calculate(frozenSnapshot)).isEqualTo(partition);
         assertPublishedStories();
+    }
+
+    @Test
+    void excludedInputsNeverEnterSnapshotsOrMemberships() {
+        jdbc.update("""
+                UPDATE story_clustering_versions SET status = 'ACTIVE', updated_at = CURRENT_TIMESTAMP
+                WHERE version_key = ?
+                """, VERSION_24_ELIGIBILITY);
+        insertReadyInput(VERSION_24_ELIGIBILITY, "a", vector(1, 0), effectiveAt, null);
+        insertExcludedInput(VERSION_24_ELIGIBILITY, "n");
+
+        StorySnapshotService.ProcessingResult result = service().processBackfill(watermark, 1);
+
+        assertThat(result.succeededVersions()).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_snapshot_members", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject(
+                "SELECT COUNT(*) FROM story_memberships", Integer.class)).isOne();
+        assertThat(jdbc.queryForObject("""
+                SELECT COUNT(*) FROM story_snapshot_members member
+                JOIN story_article_inputs input ON input.id = member.article_input_id
+                WHERE input.input_disposition = 'EXCLUDE'
+                """, Integer.class)).isZero();
     }
 
     @Test
@@ -703,6 +728,36 @@ class StorySnapshotServicePostgresIT {
                 """, versionId, articleId, articleRef,
                 OffsetDateTime.ofInstant(inputEffectiveAt, ZoneOffset.UTC),
                 "Title " + suffix, titleHash, fingerprint, artifactId,
+                OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
+    }
+
+    private void insertExcludedInput(String versionKey, String suffix) {
+        String articleRef = ref(suffix);
+        jdbc.update("""
+                INSERT INTO articles (
+                    canonical_url, url_hash, domain, first_seen_at, created_at, updated_at
+                ) VALUES (?, ?, 'example.org', ?, ?, ?)
+                """, "https://example.org/about", articleRef,
+                OffsetDateTime.ofInstant(effectiveAt, ZoneOffset.UTC),
+                OffsetDateTime.ofInstant(effectiveAt, ZoneOffset.UTC),
+                OffsetDateTime.ofInstant(effectiveAt, ZoneOffset.UTC));
+        long articleId = jdbc.queryForObject(
+                "SELECT id FROM articles WHERE url_hash = ?", Long.class, articleRef);
+        String titleHash = StorySnapshotCanonicalizer.sha256(
+                "About Example".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String fingerprint = StorySnapshotCanonicalizer.sha256(
+                ("excluded:" + suffix).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        jdbc.update("""
+                INSERT INTO story_article_inputs (
+                    clustering_version_id, article_id, article_ref, effective_at,
+                    effective_at_source, normalized_title, title_input_hash,
+                    title_usability, input_disposition, exclusion_reason,
+                    article_input_fingerprint, embedding_status, attempt_count,
+                    current_marker, created_at
+                ) VALUES (?, ?, ?, ?, 'PUBLISHED_AT', 'About Example', ?, 'USABLE',
+                          'EXCLUDE', 'NAVIGATION_SERVICE', ?, 'NOT_REQUIRED', 0, 1, ?)
+                """, versionId(versionKey), articleId, articleRef,
+                OffsetDateTime.ofInstant(effectiveAt, ZoneOffset.UTC), titleHash, fingerprint,
                 OffsetDateTime.ofInstant(clock.instant(), ZoneOffset.UTC));
     }
 
