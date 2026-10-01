@@ -308,6 +308,7 @@ protokolliert den Wechselzeitpunkt. `resolvePublicId` loest eine Public ID aussc
 innerhalb der aktuellen aktiven Version auf. Oeffentliche Leser muessen Version und Story
 in derselben SQL-Abfrage lesen. Interne Fremdschluessel verwenden weiterhin `stories.id`.
 
-Es wurde keine produktive Version freigegeben: Die automatisierten Tests verwenden klar
-gekennzeichnete synthetische Daten. Ein neuer fachlich gelabelter Holdout und die dokumentierte
-fachliche Freigabe muessen fuer einen echten Wechsel noch bereitgestellt werden.
+Die Promotion erfolgt nicht automatisch. Die erste fachliche Freigabe und Promotion der
+24-Stunden-Version wurde mit ART-044 ausgefuehrt und ist in der
+[Freigabeentscheidung](analysis/ART-044-release-decision.md) dokumentiert. Eine neue Version
+benoetigt erneut einen unabhaengigen Holdout und eine dokumentierte fachliche Freigabe.

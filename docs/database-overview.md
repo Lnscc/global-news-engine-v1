@@ -49,22 +49,45 @@ Ein Artikel kann historische Inputs und Inputs fuer verschiedene Clustering-Vers
 koennen dasselbe Titel-Embedding verwenden. Snapshots halten die konkreten Inputs und
 Embedding-Hashes fest; Paarentscheidungen beziehen sich auf diesen eingefrorenen Zustand.
 
-### Veroeffentlichung: Schema vorhanden, Writer noch nicht implementiert
+### Veroeffentlichung und Produktsichtbarkeit
 
 ```mermaid
 erDiagram
     story_clustering_versions ||--o{ stories : clustering_version_id
     stories ||--o{ story_memberships : story_id
     articles ||--o{ story_memberships : article_id
+    story_processing_runs ||--o{ story_assignment_decisions : run_id
     story_assignment_decisions ||--o{ story_memberships : decision_id
     stories ||--o{ story_lineage : predecessor_and_successor
     stories ||--o{ story_state_changes : story_id
     story_processing_runs ||--o| story_publish_commits : run_id
 ```
 
-Die Lineage-Tabelle referenziert sowohl die alte als auch die neue Story. Historische
-Mitgliedschaften bleiben erhalten. Ein `SAME_STORY`-Paar ist noch keine veroeffentlichte
-Story-Zuordnung. Details und alle Tabellen stehen im [Story-Datenmodell](story-data-model.md).
+Der Publisher bildet aus der deterministischen Partition Stories und aktuelle Mitgliedschaften.
+Er schreibt Zuordnungsentscheidungen, Story-Ableitungen und den eindeutigen Publish-Commit atomar;
+ein `SAME_STORY`-Paar allein ist noch keine veroeffentlichte Zuordnung. `current_marker = 1`
+kennzeichnet die aktuelle Mitgliedschaft eines Artikels je Version. Vorhandene historische
+Mitgliedschaften und die Lineage-Tabelle bleiben technisch erhalten, sind aber keine zugesicherte
+Produkthistorie. Details und alle Tabellen stehen im [Story-Datenmodell](story-data-model.md).
+
+`stories.id` ist die interne, versionsgebundene Identitaet fuer Fremdschluessel.
+`stories.public_id` ist die oeffentliche Identitaet; die Promotion uebernimmt sie nach den
+Merge-/Split-Regeln in die neue Version. Die Story API loest Public IDs nur in der einzigen
+`ACTIVE`-Version auf und liest nur Mitgliedschaften mit `current_marker = 1`.
+
+### Versionsstatus und Story-Zustand
+
+Die beiden Zustandsarten sind unabhaengig:
+
+| Ebene | Werte | Bedeutung |
+|---|---|---|
+| Clustering-Version | `SHADOW`, `ACTIVE`, `RETIRED` | `SHADOW` wird berechnet, ist aber nicht produktsichtbar; hoechstens eine `ACTIVE`-Version darf die API bedienen; `RETIRED` wird nicht weiterverarbeitet. |
+| Story | `ACTIVE`, `CLOSED`, `SUPERSEDED` | `ACTIVE` und `CLOSED` sind aktuelle fachliche Stories; `SUPERSEDED` ist innerhalb der Version abgeloest und fuer die API unsichtbar. |
+
+Eine fachlich freigegebene Promotion wechselt die neue Version atomar von `SHADOW` nach `ACTIVE`
+und eine bisher aktive Version nach `RETIRED`. Das Audit steht in
+`story_clustering_version_status_history`; ein PostgreSQL-Index verhindert mehrere aktive
+Versionen. Bedienung und Freigabepruefungen beschreibt [Operations](operations.md).
 
 ## 2. Gespeicherte Daten durchsuchen
 
@@ -136,6 +159,27 @@ ORDER BY p.cosine_similarity DESC, p.id
 LIMIT 50;
 ```
 
+### Produktsichtbare Stories und aktuelle Mitgliedschaften
+
+Die Abfragen verwenden wie die REST API nur die aktuelle `ACTIVE`-Version und oeffentliche IDs.
+
+```sql
+SELECT s.public_id, s.state, s.effective_from, s.effective_to,
+       s.representative_article_ref, COUNT(m.id) AS member_count
+FROM stories s
+JOIN story_clustering_versions v
+  ON v.id = s.clustering_version_id AND v.status = 'ACTIVE'
+LEFT JOIN story_memberships m
+  ON m.story_id = s.id
+ AND m.clustering_version_id = s.clustering_version_id
+ AND m.current_marker = 1
+WHERE s.state <> 'SUPERSEDED'
+GROUP BY s.id, s.public_id, s.state, s.effective_from, s.effective_to,
+         s.representative_article_ref
+ORDER BY s.effective_to DESC, s.public_id
+LIMIT 50;
+```
+
 ### Rueckstand der Import-Pipeline
 
 ```sql
@@ -163,17 +207,28 @@ flowchart TD
     A --> API[Lesende Article API]
     A --> I[Versionierte Titel-Inputs]
     I --> B[Titel-Embeddings]
-    B --> S[READY-Inputs im Snapshot einfrieren]
+    B --> S[Inputs im Snapshot einfrieren]
     S --> R[Exakte Paarvergleiche im Zeitfenster]
     R --> D[SAME_STORY oder UNCERTAIN]
-    D -. noch nicht implementiert .-> C[Story-Partition und atomare Veroeffentlichung]
+    D --> C[Deterministische Story-Partition]
+    C --> W[Atomarer Publish: Stories, Zuordnungen, Mitgliedschaften]
+    W --> V{Versionsstatus}
+    V -->|SHADOW| H[Intern pruefbar, nicht produktsichtbar]
+    H -->|Freigabe und Promotion| X[Einzige ACTIVE-Version]
+    V -->|ACTIVE| X
+    X --> Q[Story API ueber public_id und aktuelle Mitgliedschaften]
 ```
 
 Ohne verwendbaren Titel oder erfolgreiches Embedding erreicht ein Input die Paarbewertung
-nicht. Ohne API-Schluessel bleiben verwendbare Embedding-Artefakte `PENDING`. Der aktuelle
-Snapshot-Job arbeitet ausschliesslich im `SHADOW`-Modus. Erfolgreich verarbeitete Payloads
-duerfen nach Ablauf der Retention verschwinden; Fachzeilen und Fehlerhistorie bleiben erhalten.
+nicht; der Publish erfasst ihn stattdessen mit einer begruendeten `UNASSIGNED`-Entscheidung.
+Ohne API-Schluessel bleiben verwendbare Embedding-Artefakte `PENDING`. Snapshot und Publish
+verarbeiten `SHADOW`- und `ACTIVE`-Versionen, bevorzugen aber die aktive Version; `RETIRED` wird
+nicht weiterverarbeitet. Nur die `ACTIVE`-Version ist ueber `GET /stories` und
+`GET /stories/{id}` sichtbar. Erfolgreich verarbeitete Payloads duerfen nach Ablauf der Retention
+verschwinden; Fachzeilen und Fehlerhistorie bleiben erhalten.
 
 Quellen: [SQL-Migrationen](../src/main/resources/db/migration),
 [Java-Migrationen](../src/main/java/db/migration),
-[Story-Verarbeitung](../src/main/java/com/example/globalnewsenginev1/stories).
+[Story-Verarbeitung](../src/main/java/com/example/globalnewsenginev1/stories),
+[Story-Vertrag](story-processing-contract.md) und
+[`Postman-Collection`](postman/Article-API.postman_collection.json).

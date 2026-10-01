@@ -1,6 +1,6 @@
 # ART-046: Story-Architektur-Dokumentation aktualisieren
 
-Status: offen
+Status: erledigt
 Bereich: stories, operations, architecture
 
 ## Kontext
@@ -43,3 +43,16 @@ Dokumente sind nicht enthalten.
 ## Offene Fragen
 
 Keine.
+
+## Implementierungskommentar (2026-10-01)
+
+Die Projekt- und Datenbankuebersichten bilden nun den implementierten Story-Datenfluss von
+Titel-Inputs und Embeddings ueber Snapshot, Paarentscheidungen und deterministische Partition bis
+zu atomarem Publish, Promotion und lesender Story API ab. Die Moduluebersicht nennt die
+Verantwortung von `stories.embedding`, `stories.snapshot`, `stories.query` und `stories.api`.
+
+Die Datenbankuebersicht beschreibt interne und oeffentliche Story-IDs, aktuelle Mitgliedschaften,
+Publish-Commits und Produktsichtbarkeit. Versionsstatus (`SHADOW`, `ACTIVE`, `RETIRED`) und
+Story-Zustaende (`ACTIVE`, `CLOSED`, `SUPERSEDED`) sind getrennt erklaert. Diagramme und
+Querverweise auf Verarbeitungsvertrag, Betrieb, Datenmodell und Postman-Vertrag wurden angepasst;
+die veraltete Betriebsaussage vor der ersten Promotion wurde mit dem ART-044-Stand abgeglichen.

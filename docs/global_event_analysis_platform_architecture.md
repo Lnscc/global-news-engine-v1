@@ -1,7 +1,7 @@
 # Global News Engine - Projektuebersicht
 
 Global News Engine ist ein Spring-Boot-Dienst, der GDELT-2.0-Daten importiert und daraus
-abfragbare Artikel sowie reproduzierbare Vorstufen fuer Story-Clustering erzeugt.
+abfragbare Artikel sowie versionierte, reproduzierbare Stories erzeugt.
 
 ```text
 GDELT-Signale -> Artikel -> Stories -> Topics -> Themes
@@ -19,11 +19,13 @@ Implementiert sind:
 - dauerhafte Fachzeilen, Fehlerhistorie, Pipeline-Health und Payload-Retention;
 - deduplizierte Artikel mit GDELT-Signalen und lesender REST API;
 - versionierte Titel-Inputs und OpenAI-Titel-Embeddings;
-- unveraenderliche Snapshots und exakte Kandidatenpaar-Entscheidungen im `SHADOW`-Modus.
+- unveraenderliche Snapshots, exakte Kandidatenpaar-Entscheidungen und deterministische
+  Story-Partitionen;
+- atomare Veroeffentlichung von Stories, aktuellen Mitgliedschaften und Begruendungen;
+- kontrollierte Promotion einer Clustering-Version mit stabilen Public IDs;
+- eine lesende Story REST API fuer die aktuelle `ACTIVE`-Version.
 
-Noch nicht implementiert sind Story-Zuordnung und -Veroeffentlichung, eine Story API, Topics,
-Themes und Visualisierung. Das Datenbankschema bereitet den Story-Lebenszyklus bereits vor, der
-laufende Snapshot-Job schreibt aber nur Snapshots, Runs und Paarentscheidungen.
+Noch nicht implementiert sind Topics, Themes und Visualisierung.
 
 Volltext-Crawling, Volltext-Embeddings, generative Zusammenfassungen und approximative
 Vektorsuche gehoeren nicht zum aktuellen Story-MVP.
@@ -43,7 +45,11 @@ GDELT Masterfile
     -> Artikel REST API
     -> Titel-Embedding
     -> Snapshot
-    -> Kandidatenpaare im Shadow-Modus
+    -> exakte Kandidatenpaare
+    -> deterministische Story-Partition
+    -> atomarer Publish
+    -> Promotion zur ACTIVE-Version
+    -> Story REST API
 ```
 
 | Bereich | Verantwortung |
@@ -54,7 +60,9 @@ GDELT Masterfile
 | `gdelt.retention` | erfolgreich verarbeitete Payloads fristgerecht entfernen |
 | `articles` | URLs normalisieren, Artikel ableiten und REST-Abfragen bedienen |
 | `stories.embedding` | Titel-Inputs, Embeddings, Retries und Health verwalten |
-| `stories.snapshot` | Inputs einfrieren und Kandidatenpaare berechnen |
+| `stories.snapshot` | Inputs einfrieren, Paare und Partition berechnen, Stories atomar publizieren und Versionen promovieren |
+| `stories.query` | aktuelle Stories der `ACTIVE`-Version ueber Public IDs lesen |
+| `stories.api` | Story-Liste und -Detail ueber HTTP bereitstellen |
 
 ## Datenfluesse
 
@@ -72,11 +80,22 @@ erhalten.
 Artikel werden ueber die normalisierte URL und ihren SHA-256-Hash dedupliziert. Titel und
 Publikationszeitpunkt projiziert die API aus geeigneten GKG-Feldern.
 
-Fuer jede `SHADOW`-Clustering-Version werden aktuelle Artikel-Inputs versioniert und verwendbare
-Titel eingebettet. Der Snapshot-Job friert `READY`-Inputs ein und berechnet innerhalb des
-versionierten Zeitfensters alle zulaessigen Paare mit exakter Cosine Similarity. Treffer ab
-`0.700000` werden als `SAME_STORY`, die beste Diagnose ohne Treffer als `UNCERTAIN` gespeichert.
-Der Job erzeugt noch keine Stories oder Mitgliedschaften.
+Fuer jede verarbeitbare Clustering-Version (`SHADOW` oder `ACTIVE`) werden aktuelle Artikel-Inputs
+versioniert und verwendbare Titel eingebettet. Der Snapshot-Job friert die Inputs ein und
+berechnet innerhalb des versionierten Zeitfensters alle zulaessigen Paare mit exakter Cosine
+Similarity. Treffer ab `0.700000` werden als `SAME_STORY`, die beste Diagnose ohne Treffer als
+`UNCERTAIN` gespeichert. Aus den verwendbaren Snapshot-Mitgliedern entsteht anschliessend eine
+deterministische Medoid-Partition. Unbrauchbare oder noch nicht fertige Inputs erhalten eine
+begruendete `UNASSIGNED`-Entscheidung.
+
+Der Publisher gleicht die Partition mit dem zuletzt veroeffentlichten Stand derselben Version ab
+und schreibt Stories, aktuelle Mitgliedschaften, Zuordnungsentscheidungen und Publish-Commit in
+einer Transaktion. Erst eine bestandene, dokumentiert freigegebene Promotion macht eine
+`SHADOW`-Version zur einzigen `ACTIVE`-Version; eine zuvor aktive Version wird `RETIRED`.
+Versionsstatus (`SHADOW`, `ACTIVE`, `RETIRED`) steuern Verarbeitung und Produktsichtbarkeit. Davon
+getrennt beschreibt der Story-Zustand (`ACTIVE`, `CLOSED`, `SUPERSEDED`) den Lebenszyklus einer
+Story innerhalb ihrer Clustering-Version. Die REST API liest nur nicht abgeloeste Stories und
+aktuelle Mitgliedschaften der `ACTIVE`-Version und verwendet dafuer die stabile `public_id`.
 
 Die initialen Clustering-Versionen verwenden `text-embedding-3-small` mit 1536 Dimensionen
 und getrennten Zeitfenstern von 24, 48 und 72 Stunden. `effectiveAt` ist der projizierte
@@ -95,7 +114,8 @@ zur gespeicherten Clustering-Version, nicht zur Scheduler-Konfiguration.
 | `GET` | `/stories` | aktuelle Stories stabil sortiert und paginiert |
 | `GET` | `/stories/{id}` | Story-Metadaten und aktuelle Mitgliedschaften |
 
-Collection und Vertragstests liegen in [`postman`](postman).
+Request-/Response-Vertrag und Tests stehen in der
+[`Postman-Collection`](postman/Article-API.postman_collection.json).
 
 ## Technologie
 
@@ -160,7 +180,8 @@ Wichtige Einstiegspunkte:
 - [`pom.xml`](../pom.xml) - Abhaengigkeiten, Packaging und Testphasen
 - [`gdelt`](../src/main/java/com/example/globalnewsenginev1/gdelt) - Import-Pipeline
 - [`articles`](../src/main/java/com/example/globalnewsenginev1/articles) - Extraktion und API
-- [`stories`](../src/main/java/com/example/globalnewsenginev1/stories) - Embeddings und Snapshots
+- [`stories`](../src/main/java/com/example/globalnewsenginev1/stories) - Embeddings, Partition,
+  Publish, Promotion und Story API
 - [`SQL-Migrationen`](../src/main/resources/db/migration) und
   [`Java-Migrationen`](../src/main/java/db/migration) - persistiertes Modell und Invarianten
 - [`Tests`](../src/test/java) - Parser, API, Migrationen und Story-Verarbeitung
@@ -169,7 +190,7 @@ Wichtige Einstiegspunkte:
 
 - Ein gemeinsames GDELT-Event, Theme, eine Entitaet oder Domain allein begruendet keine Story.
 - Clustering-Ergebnisse muessen versioniert, reproduzierbar und auditierbar bleiben.
-- Nur eine spaetere Publish-Stufe darf Stories und Mitgliedschaften materialisieren.
+- Nur die atomare Publish-Stufe darf Stories und Mitgliedschaften materialisieren.
 - Eine `SHADOW`-Version wird nur nach bewusster fachlicher Freigabe produktsichtbar.
 - Vor kuerzerer Payload-Retention muessen Backup und Reimport geklaert sein.
 
