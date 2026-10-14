@@ -18,6 +18,11 @@ class StoryEmbeddingRepository {
     }
 
     List<ArticleCandidate> findCandidates(int limit, boolean repairRun) {
+        return findCandidates(null, limit, repairRun);
+    }
+
+    List<ArticleCandidate> findCandidates(Long versionId, int limit, boolean repairRun) {
+        String versionPredicate = versionId == null ? "" : "AND version.id = ?";
         String retryPredicate = repairRun
                 ? "(current.embedding_status = 'PENDING' OR "
                     + "(current.embedding_status = 'RETRYABLE_FAILURE' AND current.attempt_count < 5 "
@@ -49,6 +54,7 @@ class StoryEmbeddingRepository {
                  AND current.article_ref = article.url_hash
                  AND current.current_marker = 1
                 WHERE version.status IN ('SHADOW', 'ACTIVE')
+                  %s
                   AND (
                     current.id IS NULL
                     OR article.updated_at > current.created_at
@@ -60,7 +66,7 @@ class StoryEmbeddingRepository {
                   )
                 ORDER BY CASE WHEN version.status = 'ACTIVE' THEN 0 ELSE 1 END, article.id, version.id
                 LIMIT ?
-                """.formatted(retryPredicate), (resultSet, rowNum) -> new ArticleCandidate(
+                """.formatted(versionPredicate, retryPredicate), (resultSet, rowNum) -> new ArticleCandidate(
                 resultSet.getLong("version_id"),
                 resultSet.getString("version_key"),
                 resultSet.getString("title_normalization_version"),
@@ -74,7 +80,8 @@ class StoryEmbeddingRepository {
                 resultSet.getString("canonical_url"),
                 resultSet.getTimestamp("first_seen_at").toInstant(),
                 resultSet.getString("title"),
-                nullableInstant(resultSet.getTimestamp("published_at"))), limit);
+                nullableInstant(resultSet.getTimestamp("published_at"))),
+                versionId == null ? new Object[]{limit} : new Object[]{versionId, limit});
     }
 
     boolean lockProcessingVersion(long versionId) {

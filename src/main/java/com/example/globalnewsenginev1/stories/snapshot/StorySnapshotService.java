@@ -73,6 +73,23 @@ public class StorySnapshotService {
         return process(RunMode.BACKFILL, watermark, maxVersions);
     }
 
+    public ProcessingResult processBackfill(long versionId, Instant watermark) {
+        StorySnapshotRepository.ClusteringVersion version = repository.findProcessingVersion(versionId)
+                .orElseThrow(() -> new IllegalArgumentException("Unknown processable clustering version: " + versionId));
+        Instant normalized = StorySnapshotCanonicalizer.normalizeWatermark(watermark);
+        long started = System.nanoTime();
+        try {
+            VersionResult result = processVersion(version, RunMode.BACKFILL, normalized);
+            return new ProcessingResult(1, result == VersionResult.SUCCEEDED ? 1 : 0,
+                    result == VersionResult.REUSED ? 1 : 0, 0);
+        } catch (RuntimeException exception) {
+            metrics.failure();
+            throw exception;
+        } finally {
+            metrics.latency(System.nanoTime() - started);
+        }
+    }
+
     public ProcessingResult reprocess(Instant watermark, int maxVersions) {
         return process(RunMode.REPROCESSING, watermark, maxVersions);
     }

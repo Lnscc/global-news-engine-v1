@@ -64,9 +64,17 @@ public class StoryEmbeddingService {
         return process(batchSize, true);
     }
 
+    public ProcessingResult processVersion(long versionId, int batchSize) {
+        return process(versionId, batchSize, true);
+    }
+
     private ProcessingResult process(int batchSize, boolean repairRun) {
+        return process(null, batchSize, repairRun);
+    }
+
+    private ProcessingResult process(Long versionId, int batchSize, boolean repairRun) {
         List<StoryEmbeddingRepository.ArticleCandidate> candidates =
-                repository.findCandidates(batchSize, repairRun);
+                repository.findCandidates(versionId, batchSize, repairRun);
         int processed = 0;
         int failed = 0;
         for (StoryEmbeddingRepository.ArticleCandidate candidate : candidates) {

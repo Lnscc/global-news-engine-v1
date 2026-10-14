@@ -38,6 +38,23 @@ class StorySnapshotRepository {
                 resultSet.getString("pair_decision_rule_version")), limit);
     }
 
+    Optional<ClusteringVersion> findProcessingVersion(long versionId) {
+        return jdbcTemplate.query("""
+                SELECT id, version_key, embedding_dimension, candidate_window_hours,
+                       candidate_similarity_threshold, candidate_search_mode,
+                       pair_decision_rule_version
+                FROM story_clustering_versions
+                WHERE id = ? AND status IN ('SHADOW', 'ACTIVE')
+                """, (resultSet, rowNum) -> new ClusteringVersion(
+                resultSet.getLong("id"),
+                resultSet.getString("version_key"),
+                resultSet.getInt("embedding_dimension"),
+                resultSet.getInt("candidate_window_hours"),
+                resultSet.getBigDecimal("candidate_similarity_threshold").setScale(6),
+                resultSet.getString("candidate_search_mode"),
+                resultSet.getString("pair_decision_rule_version")), versionId).stream().findFirst();
+    }
+
     void lockVersion(long versionId) {
         jdbcTemplate.query("SELECT pg_advisory_xact_lock(?)", resultSet -> null, versionId);
         jdbcTemplate.queryForObject("""
