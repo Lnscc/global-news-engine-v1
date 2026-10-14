@@ -259,7 +259,49 @@ docker compose exec postgres psql -U gne -d gne -c "select * from gdelt_pipeline
 ```
 
 
-## Story-Version freigeben (ART-039)
+## Story-Version automatisiert pruefen und freigeben (ART-039, ART-049)
+
+Der lokale Release-Befehl prueft zuerst Status, Wasserstaende, laufende Verarbeitung sowie
+fehlende oder veraltete Inputs. Danach verarbeitet er ausschliesslich die Kandidatenversion in
+begrenzten Embedding-Batches, publiziert einen idempotenten Snapshot auf dem Wasserstand der
+aktiven Version und erzeugt die Review-Evidenz. Bereits fertige Inputs, Embeddings, Snapshots und
+Runs werden wiederverwendet. `OPENAI_API_KEY` muss gesetzt sein, falls noch Embeddings fehlen.
+
+Review ohne Statuswechsel:
+
+```powershell
+.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--spring.main.web-application-type=none --stories.release.candidate-version=story-mvp-title-embedding-24h-v1.1.0 --stories.release.holdout=docs/analysis/ART-048-holdout-v1.json --stories.release.reviewed-by=Linus --stories.release.review-document=docs/analysis/ART-048-holdout-review.md --stories.release.review-reason=Unveraenderter Kandidat fachlich geprueft'
+```
+
+Standardmaessig wird `docs/analysis/ART-045-regression-cases-v1.json` getrennt vom unabhaengigen
+Holdout ausgewertet. Das reproduzierbare Ergebnis landet in
+`docs/analysis/<candidate>-release-evidence.json`; beide Pfade koennen mit
+`--stories.release.regression` und `--stories.release.evidence` ueberschrieben werden. Jede
+Fortschrittsmeldung ist eine JSON-Logzeile mit `storyReleaseStep` und `elapsedMillis`. Ein Abbruch
+nennt den Blocker; derselbe Befehl kann nach dessen Behebung erneut gestartet werden.
+
+Die Evidenz bindet Holdout, Regressionen, Review, Zustimmung und Batch-Konfiguration ueber einen
+Request-Hash an den Lauf. Vor der Statusaenderung wird atomar eine `PROMOTION_PENDING`-Evidenz
+geschrieben. Falls der abschliessende Dateischreibvorgang scheitert, vervollstaendigt derselbe
+Aufruf die Evidenz, ohne die Promotion zu wiederholen. Abweichende Eingaben werden nicht als
+idempotente Wiederholung akzeptiert.
+
+Eine Promotion erfordert zusaetzlich den ausdruecklichen Schalter und alle drei
+Zustimmungsangaben:
+
+```text
+--stories.release.promote=true
+--stories.release.approved-by=<fachlich Verantwortlicher>
+--stories.release.approval-document=<Dokumentverweis>
+--stories.release.approval-reason=<Begruendung>
+```
+
+Ohne diese Zustimmung bleibt der Kandidat `SHADOW`. Bei nicht bestandenen
+`story-release-gates-v1` bleibt er ebenfalls unveraendert. Nach einer Promotion prueft der
+Workflow genau eine `ACTIVE`-Version sowie eine erfolgreiche Story-Liste und Story-Detailabfrage.
+Der Befehl stellt keine REST API bereit und beendet die Spring-Anwendung nach dem Lauf.
+
+### Technischer Freigabevertrag
 
 Der interne Spring-Service `StoryPromotionService` bietet `review(versionId, holdout)` und
 `promote(review, holdout, approval)`. Es gibt dafuer keine REST API und keinen automatischen

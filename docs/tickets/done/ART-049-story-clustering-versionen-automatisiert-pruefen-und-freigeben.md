@@ -1,6 +1,6 @@
 # ART-049: Story-Clustering-Versionen automatisiert pruefen und freigeben
 
-Status: offen
+Status: erledigt
 Bereich: stories, operations
 
 ## Kontext
@@ -64,3 +64,36 @@ von ART-048 vereinfachen. ART-048 bleibt bis zu einer belastbaren Entscheidung u
 - Soll der operative Einstieg als lokaler CLI-Befehl oder als interner administrativer Job
   angeboten werden?
 - Welche Fortschrittsdaten muessen dauerhaft gespeichert werden und welche genuegen als Logausgabe?
+
+## Implementierungskommentar (2026-10-08)
+
+Umgesetzt ist ein explizit aktivierter lokaler CLI-Lauf auf Basis der vorhandenen Embedding-,
+Snapshot-, Gate- und Promotion-Services. Er prueft Kandidatenstatus, laufende Verarbeitung,
+Wasserstaende sowie fehlende, veraltete und unvollstaendige Inputs vor dem Review. Anschliessend
+verarbeitet er nur die Kandidatenversion in begrenzten, wiederaufnehmbaren Batches und publiziert
+idempotent auf dem Wasserstand der aktiven Version.
+
+Der Lauf speichert Holdout-Gates, Story-Diff, Basis- und Evidenz-Hashes, Review-Metadaten und die
+separat ausgewerteten ART-045-Regressionen als JSON-Datei. Fortschritt und Blocker werden als
+maschinenlesbare JSON-Logzeilen ausgegeben. Ohne ausdruecklichen Promotionsschalter und
+vollstaendige Zustimmung oder bei gescheiterten Gates bleiben die Status unveraendert. Nach einer
+Promotion werden genau eine aktive Version sowie Story-Liste und Story-Detail geprueft.
+
+Automatisierte Tests decken den fruehen Vorabcheck, Wiederaufnahme, fehlgeschlagene Gates,
+fehlende Zustimmung und erfolgreiche Promotion ab. Der Aufruf und seine optionalen Pfade sind in
+`docs/operations.md` dokumentiert. Das Ticket wurde gemaess Vorgabe nicht verschoben und sein
+Status nicht geaendert.
+
+Validierung am 2026-10-08: `mvnw verify` bestand mit 93 Unit-Tests (ein optionaler Korpustest
+uebersprungen) und allen 44 PostgreSQL-Integrationstests.
+
+### Korrektur am 2026-10-14
+
+Die Wiederaufnahme nach einer Promotion wurde abgesichert: Eine atomar geschriebene
+`PROMOTION_PENDING`-Evidenz erlaubt die Reparatur der finalen Evidenzdatei, ohne die Promotion zu
+wiederholen. Ein Request-Hash verhindert die Wiederverwendung fuer abweichende Holdout-,
+Regressions-, Review-, Zustimmungs- oder Batch-Eingaben; `RETIRED`-Versionen werden nicht als
+aktuell aktive Freigabe bestaetigt. JSON-Fortschritt und Blocker enthalten jetzt die Laufzeit.
+
+Validierung am 2026-10-14: `mvnw verify` bestand mit 96 Unit-Tests (ein optionaler Korpustest
+uebersprungen) und allen 44 PostgreSQL-Integrationstests.
