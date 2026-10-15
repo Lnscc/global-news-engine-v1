@@ -50,3 +50,12 @@ Promotion. Das ART-045-Regressionsset ersetzt keinen unabhaengigen Freigabe-Hold
 
 - Welche Datenquelle und welcher Zeitraum bilden den unabhaengigen Holdout?
 - Wer uebernimmt fachliches Labeling, Review und Freigabe?
+
+## Implementierungskommentar (2026-10-15)
+
+Der unabhaengige Holdout mit 20 positiven und 20 negativen Paaren wurde getrennt von den
+ART-045-Regressionsfaellen ausgewertet. Version 1.1 erreichte Precision `1.00` und Recall `0.95`
+und bestand damit beide festen Gates. Nach fachlicher Freigabe durch Linus wurde Version 1.1
+promoviert; sie ist die einzige `ACTIVE`-Version, Version 1.0 ist `RETIRED`. Die abschliessende
+Pruefung bestaetigte 22.561 sichtbare Stories und einen erfolgreichen Detailabruf. Entscheidung
+und reproduzierbare Evidenz liegen unter `docs/analysis`.

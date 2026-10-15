@@ -1,7 +1,7 @@
 {
   "schemaVersion" : "story-release-evidence-v2",
-  "requestHash" : "ffeef8eb2fef674392ea48f4f0439258afe34a47292fdde6f92503fa95c22e44",
-  "evidenceHash" : "bfb897763cb77eda383bd8347f1ad4b3a02e825a3b156ee81837b406ab590e8a",
+  "requestHash" : "e379bf1d9fe880ae2e37b3e24d1b50ecf0674e15be30f9fd4a52811fa63fedf2",
+  "evidenceHash" : "df3eedd5fdc180206f5fb388285ca57ec716c403f0359ec15a16a8fd7ed44c9a",
   "evidence" : {
     "candidateVersion" : "story-mvp-title-embedding-24h-v1.1.0",
     "initialPrecheck" : {
@@ -280,7 +280,11 @@
       "inputQualityDeviations" : [ ],
       "totalDeviations" : 5
     },
-    "outcome" : "REVIEWED",
-    "verification" : null
+    "outcome" : "ACTIVE",
+    "verification" : {
+      "activeVersions" : 1,
+      "visibleStories" : 22561,
+      "detailStoryId" : "0144f8ed-8fa8-3bff-a870-a1bf16d37e7c"
+    }
   }
 }

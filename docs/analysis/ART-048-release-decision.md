@@ -5,7 +5,7 @@
 - Reviewer: Linus
 - Holdout: `art048-holdout-v1.0.0`
 - Gate: `story-release-gates-v1`
-- Result: gates passed; awaiting explicit promotion approval
+- Result: approved and promoted
 
 ## Evaluation
 
@@ -32,7 +32,8 @@ evidence and are not counted toward the release gates.
 
 ## Decision
 
-The unchanged candidate passes the fixed gates. No promotion has been requested yet, so version
-1.1 remains `SHADOW` and version 1.0 remains the only `ACTIVE` version. Reproducible machine-readable
-evidence is stored in
+The unchanged candidate passes the fixed gates. Linus approved the promotion on 2026-10-15.
+Version 1.1 is now the only `ACTIVE` version and version 1.0 is `RETIRED`. Verification found
+22,561 visible stories and successfully loaded story detail
+`0144f8ed-8fa8-3bff-a870-a1bf16d37e7c`. Reproducible machine-readable evidence is stored in
 `docs/analysis/story-mvp-title-embedding-24h-v1.1.0-release-evidence.json`.
