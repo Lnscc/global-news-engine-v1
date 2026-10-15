@@ -97,3 +97,17 @@ aktuell aktive Freigabe bestaetigt. JSON-Fortschritt und Blocker enthalten jetzt
 
 Validierung am 2026-10-14: `mvnw verify` bestand mit 96 Unit-Tests (ein optionaler Korpustest
 uebersprungen) und allen 44 PostgreSQL-Integrationstests.
+
+### Korrektur am 2026-10-15
+
+Der reale ART-048-Lauf deckte drei operative Luecken auf. `NOT_REQUIRED`-Inputs werden nicht mehr
+als unvollstaendige Embeddings gezaehlt, die Kandidatenvorbereitung verarbeitet nur Artikel bis
+zum Ziel-Wasserstand und bestaetigt erfolgreich erneut synchronisierte Inputs. Der dokumentierte
+Aufruf deaktiviert ausserdem alle Hintergrundjobs, damit der Datenstand waehrend des Releases
+stabil bleibt.
+
+Die Review-Rekonstruktion verwendet nun die append-only gespeicherten, per Fremdschluessel an den
+Snapshot gebundenen Paarentscheidungen und dieselbe deterministische Partitionierungsfunktion wie
+die Veroeffentlichung. Beim ART-048-Snapshot sank die Review-Laufzeit dadurch von einer nicht
+abgeschlossenen Vollberechnung auf rund 33 Sekunden, ohne Regeln, Gates oder REST-Vertraege zu
+aendern. Die gezielten Release-Tests bestanden mit 9 Unit- und 10 PostgreSQL-Integrationstests.

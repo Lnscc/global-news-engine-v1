@@ -92,7 +92,8 @@ public class StoryReleaseWorkflow {
         int previousOpen = before.missingInputs() + before.staleInputs() + before.incompleteEmbeddings();
         for (int batch = 1; batch <= request.maxEmbeddingBatches() && previousOpen > 0; batch++) {
             StoryEmbeddingService.ProcessingResult result =
-                    embeddings.processVersion(before.candidateVersionId(), request.embeddingBatchSize());
+                    embeddings.processVersion(before.candidateVersionId(), request.embeddingBatchSize(),
+                            before.targetWatermark());
             Precheck current = precheck(request.candidateVersion());
             progress("embedding-batch", Map.of("batch", batch, "result", result,
                     "missingInputs", current.missingInputs(),
@@ -169,7 +170,7 @@ public class StoryReleaseWorkflow {
                 SELECT COUNT(*) FROM story_article_inputs
                 WHERE clustering_version_id = ? AND current_marker = 1
                   AND effective_at <= ? AND input_disposition = 'INCLUDE'
-                  AND embedding_status <> 'READY'
+                  AND embedding_status NOT IN ('READY', 'NOT_REQUIRED')
                 """, Integer.class, candidate.id(), Timestamp.from(target));
         int stale = target == null ? 0 : jdbc.queryForObject("""
                 SELECT COUNT(*) FROM articles article

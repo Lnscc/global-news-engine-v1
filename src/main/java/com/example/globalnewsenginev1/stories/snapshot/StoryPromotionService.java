@@ -161,8 +161,26 @@ public class StoryPromotionService {
         }
         var frozen = repository.loadSnapshotInputs(snapshot.id());
         Map<String, String> fingerprints = new HashMap<>();
+        Map<String, StorySnapshotRepository.SnapshotInput> frozenByRef = new HashMap<>();
         frozen.forEach(input -> fingerprints.put(input.articleRef(), input.articleInputFingerprint()));
-        var partition = StoryPartitionService.partition(rules, frozen, false);
+        frozen.forEach(input -> frozenByRef.put(input.articleRef(), input));
+        var storedPairs = jdbc.query("""
+                SELECT left_article_ref, right_article_ref, cosine_similarity,
+                       time_distance_seconds, candidate_rank, result,
+                       triggered_rule, top_one_below_threshold
+                FROM story_pair_decisions
+                WHERE snapshot_id = ? AND result = 'SAME_STORY'
+                ORDER BY left_article_ref, right_article_ref
+                """, (rs, row) -> new StorySnapshotService.PairDecision(
+                snapshotInput(frozenByRef, rs.getString("left_article_ref")),
+                snapshotInput(frozenByRef, rs.getString("right_article_ref")),
+                rs.getBigDecimal("cosine_similarity"),
+                rs.getLong("time_distance_seconds"),
+                rs.getInt("candidate_rank"),
+                rs.getString("result"),
+                rs.getString("triggered_rule"),
+                rs.getBoolean("top_one_below_threshold")), snapshot.id());
+        var partition = StoryPartitionService.partitionForPublication(rules, frozen, storedPairs);
         List<StoryPublisher.Story> current = publisher.stories(target);
         List<StoryPublisher.Membership> currentMembers = publisher.memberships(target);
         if (currentMembers.stream().anyMatch(member -> !member.fingerprint().equals(fingerprints.get(member.ref())))) {
@@ -239,6 +257,14 @@ public class StoryPromotionService {
                 + (previous == null ? 0 : publisher.latestCommit(previous)) + ":" + snapshot.inputHash()
                 + ":" + old + ":" + oldMembers + ":" + current + ":" + currentMembers);
         return new Prepared(new Review(target, previous, basis, diff, evaluation), identities);
+    }
+
+    private StorySnapshotRepository.SnapshotInput snapshotInput(
+            Map<String, StorySnapshotRepository.SnapshotInput> inputs, String articleRef) {
+        StorySnapshotRepository.SnapshotInput input = inputs.get(articleRef);
+        if (input == null) throw new IllegalStateException(
+                "Stored pair references an article outside the snapshot: " + articleRef);
+        return input;
     }
 
     private double singletonShare(List<StoryPublisher.Membership> members) {

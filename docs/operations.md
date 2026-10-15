@@ -270,8 +270,11 @@ Runs werden wiederverwendet. `OPENAI_API_KEY` muss gesetzt sein, falls noch Embe
 Review ohne Statuswechsel:
 
 ```powershell
-.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--spring.main.web-application-type=none --stories.release.candidate-version=story-mvp-title-embedding-24h-v1.1.0 --stories.release.holdout=docs/analysis/ART-048-holdout-v1.json --stories.release.reviewed-by=Linus --stories.release.review-document=docs/analysis/ART-048-holdout-review.md --stories.release.review-reason=Unveraenderter Kandidat fachlich geprueft'
+.\mvnw.cmd spring-boot:run '-Dspring-boot.run.arguments=--spring.main.web-application-type=none --gdelt.ingestion.enabled=false --gdelt.staging.enabled=false --gdelt.retention.enabled=false --articles.enabled=false --stories.embeddings.incremental.enabled=false --stories.embeddings.repair.enabled=false --stories.snapshots.incremental.enabled=false --stories.snapshots.backfill.enabled=false --stories.release.candidate-version=story-mvp-title-embedding-24h-v1.1.0 --stories.release.holdout=docs/analysis/ART-048-holdout-v1.json --stories.release.reviewed-by=Linus --stories.release.review-document=docs/analysis/ART-048-holdout-review.md --stories.release.review-reason=Unveraenderter-Kandidat-fachlich-geprueft'
 ```
+
+Die deaktivierten Hintergrundjobs halten den Datenstand waehrend des Release-Laufs stabil.
+Metadatenwerte in `spring-boot.run.arguments` werden ohne Leerzeichen uebergeben.
 
 Standardmaessig wird `docs/analysis/ART-045-regression-cases-v1.json` getrennt vom unabhaengigen
 Holdout ausgewertet. Das reproduzierbare Ergebnis landet in

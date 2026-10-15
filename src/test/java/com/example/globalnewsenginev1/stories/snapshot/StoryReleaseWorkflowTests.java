@@ -52,7 +52,7 @@ class StoryReleaseWorkflowTests {
 
         assertThatThrownBy(() -> workflow.run(request(false, null)))
                 .hasMessageContaining("already unfinished");
-        verify(embeddings, never()).processVersion(anyLong(), anyInt());
+        verify(embeddings, never()).processVersion(anyLong(), anyInt(), any());
         verify(snapshots, never()).processBackfill(anyLong(), any());
     }
 
@@ -61,7 +61,7 @@ class StoryReleaseWorkflowTests {
         StoryReleaseWorkflow.Precheck open = precheck(2, 0, 0, true);
         StoryReleaseWorkflow.Precheck ready = precheck(0, 0, 0, false);
         StoryReleaseWorkflow workflow = workflow(open, ready, ready, ready);
-        when(embeddings.processVersion(1L, 100))
+        when(embeddings.processVersion(1L, 100, WATERMARK))
                 .thenReturn(new StoryEmbeddingService.ProcessingResult(2, 2, 0));
         reviewed(true);
 
@@ -69,7 +69,7 @@ class StoryReleaseWorkflowTests {
 
         assertThat(result.outcome()).isEqualTo("REVIEWED");
         assertThat(temporary.resolve("evidence.json")).exists();
-        verify(embeddings).processVersion(1L, 100);
+        verify(embeddings).processVersion(1L, 100, WATERMARK);
         verify(snapshots).processBackfill(1L, WATERMARK);
     }
 

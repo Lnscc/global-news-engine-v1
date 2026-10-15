@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,11 +19,17 @@ class StoryEmbeddingRepository {
     }
 
     List<ArticleCandidate> findCandidates(int limit, boolean repairRun) {
-        return findCandidates(null, limit, repairRun);
+        return queryCandidates(null, limit, repairRun, null);
     }
 
-    List<ArticleCandidate> findCandidates(Long versionId, int limit, boolean repairRun) {
+    List<ArticleCandidate> findCandidates(long versionId, int limit, boolean repairRun, Instant watermark) {
+        return queryCandidates(versionId, limit, repairRun, watermark);
+    }
+
+    private List<ArticleCandidate> queryCandidates(Long versionId, int limit, boolean repairRun,
+                                                   Instant watermark) {
         String versionPredicate = versionId == null ? "" : "AND version.id = ?";
+        String watermarkPredicate = watermark == null ? "" : "AND article.first_seen_at <= ?";
         String retryPredicate = repairRun
                 ? "(current.embedding_status = 'PENDING' OR "
                     + "(current.embedding_status = 'RETRYABLE_FAILURE' AND current.attempt_count < 5 "
@@ -55,6 +62,7 @@ class StoryEmbeddingRepository {
                  AND current.current_marker = 1
                 WHERE version.status IN ('SHADOW', 'ACTIVE')
                   %s
+                  %s
                   AND (
                     current.id IS NULL
                     OR article.updated_at > current.created_at
@@ -66,7 +74,7 @@ class StoryEmbeddingRepository {
                   )
                 ORDER BY CASE WHEN version.status = 'ACTIVE' THEN 0 ELSE 1 END, article.id, version.id
                 LIMIT ?
-                """.formatted(versionPredicate, retryPredicate), (resultSet, rowNum) -> new ArticleCandidate(
+                """.formatted(versionPredicate, watermarkPredicate, retryPredicate), (resultSet, rowNum) -> new ArticleCandidate(
                 resultSet.getLong("version_id"),
                 resultSet.getString("version_key"),
                 resultSet.getString("title_normalization_version"),
@@ -80,8 +88,7 @@ class StoryEmbeddingRepository {
                 resultSet.getString("canonical_url"),
                 resultSet.getTimestamp("first_seen_at").toInstant(),
                 resultSet.getString("title"),
-                nullableInstant(resultSet.getTimestamp("published_at"))),
-                versionId == null ? new Object[]{limit} : new Object[]{versionId, limit});
+                nullableInstant(resultSet.getTimestamp("published_at"))), parameters(versionId, watermark, limit));
     }
 
     boolean lockProcessingVersion(long versionId) {
@@ -219,9 +226,10 @@ class StoryEmbeddingRepository {
             jdbcTemplate.update("""
                     UPDATE story_article_inputs
                     SET embedding_status = ?, embedding_artifact_id = ?,
-                        attempt_count = ?, next_retry_at = ?
+                        attempt_count = ?, next_retry_at = ?, created_at = ?
                     WHERE id = ?
-                    """, embeddingStatus, artifactId, attempts, timestamp(nextRetry), current.getFirst().id());
+                    """, embeddingStatus, artifactId, attempts, timestamp(nextRetry), Timestamp.from(now),
+                    current.getFirst().id());
             return;
         }
         if (!current.isEmpty()) {
@@ -302,6 +310,14 @@ class StoryEmbeddingRepository {
 
     private static Timestamp timestamp(Instant instant) {
         return instant == null ? null : Timestamp.from(instant);
+    }
+
+    private Object[] parameters(Long versionId, Instant watermark, int limit) {
+        List<Object> parameters = new ArrayList<>();
+        if (versionId != null) parameters.add(versionId);
+        if (watermark != null) parameters.add(Timestamp.from(watermark));
+        parameters.add(limit);
+        return parameters.toArray();
     }
 
     private static Instant nullableInstant(Timestamp timestamp) {
