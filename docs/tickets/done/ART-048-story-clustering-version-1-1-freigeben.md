@@ -1,6 +1,6 @@
 # ART-048: Story-Clustering-Version 1.1 pruefen und freigeben
 
-Status: offen
+Status: erledigt
 Bereich: stories, operations
 
 ## Kontext
